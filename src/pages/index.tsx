@@ -1,239 +1,433 @@
+import { Dialog, Listbox, Transition } from "@headlessui/react";
 import {
   BookmarkIcon,
+  CalendarIcon,
   ChartBarIcon,
   CheckIcon,
   Cog8ToothIcon,
   HandThumbUpIcon,
   HomeIcon,
   MagnifyingGlassIcon,
+  PaperClipIcon,
   PencilSquareIcon,
   SwatchIcon,
+  TagIcon,
+  UserCircleIcon,
   UserGroupIcon,
 } from "@heroicons/react/20/solid";
 import Link from "next/link";
+import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
+import { trpc } from "../utils/trpc";
+import clsx from "clsx";
+import { toast } from "react-hot-toast";
 
-const content = [
+const assignees = [
+  { name: "Unassigned", value: null },
   {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
+    name: "Wade Cooper",
+    value: "wade-cooper",
+    avatar:
+      "https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
   },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
-    author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
+  // More items...
+];
+const labels = [
+  { name: "Unlabelled", value: null },
+  { name: "Engineering", value: "engineering" },
+  // More items...
+];
+const dueDates = [
+  { name: "No due date", value: null },
+  { name: "Today", value: "today" },
+  // More items...
 ];
 
+function Modal({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+  const utils = trpc.useContext();
+  const mutation = trpc.createPost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      utils.posts.invalidate();
+      toast.success("Post created!");
+    },
+    onError: (err: any) => {
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const [assigned, setAssigned] = useState(assignees[0]);
+  const [labelled, setLabelled] = useState(labels[0]);
+  const [dated, setDated] = useState(dueDates[0]);
+  const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const target = e.target as typeof e.target & {
+      title: { value: string };
+    };
+    mutation.mutate({
+      title: target.title.value,
+    });
+  };
+  return (
+    <Transition.Root show={open} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={setOpen}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-brand-900 bg-opacity-75 backdrop-blur-sm transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all max-w-xl w-full">
+                <form className="relative" onSubmit={handleOnSubmit}>
+                  <div className="overflow-hidden rounded-lg border border-brand-300 shadow-sm focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500">
+                    <label htmlFor="title" className="sr-only">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      id="title"
+                      className="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
+                      placeholder="Title"
+                    />
+                    <label htmlFor="description" className="sr-only">
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      name="description"
+                      id="description"
+                      className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      placeholder="Write a description..."
+                      defaultValue={""}
+                    />
+
+                    {/* Spacer element to match the height of the toolbar */}
+                    <div aria-hidden="true">
+                      <div className="py-2">
+                        <div className="h-9" />
+                      </div>
+                      <div className="h-px" />
+                      <div className="py-2">
+                        <div className="py-px">
+                          <div className="h-9" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="absolute inset-x-px bottom-0">
+                    {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
+                    <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
+                      <Listbox
+                        as="div"
+                        value={assigned}
+                        onChange={setAssigned}
+                        className="flex-shrink-0"
+                      >
+                        {({ open }) => (
+                          <>
+                            <Listbox.Label className="sr-only">
+                              {" "}
+                              Assign{" "}
+                            </Listbox.Label>
+                            <div className="relative">
+                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                                {assigned.value === null ? (
+                                  <UserCircleIcon
+                                    className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  <img
+                                    src={assigned.avatar}
+                                    alt=""
+                                    className="h-5 w-5 flex-shrink-0 rounded-full"
+                                  />
+                                )}
+
+                                <span
+                                  className={clsx(
+                                    assigned.value === null
+                                      ? ""
+                                      : "text-brand-900",
+                                    "hidden truncate sm:ml-2 sm:block"
+                                  )}
+                                >
+                                  {assigned.value === null
+                                    ? "Assign"
+                                    : assigned.name}
+                                </span>
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                                  {assignees.map((assignee) => (
+                                    <Listbox.Option
+                                      key={assignee.value}
+                                      className={({ active }) =>
+                                        clsx(
+                                          active
+                                            ? "bg-brand-100"
+                                            : "bg-brand-50",
+                                          "relative cursor-default select-none px-3 py-2"
+                                        )
+                                      }
+                                      value={assignee}
+                                    >
+                                      <div className="flex items-center">
+                                        {assignee.avatar ? (
+                                          <img
+                                            src={assignee.avatar}
+                                            alt=""
+                                            className="h-5 w-5 flex-shrink-0 rounded-full"
+                                          />
+                                        ) : (
+                                          <UserCircleIcon
+                                            className="h-5 w-5 flex-shrink-0 text-brand-400"
+                                            aria-hidden="true"
+                                          />
+                                        )}
+
+                                        <span className="ml-3 block truncate font-medium">
+                                          {assignee.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
+
+                      <Listbox
+                        as="div"
+                        value={labelled}
+                        onChange={setLabelled}
+                        className="flex-shrink-0"
+                      >
+                        {({ open }) => (
+                          <>
+                            <Listbox.Label className="sr-only">
+                              {" "}
+                              Add a label{" "}
+                            </Listbox.Label>
+                            <div className="relative">
+                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                                <TagIcon
+                                  className={clsx(
+                                    labelled.value === null
+                                      ? "text-brand-300"
+                                      : "text-brand-500",
+                                    "h-5 w-5 flex-shrink-0 sm:-ml-1"
+                                  )}
+                                  aria-hidden="true"
+                                />
+                                <span
+                                  className={clsx(
+                                    labelled.value === null
+                                      ? ""
+                                      : "text-brand-900",
+                                    "hidden truncate sm:ml-2 sm:block"
+                                  )}
+                                >
+                                  {labelled.value === null
+                                    ? "Label"
+                                    : labelled.name}
+                                </span>
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                                  {labels.map((label) => (
+                                    <Listbox.Option
+                                      key={label.value}
+                                      className={({ active }) =>
+                                        clsx(
+                                          active
+                                            ? "bg-brand-100"
+                                            : "bg-brand-50",
+                                          "relative cursor-default select-none px-3 py-2"
+                                        )
+                                      }
+                                      value={label}
+                                    >
+                                      <div className="flex items-center">
+                                        <span className="block truncate font-medium">
+                                          {label.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
+
+                      <Listbox
+                        as="div"
+                        value={dated}
+                        onChange={setDated}
+                        className="flex-shrink-0"
+                      >
+                        {({ open }) => (
+                          <>
+                            <Listbox.Label className="sr-only">
+                              {" "}
+                              Add a due date{" "}
+                            </Listbox.Label>
+                            <div className="relative">
+                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                                <CalendarIcon
+                                  className={clsx(
+                                    dated.value === null
+                                      ? "text-brand-300"
+                                      : "text-brand-500",
+                                    "h-5 w-5 flex-shrink-0 sm:-ml-1"
+                                  )}
+                                  aria-hidden="true"
+                                />
+                                <span
+                                  className={clsx(
+                                    dated.value === null
+                                      ? ""
+                                      : "text-brand-900",
+                                    "hidden truncate sm:ml-2 sm:block"
+                                  )}
+                                >
+                                  {dated.value === null
+                                    ? "Due date"
+                                    : dated.name}
+                                </span>
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                                  {dueDates.map((dueDate) => (
+                                    <Listbox.Option
+                                      key={dueDate.value}
+                                      className={({ active }) =>
+                                        clsx(
+                                          active
+                                            ? "bg-brand-100"
+                                            : "bg-brand-50",
+                                          "relative cursor-default select-none px-3 py-2"
+                                        )
+                                      }
+                                      value={dueDate}
+                                    >
+                                      <div className="flex items-center">
+                                        <span className="block truncate font-medium">
+                                          {dueDate.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
+                    </div>
+                    <div className="flex items-center justify-between space-x-3 border-t border-brand-200 px-2 py-2 sm:px-3">
+                      <div className="flex">
+                        <button
+                          type="button"
+                          className="group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400"
+                        >
+                          <PaperClipIcon
+                            className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm italic text-brand-500 group-hover:text-brand-600">
+                            Attach a file
+                          </span>
+                        </button>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <button
+                          type="submit"
+                          className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                        >
+                          Create
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+                <div className="mt-5 sm:mt-6">
+                  <button
+                    type="button"
+                    className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                    onClick={() => setOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
+  );
+}
+
 export default function Home() {
+  const [open, setOpen] = useState(false);
+  const posts = trpc.posts.useQuery();
+  if (!posts.data) {
+    return <div>Loading...</div>;
+  }
+  console.log(posts.data);
   return (
     <>
+      <Modal open={open} setOpen={setOpen} />
       <div className="pb-36 pt-12">
         <div className="mx-auto max-w-xl px-4 text-center">
           <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
@@ -257,7 +451,7 @@ export default function Home() {
                   placeholder="Search"
                   type="search"
                 />
-                <button type="button">
+                <button type="button" onClick={() => setOpen(true)}>
                   <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
                 </button>
               </div>
@@ -267,7 +461,7 @@ export default function Home() {
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
-              {content.map((item, index) => (
+              {posts.data.map((item, index) => (
                 <div key={index} className="relative w-full px-4 py-6">
                   <figure className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
                     <button
@@ -276,19 +470,14 @@ export default function Home() {
                     ></button>
                     <div className="space-y-6">
                       <blockquote className="text-brand-50">
-                        <p>{`“${item.body}”`}</p>
+                        <p>{item.title}</p>
                       </blockquote>
                       <figcaption className="flex items-center gap-x-4">
-                        <img
-                          className="h-10 w-10 rounded-full bg-brand-700"
-                          src={item.author.imageUrl}
-                          alt=""
-                        />
                         <div>
                           <div className="font-semibold text-brand-50">
                             {item.author.name}
                           </div>
-                          <div className="text-brand-50">{`@${item.author.handle}`}</div>
+                          <div className="text-brand-50">{`@${item.author.username}`}</div>
                         </div>
                       </figcaption>
                       <div className="relative flex flex-col space-y-6">
@@ -303,7 +492,7 @@ export default function Home() {
                                 aria-hidden="true"
                               />
                               <span className="font-medium text-brand-50">
-                                3
+                                {item.like}
                               </span>
                               <span className="sr-only">likes</span>
                             </button>
@@ -318,7 +507,7 @@ export default function Home() {
                                 aria-hidden="true"
                               />
                               <span className="font-medium text-brand-50">
-                                6
+                                {item.stat}
                               </span>
                               <span className="sr-only">replies</span>
                             </button>
@@ -333,13 +522,13 @@ export default function Home() {
                                 aria-hidden="true"
                               />
                               <span className="font-medium text-brand-50">
-                                4
+                                {item.bookmark}
                               </span>
                               <span className="sr-only">views</span>
                             </button>
                           </span>
                         </div>
-                        {index % 2 ? (
+                        {item.booksmarks.length > 0 ? (
                           <div className="flex text-sm">
                             <span className="inline-flex items-center text-sm">
                               <button

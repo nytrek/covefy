@@ -10,12 +10,13 @@ datasource db {
 model Profile {
   id         Int          @id @default(autoincrement())
   email      String       @unique
+  name       String
   username   String
   bio        String?
   avatar     String?
   role       Role         @default(USER)
-  Booksmarks Booksmarks[]
-  Post       Post[]
+  booksmarks Booksmarks[]
+  post       Post[]
 }
 
 model Post {
@@ -24,11 +25,11 @@ model Post {
   title      String
   public     Boolean      @default(true)
   published  Boolean      @default(false)
-  Like       Int          @default(0)
+  like       Int          @default(0)
   stat       Int          @default(0)
   bookmark   Int          @default(0)
   authorId   Int
-  Booksmarks Booksmarks[]
+  booksmarks Booksmarks[]
   author     Profile      @relation(fields: [authorId], references: [id])
 }
 
