@@ -505,7 +505,7 @@ function Modal({
   );
 }
 
-export default function Community() {
+export default function Inbox() {
   const [open, setOpen] = useState(false);
   const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.posts.useQuery();
@@ -656,7 +656,7 @@ export default function Community() {
         </Popover>
         <div className="mt-12 mx-auto max-w-xl px-4 text-center">
           <p className="mt-2 text-3xl font-semibold text-brand-50">
-            Discover, learn and connect with like-minded individuals.
+            Start a new conversation or reconnect with an old friend.
           </p>
           <div className="mt-8 flex flex-1 justify-center">
             <div className="w-full px-2 lg:px-6">
@@ -787,17 +787,17 @@ export default function Community() {
           <Link href="/" className="border border-transparent p-2">
             <HomeIcon className="h-8 w-8 rounded-full text-brand-50/40" />
           </Link>
-          <Link
-            href="/community"
-            className="rounded-full border border-brand-base bg-brand-800 p-2"
-          >
-            <UserGroupIcon className="h-8 w-8 text-brand-50/70" />
+          <Link href="/community" className="border border-transparent p-2">
+            <UserGroupIcon className="h-8 w-8 text-brand-50/40" />
           </Link>
           <Link href="/bookmark" className="border border-transparent p-2">
             <BookmarkIcon className="h-8 w-8 text-brand-50/40" />
           </Link>
-          <Link href="/inbox" className="border border-transparent p-2">
-            <InboxStackIcon className="h-8 w-8 text-brand-50/40" />
+          <Link
+            href="/inbox"
+            className="rounded-full border border-brand-base bg-brand-800 p-2"
+          >
+            <InboxStackIcon className="h-8 w-8 text-brand-50/70" />
           </Link>
         </div>
       </div>
