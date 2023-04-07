@@ -29,6 +29,40 @@ export const appRouter = router({
         },
       });
     }),
+  updatePost: procedure
+    // using zod schema to validate and infer input values
+    .input(
+      z.object({
+        id: z.number(),
+        title: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Here some login stuff would happen
+      return await prisma.post.update({
+        data: {
+          title: input.title,
+        },
+        where: {
+          id: input.id,
+        },
+      });
+    }),
+  deletePost: procedure
+    // using zod schema to validate and infer input values
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Here some login stuff would happen
+      return await prisma.post.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

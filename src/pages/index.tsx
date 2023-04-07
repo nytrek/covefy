@@ -20,6 +20,14 @@ import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { trpc } from "../utils/trpc";
 import clsx from "clsx";
 import { toast } from "react-hot-toast";
+import { Prisma } from "@prisma/client";
+
+type Post = Prisma.PostGetPayload<{
+  include: {
+    author: true;
+    booksmarks: true;
+  };
+}>;
 
 const assignees = [
   { name: "Unassigned", value: null },
@@ -44,13 +52,17 @@ const dueDates = [
 
 function Modal({
   open,
+  post,
   setOpen,
+  setPost,
 }: {
   open: boolean;
+  post: Post | null;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  setPost: Dispatch<SetStateAction<Post | null>>;
 }) {
   const utils = trpc.useContext();
-  const mutation = trpc.createPost.useMutation({
+  const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
       utils.posts.invalidate();
@@ -61,17 +73,60 @@ function Modal({
       toast.error("API request failed, check console.log");
     },
   });
+  const updateMutation = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      setPost(null);
+      setOpen(false);
+      utils.posts.invalidate();
+      toast.success("Post updated!");
+    },
+    onError: (err: any) => {
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const deleteMutation = trpc.deletePost.useMutation({
+    onSuccess: () => {
+      //clear post state
+      setPost(null);
+      //close the modal
+      setOpen(false);
+      //invalidate cache
+      utils.posts.invalidate();
+      //notification
+      toast.success("Post deleted!");
+    },
+    onError: (err: any) => {
+      //console out error
+      console.log(err.message);
+      //notification
+      toast.error("API request failed, check console.log");
+    },
+  });
   const [assigned, setAssigned] = useState(assignees[0]);
   const [labelled, setLabelled] = useState(labels[0]);
   const [dated, setDated] = useState(dueDates[0]);
+  const handleOnClick = () => {
+    if (!post) return; //execute if the user has selected a post
+    deleteMutation.mutate({
+      id: post.id,
+    });
+  };
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const target = e.target as typeof e.target & {
       title: { value: string };
     };
-    mutation.mutate({
-      title: target.title.value,
-    });
+    if (post) {
+      updateMutation.mutate({
+        id: post.id,
+        title: target.title.value,
+      });
+    } else {
+      createMutation.mutate({
+        title: target.title.value,
+      });
+    }
   };
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -111,6 +166,7 @@ function Modal({
                       id="title"
                       className="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
                       placeholder="Title"
+                      defaultValue={post?.title}
                     />
                     <label htmlFor="description" className="sr-only">
                       Description
@@ -389,13 +445,31 @@ function Modal({
                           </span>
                         </button>
                       </div>
-                      <div className="flex-shrink-0">
-                        <button
-                          type="submit"
-                          className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                        >
-                          Create
-                        </button>
+                      <div className="flex-shrink-0 space-x-1">
+                        {post ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleOnClick}
+                              className="inline-flex items-center rounded-md border border-brand-600 px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              type="submit"
+                              className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Save
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="submit"
+                            className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                          >
+                            Create
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -420,6 +494,7 @@ function Modal({
 
 export default function Home() {
   const [open, setOpen] = useState(false);
+  const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.posts.useQuery();
   if (!posts.data) {
     return <div>Loading...</div>;
@@ -427,7 +502,7 @@ export default function Home() {
   console.log(posts.data);
   return (
     <>
-      <Modal open={open} setOpen={setOpen} />
+      <Modal open={open} post={post} setOpen={setOpen} setPost={setPost} />
       <div className="pb-36 pt-12">
         <div className="mx-auto max-w-xl px-4 text-center">
           <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
@@ -466,6 +541,10 @@ export default function Home() {
                   <figure className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
                     <button
                       type="button"
+                      onClick={() => {
+                        setOpen(true);
+                        setPost(item as unknown as Post);
+                      }}
                       className="absolute inset-0 rounded-2xl"
                     ></button>
                     <div className="space-y-6">
