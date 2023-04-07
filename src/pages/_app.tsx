@@ -1,8 +1,9 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import "@src/styles/globals.css";
 import type { AppType } from "next/app";
-import { trpc } from "../utils/trpc";
 import { Toaster } from "react-hot-toast";
 import { Tokens } from "../../.mirrorful/theme";
+import { trpc } from "../utils/trpc";
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
@@ -14,7 +15,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           },
         }}
       />
-      <Component {...pageProps} />
+      <ClerkProvider {...pageProps}>
+        <Component {...pageProps} />
+      </ClerkProvider>
     </>
   );
 };

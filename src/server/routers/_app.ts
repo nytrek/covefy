@@ -1,8 +1,14 @@
-import { z } from "zod";
 import { prisma } from "@src/lib/prisma";
-import { procedure, router } from "../trpc";
+import { z } from "zod";
+import { publicProcedure, router } from "../trpc";
 export const appRouter = router({
-  posts: procedure.query(async () => {
+  getUser: publicProcedure.query(({ ctx }) => {
+    console.log("userId", ctx.auth?.userId);
+    return {
+      greeting: `hello! ${ctx.auth?.userId}`,
+    };
+  }),
+  posts: publicProcedure.query(async () => {
     return await prisma.post.findMany({
       include: {
         author: true,
@@ -10,7 +16,7 @@ export const appRouter = router({
       },
     });
   }),
-  createPost: procedure
+  createPost: publicProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
@@ -29,7 +35,7 @@ export const appRouter = router({
         },
       });
     }),
-  updatePost: procedure
+  updatePost: publicProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
@@ -48,7 +54,7 @@ export const appRouter = router({
         },
       });
     }),
-  deletePost: procedure
+  deletePost: publicProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({

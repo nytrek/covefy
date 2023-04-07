@@ -1,4 +1,5 @@
-import { Dialog, Listbox, Menu, Popover, Transition } from "@headlessui/react";
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { Dialog, Listbox, Popover, Transition } from "@headlessui/react";
 import {
   BookmarkIcon,
   CalendarIcon,
@@ -559,46 +560,22 @@ export default function Community() {
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
                     </a>
 
-                    {/* Profile dropdown */}
-                    <Menu as="div" className="relative ml-5 flex-shrink-0">
-                      <div>
-                        <Menu.Button className="flex rounded-full">
-                          <span className="sr-only">Open user menu</span>
-                          <img
-                            className="h-8 w-8 rounded-full"
-                            src={user.imageUrl}
-                            alt=""
-                          />
-                        </Menu.Button>
-                      </div>
-                      <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-brand-50 py-1 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                          {userNavigation.map((item) => (
-                            <Menu.Item key={item.name}>
-                              {({ active }) => (
-                                <Link
-                                  href={item.href}
-                                  className={clsx(
-                                    active ? "bg-brand-100" : "",
-                                    "block px-4 py-2 text-sm text-brand-700"
-                                  )}
-                                >
-                                  {item.name}
-                                </Link>
-                              )}
-                            </Menu.Item>
-                          ))}
-                        </Menu.Items>
-                      </Transition>
-                    </Menu>
+                    <div className="relative ml-5 flex-shrink-0">
+                      <SignedOut>
+                        <SignInButton mode="modal">
+                          <button
+                            type="button"
+                            className="rounded-full bg-brand-600 flex items-center justify-center"
+                          >
+                            <UserCircleIcon className="h-8 w-8 text-brand-50" />
+                          </button>
+                        </SignInButton>
+                      </SignedOut>
+
+                      <SignedIn>
+                        <UserButton />
+                      </SignedIn>
+                    </div>
                   </div>
                 </div>
               </div>
