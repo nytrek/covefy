@@ -3,16 +3,15 @@ import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 export const appRouter = router({
   getUser: publicProcedure.query(({ ctx }) => {
-    console.log("userId", ctx.auth?.userId);
+    console.log("username", ctx.auth?.user?.username);
     return {
-      greeting: `hello! ${ctx.auth?.userId}`,
+      greeting: `hello! ${ctx.auth?.user?.username}`,
     };
   }),
   posts: publicProcedure.query(async () => {
     return await prisma.post.findMany({
       include: {
-        author: true,
-        booksmarks: true,
+        bookmarks: true,
       },
     });
   }),
@@ -21,6 +20,9 @@ export const appRouter = router({
     .input(
       z.object({
         title: z.string(),
+        description: z.string(),
+        authorName: z.string(),
+        authorUsername: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -28,10 +30,11 @@ export const appRouter = router({
       return await prisma.post.create({
         data: {
           title: input.title,
-          authorId: 2,
+          description: input.description,
+          authorName: input.authorName,
+          authorUsername: input.authorUsername,
           like: 16,
           stat: 27,
-          bookmark: 9,
         },
       });
     }),

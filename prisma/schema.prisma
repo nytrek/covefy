@@ -7,42 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Profile {
-  id         Int          @id @default(autoincrement())
-  email      String       @unique
-  name       String
-  username   String
-  bio        String?
-  avatar     String?
-  role       Role         @default(USER)
-  booksmarks Booksmarks[]
-  post       Post[]
-}
-
 model Post {
-  id         Int          @id @default(autoincrement())
-  createdAt  DateTime     @default(now())
-  title      String
-  public     Boolean      @default(true)
-  published  Boolean      @default(false)
-  like       Int          @default(0)
-  stat       Int          @default(0)
-  bookmark   Int          @default(0)
-  authorId   Int
-  booksmarks Booksmarks[]
-  author     Profile      @relation(fields: [authorId], references: [id])
+  id             Int         @id @default(autoincrement())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+  title          String
+  description    String
+  public         Boolean     @default(true)
+  published      Boolean     @default(false)
+  like           Int         @default(0)
+  stat           Int         @default(0)
+  bookmarks      Bookmarks[]
+  authorName     String
+  authorUsername String
 }
 
-model Booksmarks {
-  postId    Int
-  profileId Int
-  post      Post    @relation(fields: [postId], references: [id])
-  profile   Profile @relation(fields: [profileId], references: [id])
-
-  @@id([postId, profileId])
-}
-
-enum Role {
-  USER
-  ADMIN
+model Bookmarks {
+  id     Int    @id @default(autoincrement())
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id])
+  author String
 }

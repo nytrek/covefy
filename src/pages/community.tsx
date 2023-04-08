@@ -1,4 +1,10 @@
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
 import { Dialog, Listbox, Popover, Transition } from "@headlessui/react";
 import {
   BookmarkIcon,
@@ -24,22 +30,9 @@ import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { toast } from "react-hot-toast";
 import { trpc } from "../utils/trpc";
 
-const user = {
-  name: "Chelsea Hagon",
-  email: "chelsea.hagon@example.com",
-  imageUrl:
-    "https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-};
-const userNavigation = [
-  { name: "Your Profile", href: "/profile" },
-  { name: "Settings", href: "/settings" },
-  { name: "Sign out", href: "#" },
-];
-
 type Post = Prisma.PostGetPayload<{
   include: {
-    author: true;
-    booksmarks: true;
+    bookmarks: true;
   };
 }>;
 
@@ -75,6 +68,7 @@ function Modal({
   setOpen: Dispatch<SetStateAction<boolean>>;
   setPost: Dispatch<SetStateAction<Post | null>>;
 }) {
+  const { user } = useUser();
   const utils = trpc.useContext();
   const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
@@ -128,8 +122,10 @@ function Modal({
   };
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user?.fullName || !user?.username) return;
     const target = e.target as typeof e.target & {
       title: { value: string };
+      description: { value: string };
     };
     if (post) {
       updateMutation.mutate({
@@ -139,6 +135,9 @@ function Modal({
     } else {
       createMutation.mutate({
         title: target.title.value,
+        description: target.description.value,
+        authorName: user?.fullName,
+        authorUsername: user?.username,
       });
     }
   };
@@ -181,6 +180,7 @@ function Modal({
                       className="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
                       placeholder="Title"
                       defaultValue={post?.title}
+                      required
                     />
                     <label htmlFor="description" className="sr-only">
                       Description
@@ -191,7 +191,8 @@ function Modal({
                       id="description"
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description..."
-                      defaultValue={""}
+                      defaultValue={post?.description}
+                      required
                     />
 
                     {/* Spacer element to match the height of the toolbar */}
@@ -506,10 +507,13 @@ function Modal({
   );
 }
 
-export default function Community() {
+export default function Home() {
+  const { user } = useUser();
   const [open, setOpen] = useState(false);
   const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.posts.useQuery();
+  const getUser = trpc.getUser.useQuery();
+  console.log(getUser.data);
   if (!posts.data) {
     return <div>Loading...</div>;
   }
@@ -584,18 +588,27 @@ export default function Community() {
                 <div className="pt-4">
                   <div className="mx-auto flex max-w-3xl items-center px-4 sm:px-6">
                     <div className="flex-shrink-0">
-                      <img
-                        className="h-10 w-10 rounded-full"
-                        src={user.imageUrl}
-                        alt=""
-                      />
+                      <SignedOut>
+                        <SignInButton mode="modal">
+                          <button
+                            type="button"
+                            className="rounded-full bg-brand-600 flex items-center justify-center"
+                          >
+                            <UserCircleIcon className="h-10 w-10 text-brand-50" />
+                          </button>
+                        </SignInButton>
+                      </SignedOut>
+
+                      <SignedIn>
+                        <UserButton />
+                      </SignedIn>
                     </div>
                     <div className="ml-3">
                       <div className="text-base font-medium text-brand-50">
-                        {user.name}
+                        {user?.fullName}
                       </div>
                       <div className="text-sm font-medium text-brand-500">
-                        {user.email}
+                        {user?.username}
                       </div>
                     </div>
                     <button
@@ -605,17 +618,6 @@ export default function Community() {
                       <span className="sr-only">View notifications</span>
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
-                  </div>
-                  <div className="mx-auto mt-3 max-w-3xl space-y-1 px-2 sm:px-4">
-                    {userNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="block rounded-md px-3 py-2 text-base font-medium text-brand-50 hover:bg-brand-800"
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
                   </div>
                 </div>
 
@@ -660,7 +662,7 @@ export default function Community() {
         </div>
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 lg:w-auto w-full">
+            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 w-full lg:w-auto">
               {posts.data.map((item, index) => (
                 <div key={index} className="relative w-full px-4 py-6">
                   <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
@@ -679,9 +681,9 @@ export default function Community() {
                       <figcaption className="flex items-center gap-x-4">
                         <div>
                           <div className="font-semibold text-brand-50">
-                            {item.author.name}
+                            {item.authorName}
                           </div>
-                          <div className="text-brand-50">{`@${item.author.username}`}</div>
+                          <div className="text-brand-50">{`@${item.authorUsername}`}</div>
                         </div>
                       </figcaption>
                       <div className="relative flex flex-col space-y-6">
@@ -726,13 +728,13 @@ export default function Community() {
                                 aria-hidden="true"
                               />
                               <span className="font-medium text-brand-50">
-                                {item.bookmark}
+                                {item.bookmarks.length}
                               </span>
                               <span className="sr-only">views</span>
                             </button>
                           </span>
                         </div>
-                        {item.booksmarks.length > 0 ? (
+                        {item.bookmarks.length > 0 ? (
                           <div className="flex text-sm">
                             <span className="inline-flex items-center text-sm">
                               <button
