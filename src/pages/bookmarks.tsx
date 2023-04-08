@@ -853,7 +853,9 @@ export default function Bookmarks() {
                               </button>
                             </span>
                           </div>
-                          {item.bookmarks.length > 0 ? (
+                          {item.bookmarks.find(
+                            (post) => post.authorId === user?.id
+                          ) ? (
                             <div className="flex text-sm">
                               <span className="inline-flex items-center text-sm">
                                 <button
