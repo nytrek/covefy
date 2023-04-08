@@ -24,8 +24,8 @@ const userNavigation = [
   { name: "Sign out", href: "#" },
 ];
 
-export default function Settings() {
-  const { back, push } = useRouter();
+export default function Account() {
+  const { push } = useRouter();
   return (
     <>
       <Popover as="header">

@@ -8,29 +8,36 @@ datasource db {
 }
 
 model Post {
-  id             Int        @id @default(autoincrement())
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @default(now())
-  title          String
-  description    String
-  public         Boolean    @default(true)
-  likes          Like[]
-  stat           Int        @default(0)
-  bookmarks      Bookmark[]
-  authorName     String
-  authorUsername String
+  id                    Int        @id @default(autoincrement())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @default(now())
+  title                 String     @db.VarChar(100)
+  description           String     @db.VarChar(360)
+  label                 Label      @default(PUBLIC)
+  likes                 Like[]
+  stat                  Int        @default(0)
+  bookmarks             Bookmark[]
+  authorId              String
+  authorName            String
+  authorUsername        String
+  authorProfileImageUrl String
 }
 
 model Like {
-  id     Int    @id @default(autoincrement())
-  postId Int
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author String
+  id       Int    @id @default(autoincrement())
+  postId   Int
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
 }
 
 model Bookmark {
-  id     Int    @id @default(autoincrement())
-  postId Int
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author String
+  id       Int    @id @default(autoincrement())
+  postId   Int
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+}
+
+enum Label {
+  PUBLIC
+  PRIVATE
 }

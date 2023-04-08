@@ -1,29 +1,65 @@
 import { prisma } from "@src/lib/prisma";
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { publicProcedure, protectedProcedure, router } from "../trpc";
+import { Label } from "@prisma/client";
 export const appRouter = router({
-  getUser: publicProcedure.query(({ ctx }) => {
-    console.log("username", ctx.auth?.user?.username);
-    return {
-      greeting: `hello! ${ctx.auth?.user?.username}`,
-    };
-  }),
-  posts: publicProcedure.query(async () => {
+  getUserPosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
+      where: {
+        authorId: ctx.auth.userId,
+      },
       include: {
         likes: true,
         bookmarks: true,
       },
+      orderBy: {
+        id: "desc",
+      },
     });
   }),
-  createPost: publicProcedure
+  getPublicPosts: publicProcedure.query(async () => {
+    return await prisma.post.findMany({
+      where: {
+        label: "PUBLIC",
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+  }),
+  getBookmarkedPosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        bookmarks: {
+          some: {
+            authorId: ctx.auth.userId,
+          },
+        },
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+  }),
+  createPost: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
         title: z.string(),
+        label: z.nativeEnum(Label),
         description: z.string(),
+        authorId: z.string(),
         authorName: z.string(),
         authorUsername: z.string(),
+        authorProfileImageUrl: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -31,19 +67,23 @@ export const appRouter = router({
       return await prisma.post.create({
         data: {
           title: input.title,
+          label: input.label,
           description: input.description,
+          authorId: input.authorId,
           authorName: input.authorName,
           authorUsername: input.authorUsername,
-          stat: 27,
+          authorProfileImageUrl: input.authorProfileImageUrl,
         },
       });
     }),
-  updatePost: publicProcedure
+  updatePost: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
         id: z.number(),
         title: z.string(),
+        label: z.nativeEnum(Label),
+        description: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -51,13 +91,15 @@ export const appRouter = router({
       return await prisma.post.update({
         data: {
           title: input.title,
+          label: input.label,
+          description: input.description,
         },
         where: {
           id: input.id,
         },
       });
     }),
-  deletePost: publicProcedure
+  deletePost: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
@@ -72,24 +114,24 @@ export const appRouter = router({
         },
       });
     }),
-  createLike: publicProcedure
+  createLike: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
-        author: z.string(),
         postId: z.number(),
+        authorId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       // Here some login stuff would happen
       return await prisma.like.create({
         data: {
-          author: input.author,
           postId: input.postId,
+          authorId: input.authorId,
         },
       });
     }),
-  deleteLike: publicProcedure
+  deleteLike: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
@@ -104,24 +146,24 @@ export const appRouter = router({
         },
       });
     }),
-  createBookmark: publicProcedure
+  createBookmark: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({
-        author: z.string(),
         postId: z.number(),
+        authorId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       // Here some login stuff would happen
       return await prisma.bookmark.create({
         data: {
-          author: input.author,
           postId: input.postId,
+          authorId: input.authorId,
         },
       });
     }),
-  deleteBookmark: publicProcedure
+  deleteBookmark: protectedProcedure
     // using zod schema to validate and infer input values
     .input(
       z.object({

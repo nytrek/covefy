@@ -8,7 +8,6 @@ import {
 import { Dialog, Listbox, Popover, Transition } from "@headlessui/react";
 import {
   BookmarkIcon,
-  CalendarIcon,
   ChartBarIcon,
   CheckIcon,
   HandThumbUpIcon,
@@ -17,15 +16,16 @@ import {
   MagnifyingGlassIcon,
   PaperClipIcon,
   PencilSquareIcon,
+  RectangleStackIcon,
   SwatchIcon,
   TagIcon,
   UserCircleIcon,
-  UserGroupIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Bookmark, Like, Prisma } from "@prisma/client";
+import { Bookmark, Label, Like, Prisma } from "@prisma/client";
 import clsx from "clsx";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { toast } from "react-hot-toast";
 import { trpc } from "../utils/trpc";
@@ -47,16 +47,6 @@ const assignees = [
   },
   // More items...
 ];
-const labels = [
-  { name: "Unlabelled", value: null },
-  { name: "Engineering", value: "engineering" },
-  // More items...
-];
-const dueDates = [
-  { name: "No due date", value: null },
-  { name: "Today", value: "today" },
-  // More items...
-];
 
 function Modal({
   open,
@@ -71,14 +61,18 @@ function Modal({
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
+  const [assigned, setAssigned] = useState(assignees[0]);
+  const [labelled, setLabelled] = useState(post?.label ?? null);
   const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
       toast.dismiss();
-      utils.posts.invalidate();
+      setLabelled(null);
+      utils.getPublicPosts.invalidate();
       toast.success("Post created!");
     },
     onError: (err: any) => {
+      toast.dismiss();
       console.log(err.message);
       toast.error("API request failed, check console.log");
     },
@@ -88,10 +82,12 @@ function Modal({
       setPost(null);
       setOpen(false);
       toast.dismiss();
-      utils.posts.invalidate();
+      setLabelled(null);
+      utils.getPublicPosts.invalidate();
       toast.success("Post updated!");
     },
     onError: (err: any) => {
+      toast.dismiss();
       console.log(err.message);
       toast.error("API request failed, check console.log");
     },
@@ -103,8 +99,10 @@ function Modal({
       setPost(null);
       //close the modal
       setOpen(false);
+      //clear the label
+      setLabelled(null);
       //invalidate cache
-      utils.posts.invalidate();
+      utils.getPublicPosts.invalidate();
       //notification
       toast.success("Post deleted!");
     },
@@ -116,9 +114,6 @@ function Modal({
       toast.error("API request failed, check console.log");
     },
   });
-  const [assigned, setAssigned] = useState(assignees[0]);
-  const [labelled, setLabelled] = useState(labels[0]);
-  const [dated, setDated] = useState(dueDates[0]);
   const handleOnClick = () => {
     if (!post) return; //execute if the user has selected a post
     toast.loading("Loading...");
@@ -129,22 +124,29 @@ function Modal({
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.fullName || !user?.username) return;
+    if (labelled === null) return toast("Please set a label for the post");
     toast.loading("Loading...");
     const target = e.target as typeof e.target & {
       title: { value: string };
+      label: { value: Label };
       description: { value: string };
     };
     if (post) {
       updateMutation.mutate({
         id: post.id,
+        label: target.label.value,
         title: target.title.value,
+        description: target.description.value,
       });
     } else {
       createMutation.mutate({
+        label: target.label.value,
         title: target.title.value,
         description: target.description.value,
+        authorId: user?.id,
         authorName: user?.fullName,
         authorUsername: user?.username,
+        authorProfileImageUrl: user?.profileImageUrl,
       });
     }
   };
@@ -156,6 +158,7 @@ function Modal({
         onClose={() => {
           setPost(null);
           setOpen(false);
+          setLabelled(null);
         }}
       >
         <Transition.Child
@@ -194,6 +197,7 @@ function Modal({
                       className="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
                       placeholder="Title"
                       defaultValue={post?.title}
+                      maxLength={100}
                       required
                     />
                     <label htmlFor="description" className="sr-only">
@@ -206,6 +210,7 @@ function Modal({
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description..."
                       defaultValue={post?.description}
+                      maxLength={360}
                       required
                     />
 
@@ -262,7 +267,7 @@ function Modal({
                                   )}
                                 >
                                   {assigned.value === null
-                                    ? "Assign"
+                                    ? "Send to"
                                     : assigned.name}
                                 </span>
                               </Listbox.Button>
@@ -330,26 +335,22 @@ function Modal({
                             <div className="relative">
                               <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
                                 <TagIcon
-                                  className={clsx(
-                                    labelled.value === null
-                                      ? "text-brand-300"
-                                      : "text-brand-500",
-                                    "h-5 w-5 flex-shrink-0 sm:-ml-1"
-                                  )}
+                                  className="h-5 w-5 flex-shrink-0 sm:-ml-1 text-brand-500"
                                   aria-hidden="true"
                                 />
-                                <span
-                                  className={clsx(
-                                    labelled.value === null
-                                      ? ""
-                                      : "text-brand-900",
-                                    "hidden truncate sm:ml-2 sm:block"
-                                  )}
-                                >
-                                  {labelled.value === null
-                                    ? "Label"
-                                    : labelled.name}
-                                </span>
+                                <input
+                                  name="label"
+                                  key={labelled}
+                                  defaultValue={
+                                    labelled
+                                      ? labelled
+                                      : post?.label
+                                      ? post?.label
+                                      : "Set label"
+                                  }
+                                  className="w-0 truncate sm:ml-2 sm:w-16 text-brand-500 bg-transparent cursor-pointer"
+                                  disabled
+                                />
                               </Listbox.Button>
 
                               <Transition
@@ -360,98 +361,38 @@ function Modal({
                                 leaveTo="opacity-0"
                               >
                                 <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                                  {labels.map((label) => (
-                                    <Listbox.Option
-                                      key={label.value}
-                                      className={({ active }) =>
-                                        clsx(
-                                          active
-                                            ? "bg-brand-100"
-                                            : "bg-brand-50",
-                                          "relative cursor-default select-none px-3 py-2"
-                                        )
-                                      }
-                                      value={label}
-                                    >
-                                      <div className="flex items-center">
-                                        <span className="block truncate font-medium">
-                                          {label.name}
-                                        </span>
-                                      </div>
-                                    </Listbox.Option>
-                                  ))}
-                                </Listbox.Options>
-                              </Transition>
-                            </div>
-                          </>
-                        )}
-                      </Listbox>
-
-                      <Listbox
-                        as="div"
-                        value={dated}
-                        onChange={setDated}
-                        className="flex-shrink-0"
-                      >
-                        {({ open }) => (
-                          <>
-                            <Listbox.Label className="sr-only">
-                              {" "}
-                              Add a due date{" "}
-                            </Listbox.Label>
-                            <div className="relative">
-                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                                <CalendarIcon
-                                  className={clsx(
-                                    dated.value === null
-                                      ? "text-brand-300"
-                                      : "text-brand-500",
-                                    "h-5 w-5 flex-shrink-0 sm:-ml-1"
-                                  )}
-                                  aria-hidden="true"
-                                />
-                                <span
-                                  className={clsx(
-                                    dated.value === null
-                                      ? ""
-                                      : "text-brand-900",
-                                    "hidden truncate sm:ml-2 sm:block"
-                                  )}
-                                >
-                                  {dated.value === null
-                                    ? "Due date"
-                                    : dated.name}
-                                </span>
-                              </Listbox.Button>
-
-                              <Transition
-                                show={open}
-                                as={Fragment}
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                                  {dueDates.map((dueDate) => (
-                                    <Listbox.Option
-                                      key={dueDate.value}
-                                      className={({ active }) =>
-                                        clsx(
-                                          active
-                                            ? "bg-brand-100"
-                                            : "bg-brand-50",
-                                          "relative cursor-default select-none px-3 py-2"
-                                        )
-                                      }
-                                      value={dueDate}
-                                    >
-                                      <div className="flex items-center">
-                                        <span className="block truncate font-medium">
-                                          {dueDate.name}
-                                        </span>
-                                      </div>
-                                    </Listbox.Option>
-                                  ))}
+                                  <Listbox.Option
+                                    key="PUBLIC"
+                                    className={({ active }) =>
+                                      clsx(
+                                        active ? "bg-brand-100" : "bg-brand-50",
+                                        "relative cursor-default select-none px-3 py-2"
+                                      )
+                                    }
+                                    value="PUBLIC"
+                                  >
+                                    <div className="flex items-center">
+                                      <span className="block truncate font-medium">
+                                        PUBLIC
+                                      </span>
+                                    </div>
+                                  </Listbox.Option>
+                                  <Listbox.Option
+                                    key="PRIVATE"
+                                    className={({ active }) =>
+                                      clsx(
+                                        active ? "bg-brand-100" : "bg-brand-50",
+                                        "relative cursor-default select-none px-3 py-2"
+                                      )
+                                    }
+                                    value="PRIVATE"
+                                  >
+                                    <div className="flex items-center">
+                                      <span className="block truncate font-medium">
+                                        PRIVATE
+                                      </span>
+                                    </div>
+                                  </Listbox.Option>
                                 </Listbox.Options>
                               </Transition>
                             </div>
@@ -523,15 +464,23 @@ function Modal({
 
 export default function Home() {
   const { user } = useUser();
+  const { route } = useRouter();
   const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const tabs = [
+    { name: "My Account", href: "/account", current: route === "/account" },
+    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
+    { name: "Friend list", href: "/friends", current: route === "/friends" },
+    { name: "Billing", href: "#", current: route === "/billing" },
+  ];
   const [post, setPost] = useState<Post | null>(null);
-  const posts = trpc.posts.useQuery();
+  const posts = trpc.getPublicPosts.useQuery();
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.posts.invalidate();
+      utils.getPublicPosts.invalidate();
       toast.success("Post liked!");
     },
     onError: (err: any) => {
@@ -544,7 +493,7 @@ export default function Home() {
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.posts.invalidate();
+      utils.getPublicPosts.invalidate();
       toast.success("Post unliked!");
     },
     onError: (err: any) => {
@@ -557,7 +506,7 @@ export default function Home() {
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.posts.invalidate();
+      utils.getPublicPosts.invalidate();
       toast.success("Post bookmarked!");
     },
     onError: (err: any) => {
@@ -570,7 +519,7 @@ export default function Home() {
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.posts.invalidate();
+      utils.getPublicPosts.invalidate();
       toast.success("Post unbookmarked!");
     },
     onError: (err: any) => {
@@ -580,11 +529,11 @@ export default function Home() {
     },
   });
   const handleOnCreateLike = (id: number) => {
-    if (!user?.username) return;
+    if (!user?.id) return;
     toast.loading("Loading...");
     createLike.mutate({
-      author: user?.username,
       postId: id,
+      authorId: user?.id,
     });
   };
   const handleOnDeleteLike = (id: number) => {
@@ -594,11 +543,11 @@ export default function Home() {
     });
   };
   const handleOnCreateBookmark = (id: number) => {
-    if (!user?.username) return;
+    if (!user?.id) return;
     toast.loading("Loading...");
     createBookmark.mutate({
-      author: user?.username,
       postId: id,
+      authorId: user?.id,
     });
   };
   const handleOnDeleteBookmark = (id: number) => {
@@ -619,9 +568,30 @@ export default function Home() {
             <>
               <div className="px-4 sm:px-6 lg:px-8 py-4">
                 <div className="relative flex justify-between">
-                  <div className="flex">
+                  <div className="flex space-x-10">
                     <div className="flex flex-shrink-0 items-center">
                       <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
+                    </div>
+                    <div>
+                      <div className="hidden lg:block">
+                        <nav className="flex space-x-4" aria-label="Tabs">
+                          {tabs.map((tab) => (
+                            <Link
+                              key={tab.name}
+                              href={tab.href}
+                              className={clsx(
+                                tab.current
+                                  ? "bg-brand-700 text-brand-50"
+                                  : "text-brand-200 hover:text-gray-50",
+                                "rounded-md px-3 py-2 text-sm font-medium"
+                              )}
+                              aria-current={tab.current ? "page" : undefined}
+                            >
+                              {tab.name}
+                            </Link>
+                          ))}
+                        </nav>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center md:absolute md:inset-y-0 md:right-0 lg:hidden">
@@ -641,22 +611,22 @@ export default function Home() {
                       )}
                     </Popover.Button>
                   </div>
-                  <div className="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4">
-                    <a
-                      href="#"
+                  <div className="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4 space-x-5">
+                    <Link
+                      href="/plans"
                       className="text-sm font-medium text-brand-50 hover:underline"
                     >
                       Go Premium
-                    </a>
+                    </Link>
                     <a
                       href="#"
-                      className="ml-5 flex-shrink-0 rounded-full p-1 text-brand-50"
+                      className="flex-shrink-0 rounded-full p-1 text-brand-50"
                     >
                       <span className="sr-only">View notifications</span>
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
                     </a>
 
-                    <div className="relative ml-5 flex-shrink-0">
+                    <div className="relative flex-shrink-0">
                       <SignedOut>
                         <SignInButton mode="modal">
                           <button
@@ -678,7 +648,7 @@ export default function Home() {
 
               <Popover.Panel as="nav" className="lg:hidden" aria-label="Global">
                 <div className="pt-4">
-                  <div className="mx-auto flex max-w-3xl items-center px-4 sm:px-6">
+                  <div className="mx-auto flex items-center px-4 sm:px-6">
                     <div className="flex-shrink-0">
                       <SignedOut>
                         <SignInButton mode="modal">
@@ -711,9 +681,23 @@ export default function Home() {
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </div>
+                  <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
+                    {tabs.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={clsx(
+                          item.current ? "bg-brand-800" : "hover:bg-brand-800",
+                          "block rounded-md px-3 py-2 text-base font-medium text-brand-50"
+                        )}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="mx-auto mt-6 max-w-3xl px-4 sm:px-6">
+                <div className="mx-auto mt-6 px-4 sm:px-6">
                   <a
                     href="#"
                     className="flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-brand-50 shadow-sm hover:bg-brand-700"
@@ -727,7 +711,7 @@ export default function Home() {
         </Popover>
         <div className="mt-12 mx-auto max-w-xl px-4 text-center">
           <p className="mt-2 text-3xl font-semibold text-brand-50">
-            Personalize your content board and share your story.
+            Discover, learn and connect with like-minded individuals.
           </p>
           <div className="mt-8 flex flex-1 justify-center">
             <div className="w-full px-2 lg:px-6">
@@ -744,6 +728,8 @@ export default function Home() {
                   className="block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 px-10 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
                   placeholder="Search"
                   type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
                 <button type="button" onClick={() => setOpen(true)}>
                   <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
@@ -755,125 +741,141 @@ export default function Home() {
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 w-full lg:w-auto">
-              {posts.data.map((item, index) => (
-                <div key={index} className="relative w-full px-4 py-6">
-                  <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (item.authorUsername === user?.username) {
-                          setOpen(true);
-                          setPost(item as unknown as Post);
-                        }
-                      }}
-                      className="absolute inset-0 rounded-2xl"
-                    ></button>
-                    <div className="space-y-6">
-                      <blockquote className="text-brand-50">
-                        <p>{item.title}</p>
-                      </blockquote>
-                      <figcaption className="flex items-center gap-x-4">
-                        <div>
-                          <div className="font-semibold text-brand-50">
-                            {item.authorName}
+              {posts.data
+                .filter(
+                  (post) =>
+                    post.title.toLowerCase().includes(search.toLowerCase()) ||
+                    post.description
+                      .toLowerCase()
+                      .includes(search.toLowerCase())
+                )
+                .map((item, index) => (
+                  <div key={index} className="relative w-full px-4 py-6">
+                    <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (item.authorId === user?.id) {
+                            setOpen(true);
+                            setPost(item as unknown as Post);
+                          }
+                        }}
+                        className="absolute inset-0 rounded-2xl"
+                      ></button>
+                      <div className="space-y-6 text-brand-50">
+                        <div className="space-y-4">
+                          <h4 className="text-lg">{item.title}</h4>
+                          <p>{item.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <img
+                            className="h-10 w-10 rounded-full bg-brand-700"
+                            src={item.authorProfileImageUrl}
+                            alt=""
+                          />
+                          <div className="flex flex-col">
+                            <div className="font-semibold">
+                              {item.authorName}
+                            </div>
+                            <div>{`@${item.authorUsername}`}</div>
                           </div>
-                          <div className="text-brand-50">{`@${item.authorUsername}`}</div>
                         </div>
-                      </figcaption>
-                      <div className="relative flex flex-col space-y-6">
-                        <div className="flex space-x-6">
-                          <span className="inline-flex items-center text-sm">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                !!item.likes.find(
-                                  (post: Like) => post.author === user?.username
-                                )?.id
-                                  ? handleOnDeleteLike(
-                                      item.likes.find(
-                                        (post) => post.author === user?.username
-                                      )?.id as number
-                                    )
-                                  : handleOnCreateLike(item.id);
-                              }}
-                              className="inline-flex space-x-2 text-brand-50"
-                            >
-                              <HandThumbUpIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                              <span className="font-medium text-brand-50">
-                                {item.likes.length}
-                              </span>
-                              <span className="sr-only">likes</span>
-                            </button>
-                          </span>
-                          <span className="inline-flex items-center text-sm">
-                            <button
-                              type="button"
-                              className="inline-flex space-x-2 text-brand-50"
-                            >
-                              <ChartBarIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                              <span className="font-medium text-brand-50">
-                                {item.stat}
-                              </span>
-                              <span className="sr-only">stats</span>
-                            </button>
-                          </span>
-                          <span className="inline-flex items-center text-sm">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                !!item.bookmarks.find(
-                                  (post: Bookmark) =>
-                                    post.author === user?.username
-                                )?.id
-                                  ? handleOnDeleteBookmark(
-                                      item.bookmarks.find(
-                                        (post) => post.author === user?.username
-                                      )?.id as number
-                                    )
-                                  : handleOnCreateBookmark(item.id);
-                              }}
-                              className="inline-flex space-x-2 text-brand-50"
-                            >
-                              <BookmarkIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                              <span className="font-medium text-brand-50">
-                                {item.bookmarks.length}
-                              </span>
-                              <span className="sr-only">bookmarks</span>
-                            </button>
-                          </span>
-                        </div>
-                        {item.bookmarks.length > 0 ? (
-                          <div className="flex text-sm">
+                        <div className="relative flex flex-col space-y-6">
+                          <div className="flex space-x-6">
                             <span className="inline-flex items-center text-sm">
                               <button
                                 type="button"
-                                className="inline-flex space-x-2 text-brand-50"
+                                onClick={() => {
+                                  !!item.likes.find(
+                                    (post: Like) => post.authorId === user?.id
+                                  )?.id
+                                    ? handleOnDeleteLike(
+                                        item.likes.find(
+                                          (post: Like) =>
+                                            post.authorId === user?.id
+                                        )?.id as number
+                                      )
+                                    : handleOnCreateLike(item.id);
+                                }}
+                                className="inline-flex space-x-2"
                               >
-                                <CheckIcon
+                                <HandThumbUpIcon
                                   className="h-5 w-5"
                                   aria-hidden="true"
                                 />
-                                <span className="font-medium text-brand-50">
-                                  Bookmarked
+                                <span className="font-medium">
+                                  {item.likes.length}
                                 </span>
+                                <span className="sr-only">likes</span>
+                              </button>
+                            </span>
+                            <span className="inline-flex items-center text-sm">
+                              <button
+                                type="button"
+                                className="inline-flex space-x-2"
+                              >
+                                <ChartBarIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                                <span className="font-medium">
+                                  {item.likes.length + item.bookmarks.length}
+                                </span>
+                                <span className="sr-only">stats</span>
+                              </button>
+                            </span>
+                            <span className="inline-flex items-center text-sm">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  !!item.bookmarks.find(
+                                    (post: Bookmark) =>
+                                      post.authorId === user?.id
+                                  )?.id
+                                    ? handleOnDeleteBookmark(
+                                        item.bookmarks.find(
+                                          (post: Bookmark) =>
+                                            post.authorId === user?.id
+                                        )?.id as number
+                                      )
+                                    : handleOnCreateBookmark(item.id);
+                                }}
+                                className="inline-flex space-x-2"
+                              >
+                                <BookmarkIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                                <span className="font-medium">
+                                  {item.bookmarks.length}
+                                </span>
+                                <span className="sr-only">bookmarks</span>
                               </button>
                             </span>
                           </div>
-                        ) : null}
+                          {item.bookmarks.length > 0 ? (
+                            <div className="flex text-sm">
+                              <span className="inline-flex items-center text-sm">
+                                <button
+                                  type="button"
+                                  className="inline-flex space-x-2"
+                                >
+                                  <CheckIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                  <span className="font-medium">
+                                    Bookmarked
+                                  </span>
+                                </button>
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>
@@ -886,10 +888,10 @@ export default function Home() {
           >
             <HomeIcon className="h-8 w-8 rounded-full text-brand-50/70" />
           </Link>
-          <Link href="/community" className="border border-transparent p-2">
-            <UserGroupIcon className="h-8 w-8 text-brand-50/40" />
+          <Link href="/posts" className="border border-transparent p-2">
+            <RectangleStackIcon className="h-8 w-8 text-brand-50/40" />
           </Link>
-          <Link href="/bookmark" className="border border-transparent p-2">
+          <Link href="/bookmarks" className="border border-transparent p-2">
             <BookmarkIcon className="h-8 w-8 text-brand-50/40" />
           </Link>
           <Link href="/inbox" className="border border-transparent p-2">
