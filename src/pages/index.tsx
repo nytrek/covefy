@@ -761,8 +761,10 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => {
-                        setOpen(true);
-                        setPost(item as unknown as Post);
+                        if (item.authorUsername === user?.username) {
+                          setOpen(true);
+                          setPost(item as unknown as Post);
+                        }
                       }}
                       className="absolute inset-0 rounded-2xl"
                     ></button>
