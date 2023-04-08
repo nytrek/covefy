@@ -23,7 +23,7 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Prisma } from "@prisma/client";
+import { Bookmark, Like, Prisma } from "@prisma/client";
 import clsx from "clsx";
 import Link from "next/link";
 import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
@@ -32,6 +32,7 @@ import { trpc } from "../utils/trpc";
 
 type Post = Prisma.PostGetPayload<{
   include: {
+    likes: true;
     bookmarks: true;
   };
 }>;
@@ -73,6 +74,7 @@ function Modal({
   const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
+      toast.dismiss();
       utils.posts.invalidate();
       toast.success("Post created!");
     },
@@ -85,6 +87,7 @@ function Modal({
     onSuccess: () => {
       setPost(null);
       setOpen(false);
+      toast.dismiss();
       utils.posts.invalidate();
       toast.success("Post updated!");
     },
@@ -95,6 +98,7 @@ function Modal({
   });
   const deleteMutation = trpc.deletePost.useMutation({
     onSuccess: () => {
+      toast.dismiss();
       //clear post state
       setPost(null);
       //close the modal
@@ -105,6 +109,7 @@ function Modal({
       toast.success("Post deleted!");
     },
     onError: (err: any) => {
+      toast.dismiss();
       //console out error
       console.log(err.message);
       //notification
@@ -116,6 +121,7 @@ function Modal({
   const [dated, setDated] = useState(dueDates[0]);
   const handleOnClick = () => {
     if (!post) return; //execute if the user has selected a post
+    toast.loading("Loading...");
     deleteMutation.mutate({
       id: post.id,
     });
@@ -123,6 +129,7 @@ function Modal({
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.fullName || !user?.username) return;
+    toast.loading("Loading...");
     const target = e.target as typeof e.target & {
       title: { value: string };
       description: { value: string };
@@ -143,7 +150,14 @@ function Modal({
   };
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={setOpen}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={() => {
+          setPost(null);
+          setOpen(false);
+        }}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -507,17 +521,95 @@ function Modal({
   );
 }
 
-export default function Home() {
+export default function Inbox() {
   const { user } = useUser();
+  const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
   const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.posts.useQuery();
-  const getUser = trpc.getUser.useQuery();
-  console.log(getUser.data);
+  const createLike = trpc.createLike.useMutation({
+    onSuccess: () => {
+      setPost(null);
+      toast.dismiss();
+      utils.posts.invalidate();
+      toast.success("Post liked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const deleteLike = trpc.deleteLike.useMutation({
+    onSuccess: () => {
+      setPost(null);
+      toast.dismiss();
+      utils.posts.invalidate();
+      toast.success("Post unliked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const createBookmark = trpc.createBookmark.useMutation({
+    onSuccess: () => {
+      setPost(null);
+      toast.dismiss();
+      utils.posts.invalidate();
+      toast.success("Post bookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const deleteBookmark = trpc.deleteBookmark.useMutation({
+    onSuccess: () => {
+      setPost(null);
+      toast.dismiss();
+      utils.posts.invalidate();
+      toast.success("Post unbookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const handleOnCreateLike = (id: number) => {
+    if (!user?.username) return;
+    toast.loading("Loading...");
+    createLike.mutate({
+      author: user?.username,
+      postId: id,
+    });
+  };
+  const handleOnDeleteLike = (id: number) => {
+    toast.loading("Loading...");
+    deleteLike.mutate({
+      id,
+    });
+  };
+  const handleOnCreateBookmark = (id: number) => {
+    if (!user?.username) return;
+    toast.loading("Loading...");
+    createBookmark.mutate({
+      author: user?.username,
+      postId: id,
+    });
+  };
+  const handleOnDeleteBookmark = (id: number) => {
+    toast.loading("Loading...");
+    deleteBookmark.mutate({
+      id,
+    });
+  };
   if (!posts.data) {
     return <div>Loading...</div>;
   }
-  console.log(posts.data);
   return (
     <>
       <Modal open={open} post={post} setOpen={setOpen} setPost={setPost} />
@@ -691,6 +783,17 @@ export default function Home() {
                           <span className="inline-flex items-center text-sm">
                             <button
                               type="button"
+                              onClick={() => {
+                                !!item.likes.find(
+                                  (post: Like) => post.author === user?.username
+                                )?.id
+                                  ? handleOnDeleteLike(
+                                      item.likes.find(
+                                        (post) => post.author === user?.username
+                                      )?.id as number
+                                    )
+                                  : handleOnCreateLike(item.id);
+                              }}
                               className="inline-flex space-x-2 text-brand-50"
                             >
                               <HandThumbUpIcon
@@ -698,7 +801,7 @@ export default function Home() {
                                 aria-hidden="true"
                               />
                               <span className="font-medium text-brand-50">
-                                {item.like}
+                                {item.likes.length}
                               </span>
                               <span className="sr-only">likes</span>
                             </button>
@@ -715,12 +818,24 @@ export default function Home() {
                               <span className="font-medium text-brand-50">
                                 {item.stat}
                               </span>
-                              <span className="sr-only">replies</span>
+                              <span className="sr-only">stats</span>
                             </button>
                           </span>
                           <span className="inline-flex items-center text-sm">
                             <button
                               type="button"
+                              onClick={() => {
+                                !!item.bookmarks.find(
+                                  (post: Bookmark) =>
+                                    post.author === user?.username
+                                )?.id
+                                  ? handleOnDeleteBookmark(
+                                      item.bookmarks.find(
+                                        (post) => post.author === user?.username
+                                      )?.id as number
+                                    )
+                                  : handleOnCreateBookmark(item.id);
+                              }}
                               className="inline-flex space-x-2 text-brand-50"
                             >
                               <BookmarkIcon
@@ -730,7 +845,7 @@ export default function Home() {
                               <span className="font-medium text-brand-50">
                                 {item.bookmarks.length}
                               </span>
-                              <span className="sr-only">views</span>
+                              <span className="sr-only">bookmarks</span>
                             </button>
                           </span>
                         </div>

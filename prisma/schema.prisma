@@ -8,23 +8,29 @@ datasource db {
 }
 
 model Post {
-  id             Int         @id @default(autoincrement())
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @default(now())
+  id             Int        @id @default(autoincrement())
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @default(now())
   title          String
   description    String
-  public         Boolean     @default(true)
-  published      Boolean     @default(false)
-  like           Int         @default(0)
-  stat           Int         @default(0)
-  bookmarks      Bookmarks[]
+  public         Boolean    @default(true)
+  likes          Like[]
+  stat           Int        @default(0)
+  bookmarks      Bookmark[]
   authorName     String
   authorUsername String
 }
 
-model Bookmarks {
+model Like {
   id     Int    @id @default(autoincrement())
   postId Int
-  post   Post   @relation(fields: [postId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author String
+}
+
+model Bookmark {
+  id     Int    @id @default(autoincrement())
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   author String
 }

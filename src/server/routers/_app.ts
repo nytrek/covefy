@@ -11,6 +11,7 @@ export const appRouter = router({
   posts: publicProcedure.query(async () => {
     return await prisma.post.findMany({
       include: {
+        likes: true,
         bookmarks: true,
       },
     });
@@ -33,7 +34,6 @@ export const appRouter = router({
           description: input.description,
           authorName: input.authorName,
           authorUsername: input.authorUsername,
-          like: 16,
           stat: 27,
         },
       });
@@ -67,6 +67,70 @@ export const appRouter = router({
     .mutation(async ({ input }) => {
       // Here some login stuff would happen
       return await prisma.post.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
+  createLike: publicProcedure
+    // using zod schema to validate and infer input values
+    .input(
+      z.object({
+        author: z.string(),
+        postId: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Here some login stuff would happen
+      return await prisma.like.create({
+        data: {
+          author: input.author,
+          postId: input.postId,
+        },
+      });
+    }),
+  deleteLike: publicProcedure
+    // using zod schema to validate and infer input values
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Here some login stuff would happen
+      return await prisma.like.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
+  createBookmark: publicProcedure
+    // using zod schema to validate and infer input values
+    .input(
+      z.object({
+        author: z.string(),
+        postId: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Here some login stuff would happen
+      return await prisma.bookmark.create({
+        data: {
+          author: input.author,
+          postId: input.postId,
+        },
+      });
+    }),
+  deleteBookmark: publicProcedure
+    // using zod schema to validate and infer input values
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Here some login stuff would happen
+      return await prisma.bookmark.delete({
         where: {
           id: input.id,
         },
