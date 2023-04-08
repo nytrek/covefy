@@ -124,13 +124,14 @@ function Modal({
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.fullName || !user?.username) return;
-    if (labelled === null) return toast("Please set a label for the post");
-    toast.loading("Loading...");
     const target = e.target as typeof e.target & {
       title: { value: string };
       label: { value: Label };
       description: { value: string };
     };
+    if (target.label.value !== "PUBLIC" && target.label.value !== "PRIVATE")
+      return toast("Please set a label for the post");
+    toast.loading("Loading...");
     if (post) {
       updateMutation.mutate({
         id: post.id,
