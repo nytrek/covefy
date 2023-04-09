@@ -703,14 +703,16 @@ export default function Home() {
                     >
                       Go Premium
                     </Link>
-                    <a
-                      href="#"
-                      className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
-                    >
-                      <span className="sr-only">View notifications</span>
-                      <p>30</p>
-                      <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                    </a>
+                    {user ? (
+                      <a
+                        href="#"
+                        className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
+                      >
+                        <span className="sr-only">View notifications</span>
+                        <p>30</p>
+                        <TicketIcon className="h-6 w-6" aria-hidden="true" />
+                      </a>
+                    ) : null}
 
                     <div className="relative flex-shrink-0">
                       <SignedOut>
@@ -759,14 +761,16 @@ export default function Home() {
                         {user?.username}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
-                    >
-                      <span className="sr-only">View notifications</span>
-                      <p>30</p>
-                      <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                    </button>
+                    {user ? (
+                      <button
+                        type="button"
+                        className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
+                      >
+                        <span className="sr-only">View notifications</span>
+                        <p>30</p>
+                        <TicketIcon className="h-6 w-6" aria-hidden="true" />
+                      </button>
+                    ) : null}
                   </div>
                   <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
                     {tabs.map((item) => (
