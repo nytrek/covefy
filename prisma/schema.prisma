@@ -16,6 +16,8 @@ model Post {
   label                 Label      @default(PUBLIC)
   likes                 Like[]
   stat                  Int        @default(0)
+  attachment            String?
+  attachmentPath        String?
   bookmarks             Bookmark[]
   authorId              String
   authorName            String

@@ -2,6 +2,31 @@ import { prisma } from "@src/lib/prisma";
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../trpc";
 import { Label } from "@prisma/client";
+async function deleteFile(params: any) {
+  const baseUrl = "https://api.upload.io";
+  const path = `/v2/accounts/${params.accountId}/files`;
+  const entries = (obj: any) =>
+    Object.entries(obj).filter(([, val]) => (val ?? null) !== null);
+  const query = entries(params.querystring ?? {})
+    .flatMap(([k, v]) => (Array.isArray(v) ? v.map((v2) => [k, v2]) : [[k, v]]))
+    .map((kv) => kv.join("="))
+    .join("&");
+  const response = await fetch(
+    `${baseUrl}${path}${query.length > 0 ? "?" : ""}${query}`,
+    {
+      method: "DELETE",
+      headers: Object.fromEntries(
+        entries({
+          Authorization: `Bearer ${params.apiKey}`,
+        }) as any
+      ),
+    }
+  );
+  if (Math.floor(response.status / 100) !== 2) {
+    const result = await response.json();
+    throw new Error(`Upload API Error: ${JSON.stringify(result)}`);
+  }
+}
 export const appRouter = router({
   getUserPosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
@@ -56,6 +81,8 @@ export const appRouter = router({
         title: z.string(),
         label: z.nativeEnum(Label),
         description: z.string(),
+        attachment: z.string().nullish(),
+        attachmentPath: z.string().nullish(),
         authorId: z.string(),
         authorName: z.string(),
         authorUsername: z.string(),
@@ -69,6 +96,8 @@ export const appRouter = router({
           title: input.title,
           label: input.label,
           description: input.description,
+          attachment: input.attachment,
+          attachmentPath: input.attachmentPath,
           authorId: input.authorId,
           authorName: input.authorName,
           authorUsername: input.authorUsername,
@@ -175,6 +204,21 @@ export const appRouter = router({
       return await prisma.bookmark.delete({
         where: {
           id: input.id,
+        },
+      });
+    }),
+  deleteAttachment: protectedProcedure
+    .input(
+      z.object({
+        attachmentPath: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await deleteFile({
+        accountId: process.env.UPLOAD_ACCOUNTID,
+        apiKey: process.env.UPLOAD_SECRETKEY,
+        querystring: {
+          filePath: input.attachmentPath,
         },
       });
     }),

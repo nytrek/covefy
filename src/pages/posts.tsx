@@ -29,6 +29,7 @@ import { useRouter } from "next/router";
 import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { toast } from "react-hot-toast";
 import { trpc } from "../utils/trpc";
+import { Upload } from "upload-js";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -61,13 +62,18 @@ function Modal({
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
+  const upload = Upload({
+    apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
+  });
   const [assigned, setAssigned] = useState(assignees[0]);
   const [labelled, setLabelled] = useState(post?.label ?? null);
+  const [attachment, setAttachment] = useState<File | null>(null);
   const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
       toast.dismiss();
       setLabelled(null);
+      setAttachment(null);
       utils.getUserPosts.invalidate();
       toast.success("Post created!");
     },
@@ -114,14 +120,42 @@ function Modal({
       toast.error("API request failed, check console.log");
     },
   });
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onSuccess: () => {
+      if (!post) return;
+      deleteMutation.mutate({
+        id: post.id,
+      });
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      //console out error
+      console.log(err.message);
+      //notification
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
+    const target = event.target as typeof event.target & {
+      files: FileList;
+    };
+    const file = target.files[0];
+    setAttachment(file);
+  };
   const handleOnClick = () => {
     if (!post) return; //execute if the user has selected a post
     toast.loading("Loading...");
-    deleteMutation.mutate({
-      id: post.id,
-    });
+    if (post.attachmentPath) {
+      deleteAttachment.mutate({
+        attachmentPath: post.attachmentPath,
+      });
+    } else {
+      deleteMutation.mutate({
+        id: post.id,
+      });
+    }
   };
-  const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.fullName || !user?.username) return;
     const target = e.target as typeof e.target & {
@@ -140,15 +174,41 @@ function Modal({
         description: target.description.value,
       });
     } else {
-      createMutation.mutate({
-        label: target.label.value,
-        title: target.title.value,
-        description: target.description.value,
-        authorId: user?.id,
-        authorName: user?.fullName,
-        authorUsername: user?.username,
-        authorProfileImageUrl: user?.profileImageUrl,
-      });
+      if (attachment) {
+        try {
+          const { fileUrl, filePath } = await upload.uploadFile(attachment, {
+            path: {
+              // See path variables: https://upload.io/dashboard/docs/path-variables
+              folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
+              fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
+            },
+          });
+          createMutation.mutate({
+            label: target.label.value,
+            title: target.title.value,
+            description: target.description.value,
+            attachment: fileUrl,
+            attachmentPath: filePath,
+            authorId: user?.id,
+            authorName: user?.fullName,
+            authorUsername: user?.username,
+            authorProfileImageUrl: user?.profileImageUrl,
+          });
+        } catch (e: any) {
+          toast.dismiss();
+          toast.error(e.message);
+        }
+      } else {
+        createMutation.mutate({
+          label: target.label.value,
+          title: target.title.value,
+          description: target.description.value,
+          authorId: user?.id,
+          authorName: user?.fullName,
+          authorUsername: user?.username,
+          authorProfileImageUrl: user?.profileImageUrl,
+        });
+      }
     }
   };
   return (
@@ -185,7 +245,23 @@ function Modal({
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all max-w-xl w-full">
+              <Dialog.Panel className="relative space-y-4 transform overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all max-w-xl w-full">
+                {attachment ? (
+                  <div className="relative">
+                    <img
+                      className="w-full h-full aspect-[1/1] rounded-lg"
+                      src={URL.createObjectURL(attachment)}
+                      alt="attachment"
+                    />
+                    <button
+                      type="button"
+                      className="bg-brand-50 p-1.5 bg-opacity-75 hover:bg-opacity-100 transition duration-300 backdrop-blur-sm rounded-full absolute top-2 right-2"
+                      onClick={() => setAttachment(null)}
+                    >
+                      <XMarkIcon className="w-5 h-5 text-brand-600" />
+                    </button>
+                  </div>
+                ) : null}
                 <form className="relative" onSubmit={handleOnSubmit}>
                   <div className="overflow-hidden rounded-lg border border-brand-300 shadow-sm focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500">
                     <label htmlFor="title" className="sr-only">
@@ -232,94 +308,96 @@ function Modal({
                   <div className="absolute inset-x-px bottom-0">
                     {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
                     <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
-                      <Listbox
-                        as="div"
-                        value={assigned}
-                        onChange={setAssigned}
-                        className="flex-shrink-0"
-                      >
-                        {({ open }) => (
-                          <>
-                            <Listbox.Label className="sr-only">
-                              {" "}
-                              Assign{" "}
-                            </Listbox.Label>
-                            <div className="relative">
-                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                                {assigned.value === null ? (
-                                  <UserCircleIcon
-                                    className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                                    aria-hidden="true"
-                                  />
-                                ) : (
-                                  <img
-                                    src={assigned.avatar}
-                                    alt=""
-                                    className="h-5 w-5 flex-shrink-0 rounded-full"
-                                  />
-                                )}
-
-                                <span
-                                  className={clsx(
-                                    assigned.value === null
-                                      ? ""
-                                      : "text-brand-900",
-                                    "hidden truncate sm:ml-2 sm:block"
+                      {!post ? (
+                        <Listbox
+                          as="div"
+                          value={assigned}
+                          onChange={setAssigned}
+                          className="flex-shrink-0"
+                        >
+                          {({ open }) => (
+                            <>
+                              <Listbox.Label className="sr-only">
+                                {" "}
+                                Assign{" "}
+                              </Listbox.Label>
+                              <div className="relative">
+                                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                                  {assigned.value === null ? (
+                                    <UserCircleIcon
+                                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <img
+                                      src={assigned.avatar}
+                                      alt=""
+                                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                                    />
                                   )}
+
+                                  <span
+                                    className={clsx(
+                                      assigned.value === null
+                                        ? ""
+                                        : "text-brand-900",
+                                      "hidden truncate sm:ml-2 sm:block"
+                                    )}
+                                  >
+                                    {assigned.value === null
+                                      ? "Send to"
+                                      : assigned.name}
+                                  </span>
+                                </Listbox.Button>
+
+                                <Transition
+                                  show={open}
+                                  as={Fragment}
+                                  leave="transition ease-in duration-100"
+                                  leaveFrom="opacity-100"
+                                  leaveTo="opacity-0"
                                 >
-                                  {assigned.value === null
-                                    ? "Send to"
-                                    : assigned.name}
-                                </span>
-                              </Listbox.Button>
+                                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                                    {assignees.map((assignee) => (
+                                      <Listbox.Option
+                                        key={assignee.value}
+                                        className={({ active }) =>
+                                          clsx(
+                                            active
+                                              ? "bg-brand-100"
+                                              : "bg-brand-50",
+                                            "relative cursor-default select-none px-3 py-2"
+                                          )
+                                        }
+                                        value={assignee}
+                                      >
+                                        <div className="flex items-center">
+                                          {assignee.avatar ? (
+                                            <img
+                                              src={assignee.avatar}
+                                              alt=""
+                                              className="h-5 w-5 flex-shrink-0 rounded-full"
+                                            />
+                                          ) : (
+                                            <UserCircleIcon
+                                              className="h-5 w-5 flex-shrink-0 text-brand-400"
+                                              aria-hidden="true"
+                                            />
+                                          )}
 
-                              <Transition
-                                show={open}
-                                as={Fragment}
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                                  {assignees.map((assignee) => (
-                                    <Listbox.Option
-                                      key={assignee.value}
-                                      className={({ active }) =>
-                                        clsx(
-                                          active
-                                            ? "bg-brand-100"
-                                            : "bg-brand-50",
-                                          "relative cursor-default select-none px-3 py-2"
-                                        )
-                                      }
-                                      value={assignee}
-                                    >
-                                      <div className="flex items-center">
-                                        {assignee.avatar ? (
-                                          <img
-                                            src={assignee.avatar}
-                                            alt=""
-                                            className="h-5 w-5 flex-shrink-0 rounded-full"
-                                          />
-                                        ) : (
-                                          <UserCircleIcon
-                                            className="h-5 w-5 flex-shrink-0 text-brand-400"
-                                            aria-hidden="true"
-                                          />
-                                        )}
-
-                                        <span className="ml-3 block truncate font-medium">
-                                          {assignee.name}
-                                        </span>
-                                      </div>
-                                    </Listbox.Option>
-                                  ))}
-                                </Listbox.Options>
-                              </Transition>
-                            </div>
-                          </>
-                        )}
-                      </Listbox>
+                                          <span className="ml-3 block truncate font-medium">
+                                            {assignee.name}
+                                          </span>
+                                        </div>
+                                      </Listbox.Option>
+                                    ))}
+                                  </Listbox.Options>
+                                </Transition>
+                              </div>
+                            </>
+                          )}
+                        </Listbox>
+                      ) : null}
 
                       <Listbox
                         as="div"
@@ -349,7 +427,7 @@ function Modal({
                                       ? post?.label
                                       : "Set label"
                                   }
-                                  className="w-0 truncate sm:ml-2 sm:w-16 text-brand-500 bg-transparent cursor-pointer"
+                                  className="truncate ml-2 w-16 text-brand-500 bg-transparent cursor-pointer"
                                   disabled
                                 />
                               </Listbox.Button>
@@ -401,21 +479,30 @@ function Modal({
                         )}
                       </Listbox>
                     </div>
-                    <div className="flex items-center justify-between space-x-3 border-t border-brand-200 px-2 py-2 sm:px-3">
-                      <div className="flex">
-                        <button
-                          type="button"
-                          className="group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400"
-                        >
-                          <PaperClipIcon
-                            className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
-                            aria-hidden="true"
-                          />
-                          <span className="text-sm italic text-brand-500 group-hover:text-brand-600">
-                            Attach a file
-                          </span>
-                        </button>
-                      </div>
+                    <div
+                      className={clsx(
+                        post ? "justify-end" : "justify-between",
+                        "flex items-center space-x-3 border-t border-brand-200 px-2 py-2 sm:px-3"
+                      )}
+                    >
+                      {!post ? (
+                        <div className="flex">
+                          <div className="relative group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
+                            <input
+                              type="file"
+                              className="absolute inset-0 opacity-0"
+                              onChange={(event) => onFileSelected(event)}
+                            />
+                            <PaperClipIcon
+                              className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
+                              aria-hidden="true"
+                            />
+                            <span className="text-sm italic text-brand-500 group-hover:text-brand-600">
+                              Attach a file
+                            </span>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="flex-shrink-0 space-x-1">
                         {post ? (
                           <>
@@ -764,6 +851,13 @@ export default function Posts() {
                         className="absolute inset-0 rounded-2xl"
                       ></button>
                       <div className="space-y-6 text-brand-50">
+                        {item.attachment ? (
+                          <img
+                            className="w-full h-full aspect-[1/1] rounded-lg"
+                            src={item.attachment}
+                            alt="attachment"
+                          />
+                        ) : null}
                         <div className="space-y-4">
                           <h4 className="text-lg">{item.title}</h4>
                           <p>{item.description}</p>
