@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Webhook } from "svix";
 import { prisma } from "@src/lib/prisma";
+import { buffer } from "micro";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<string>
 ) {
   try {
-    const { body, headers } = req;
+    const { headers } = req;
+    const body = JSON.parse((await buffer(req)).toString());
     const svixId = headers["svix-id"]?.toString();
     const svixSignature = headers["svix-signature"]?.toString();
     const svixTimestamp = headers["svix-timestamp"]?.toString();
