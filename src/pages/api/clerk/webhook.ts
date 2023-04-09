@@ -8,15 +8,14 @@ export default async function handler(
   res: NextApiResponse<string>
 ) {
   try {
-    const { headers } = req;
-    const body = JSON.parse((await buffer(req)).toString());
+    const { body, headers } = req;
     const svixId = headers["svix-id"]?.toString();
     const svixSignature = headers["svix-signature"]?.toString();
     const svixTimestamp = headers["svix-timestamp"]?.toString();
     if (!svixId || !svixSignature || !svixTimestamp)
       throw new Error("headers not found");
     const wh = new Webhook(process.env.CLERK_SIGNIN_SECRET as string);
-    const payload = wh.verify(body, {
+    const payload = wh.verify(JSON.parse((await buffer(body)).toString()), {
       "svix-id": svixId,
       "svix-signature": svixSignature,
       "svix-timestamp": svixTimestamp,
