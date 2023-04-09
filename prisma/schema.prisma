@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Profile {
-  id       String @unique
+  id       String @id @unique
   name     String
   imageUrl String
   username String
