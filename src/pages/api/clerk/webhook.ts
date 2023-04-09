@@ -8,7 +8,7 @@ export default async function handler(
 ) {
   try {
     const { headers } = req;
-    const raw = (await buffer(req.body)).toString();
+    const raw = (await buffer(req.body.data)).toString();
     const body = JSON.parse(raw);
     const svixId = headers["svix-id"]?.toString();
     const svixSignature = headers["svix-signature"]?.toString();
