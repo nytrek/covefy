@@ -818,9 +818,11 @@ export default function Bookmarks() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <button type="button" onClick={() => setOpen(true)}>
-                  <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
-                </button>
+                {user ? (
+                  <button type="button" onClick={() => setOpen(true)}>
+                    <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
