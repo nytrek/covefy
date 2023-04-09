@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Profile {
+  id       String @unique
+  name     String
+  imageUrl String
+  username String
+  credits  Int
+}
+
 model Post {
   id                    Int        @id @default(autoincrement())
   createdAt             DateTime   @default(now())
