@@ -31,7 +31,7 @@ export default function Account() {
       <Popover as="header">
         {({ open }) => (
           <>
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
+            <div className="px-4 py-4 sm:px-6 lg:px-8">
               <div className="relative flex justify-between">
                 <div className="flex">
                   <div className="flex flex-shrink-0 items-center">

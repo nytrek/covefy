@@ -21,7 +21,7 @@ import {
   TagIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Bookmark, Label, Like, Prisma } from "@prisma/client";
 import clsx from "clsx";
 import Link from "next/link";
@@ -245,20 +245,20 @@ function Modal({
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative space-y-4 transform overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all max-w-xl w-full">
+              <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
                 {attachment ? (
                   <div className="relative">
                     <img
-                      className="w-full h-full aspect-[1/1] rounded-lg"
+                      className="aspect-[1/1] h-full w-full rounded-lg"
                       src={URL.createObjectURL(attachment)}
                       alt="attachment"
                     />
                     <button
                       type="button"
-                      className="bg-brand-50 p-1.5 bg-opacity-75 hover:bg-opacity-100 transition duration-300 backdrop-blur-sm rounded-full absolute top-2 right-2"
+                      className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
                       onClick={() => setAttachment(null)}
                     >
-                      <XMarkIcon className="w-5 h-5 text-brand-600" />
+                      <XMarkIcon className="h-5 w-5 text-brand-600" />
                     </button>
                   </div>
                 ) : null}
@@ -414,7 +414,7 @@ function Modal({
                             <div className="relative">
                               <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
                                 <TagIcon
-                                  className="h-5 w-5 flex-shrink-0 sm:-ml-1 text-brand-500"
+                                  className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
                                   aria-hidden="true"
                                 />
                                 <input
@@ -427,7 +427,7 @@ function Modal({
                                       ? post?.label
                                       : "Set label"
                                   }
-                                  className="truncate ml-2 w-16 text-brand-500 bg-transparent cursor-pointer"
+                                  className="ml-2 w-16 cursor-pointer truncate bg-transparent text-brand-500"
                                   disabled
                                 />
                               </Listbox.Button>
@@ -487,7 +487,7 @@ function Modal({
                     >
                       {!post ? (
                         <div className="flex">
-                          <div className="relative group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
+                          <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                             <input
                               type="file"
                               className="absolute inset-0 opacity-0"
@@ -644,9 +644,6 @@ export default function Posts() {
       id,
     });
   };
-  if (!posts.data) {
-    return <div>Loading...</div>;
-  }
   return (
     <>
       <Modal open={open} post={post} setOpen={setOpen} setPost={setPost} />
@@ -654,7 +651,7 @@ export default function Posts() {
         <Popover as="header">
           {({ open }) => (
             <>
-              <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="px-4 py-4 sm:px-6 lg:px-8">
                 <div className="relative flex justify-between">
                   <div className="flex space-x-10">
                     <div className="flex flex-shrink-0 items-center">
@@ -699,7 +696,7 @@ export default function Posts() {
                       )}
                     </Popover.Button>
                   </div>
-                  <div className="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4 space-x-5">
+                  <div className="hidden space-x-5 lg:flex lg:items-center lg:justify-end xl:col-span-4">
                     <Link
                       href="/plans"
                       className="text-sm font-medium text-brand-50 hover:underline"
@@ -708,10 +705,11 @@ export default function Posts() {
                     </Link>
                     <a
                       href="#"
-                      className="flex-shrink-0 rounded-full p-1 text-brand-50"
+                      className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                     >
                       <span className="sr-only">View notifications</span>
-                      <BellIcon className="h-6 w-6" aria-hidden="true" />
+                      <p>30</p>
+                      <TicketIcon className="h-6 w-6" aria-hidden="true" />
                     </a>
 
                     <div className="relative flex-shrink-0">
@@ -719,7 +717,7 @@ export default function Posts() {
                         <SignInButton mode="modal">
                           <button
                             type="button"
-                            className="rounded-full bg-brand-600 flex items-center justify-center"
+                            className="flex items-center justify-center rounded-full bg-brand-600"
                           >
                             <UserCircleIcon className="h-8 w-8 text-brand-50" />
                           </button>
@@ -742,7 +740,7 @@ export default function Posts() {
                         <SignInButton mode="modal">
                           <button
                             type="button"
-                            className="rounded-full bg-brand-600 flex items-center justify-center"
+                            className="flex items-center justify-center rounded-full bg-brand-600"
                           >
                             <UserCircleIcon className="h-10 w-10 text-brand-50" />
                           </button>
@@ -763,10 +761,11 @@ export default function Posts() {
                     </div>
                     <button
                       type="button"
-                      className="ml-auto flex-shrink-0 rounded-full p-1 text-brand-50"
+                      className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                     >
                       <span className="sr-only">View notifications</span>
-                      <BellIcon className="h-6 w-6" aria-hidden="true" />
+                      <p>30</p>
+                      <TicketIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </div>
                   <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
@@ -797,7 +796,7 @@ export default function Posts() {
             </>
           )}
         </Popover>
-        <div className="mt-12 mx-auto max-w-xl px-4 text-center">
+        <div className="mx-auto mt-12 max-w-xl px-4 text-center">
           <p className="mt-2 text-3xl font-semibold text-brand-50">
             Personalize your content board and share your story.
           </p>
@@ -828,9 +827,9 @@ export default function Posts() {
         </div>
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 w-full lg:w-auto">
+            <div className="w-full columns-1 sm:columns-2 md:columns-3 lg:w-auto lg:columns-4 xl:columns-5">
               {posts.data
-                .filter(
+                ?.filter(
                   (post) =>
                     post.title.toLowerCase().includes(search.toLowerCase()) ||
                     post.description
@@ -853,7 +852,7 @@ export default function Posts() {
                       <div className="space-y-6 text-brand-50">
                         {item.attachment ? (
                           <img
-                            className="w-full h-full aspect-[1/1] rounded-lg"
+                            className="aspect-[1/1] h-full w-full rounded-lg"
                             src={item.attachment}
                             alt="attachment"
                           />
