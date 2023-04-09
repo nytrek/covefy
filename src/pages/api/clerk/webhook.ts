@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Webhook } from "svix";
-import { prisma } from "@src/lib/prisma";
 import { buffer } from "micro";
 
 export default async function handler(
@@ -15,26 +14,10 @@ export default async function handler(
     if (!svixId || !svixSignature || !svixTimestamp)
       throw new Error("headers not found");
     const wh = new Webhook(process.env.CLERK_SIGNIN_SECRET as string);
-    const payload = wh.verify(JSON.parse((await buffer(body)).toString()), {
+    wh.verify(JSON.parse((await buffer(body)).toString()), {
       "svix-id": svixId,
       "svix-signature": svixSignature,
       "svix-timestamp": svixTimestamp,
-    }) as {
-      data: {
-        id: string;
-        fullName: string;
-        username: string;
-        profileImageUrl: string;
-      };
-    };
-    await prisma.profile.create({
-      data: {
-        id: payload.data.id,
-        name: payload.data.fullName,
-        imageUrl: payload.data.profileImageUrl,
-        username: payload.data.username,
-        credits: 0,
-      },
     });
     res.status(200).send("success");
   } catch (err: any) {
