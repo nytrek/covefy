@@ -8,15 +8,14 @@ export default async function handler(
 ) {
   try {
     const { headers } = req;
-    const raw = (await buffer(req.body.data)).toString();
-    const body = JSON.parse(raw);
+    const raw = (await buffer(req)).toString();
     const svixId = headers["svix-id"]?.toString();
     const svixSignature = headers["svix-signature"]?.toString();
     const svixTimestamp = headers["svix-timestamp"]?.toString();
     if (!svixId || !svixSignature || !svixTimestamp)
       throw new Error("headers not found");
     const wh = new Webhook(process.env.CLERK_SIGNIN_SECRET as string);
-    wh.verify(body, {
+    wh.verify(raw, {
       "svix-id": svixId,
       "svix-signature": svixSignature,
       "svix-timestamp": svixTimestamp,
