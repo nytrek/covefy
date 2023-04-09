@@ -13,13 +13,11 @@ export default async function handler(
     const svixTimestamp = headers["svix-timestamp"]?.toString();
     if (!svixId || !svixSignature || !svixTimestamp)
       throw new Error("headers not found");
-    const wh = new Webhook(process.env.CLERK_SIGNIN_SECRET as string);
-    wh.verify(JSON.parse((await buffer(body)).toString()), {
-      "svix-id": svixId,
-      "svix-signature": svixSignature,
-      "svix-timestamp": svixTimestamp,
-    });
-    res.status(200).send("success");
+    res
+      .status(200)
+      .send(
+        `id: ${svixId}. timestamp: ${svixTimestamp}. signature: ${svixSignature}`
+      );
   } catch (err: any) {
     res.status(500).send(err.message);
   }
