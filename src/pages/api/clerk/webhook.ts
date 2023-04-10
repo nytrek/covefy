@@ -25,7 +25,7 @@ export default async function handler(
         id: string;
         first_name: string;
         last_name: string;
-        image_url: string;
+        profile_image_url: string;
         username: string;
       };
       type: "user.created" | "user.updated" | "user.deleted";
@@ -35,7 +35,7 @@ export default async function handler(
         data: {
           id: payload.data.id,
           name: payload.data.first_name + " " + payload.data.last_name,
-          imageUrl: payload.data.image_url,
+          imageUrl: payload.data.profile_image_url,
           username: payload.data.username,
           credits: 10,
         },
@@ -44,7 +44,7 @@ export default async function handler(
       await prisma.profile.update({
         data: {
           name: payload.data.first_name + " " + payload.data.last_name,
-          imageUrl: payload.data.image_url,
+          imageUrl: payload.data.profile_image_url,
           username: payload.data.username,
         },
         where: {
