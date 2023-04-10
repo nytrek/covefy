@@ -13,6 +13,9 @@ model Profile {
   imageUrl  String
   username  String
   credits   Int
+  claim     Boolean    @default(false)
+  premium   Boolean    @default(false)
+  plan      Plan       @default(FREE)
   posts     Post[]
   likes     Like[]
   bookmarks Bookmark[]
@@ -26,7 +29,6 @@ model Post {
   description    String     @db.VarChar(360)
   label          Label      @default(PUBLIC)
   likes          Like[]
-  stat           Int        @default(0)
   attachment     String?
   attachmentPath String?
   bookmarks      Bookmark[]
@@ -50,6 +52,13 @@ model Bookmark {
   profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@id([postId, profileId])
+}
+
+enum Plan {
+  FREE
+  BASIC
+  PREMIUM
+  ENTERPRISE
 }
 
 enum Label {

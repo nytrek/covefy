@@ -20,6 +20,7 @@ import {
   SwatchIcon,
   TagIcon,
   UserCircleIcon,
+  CheckBadgeIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Bookmark, Label, Like, Prisma } from "@prisma/client";
@@ -654,9 +655,9 @@ export default function Home() {
               <div className="px-4 py-4 sm:px-6 lg:px-8">
                 <div className="relative flex justify-between">
                   <div className="flex space-x-10">
-                    <div className="flex flex-shrink-0 items-center">
+                    <Link href="/" className="flex flex-shrink-0 items-center">
                       <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
-                    </div>
+                    </Link>
                     <div>
                       <div className="hidden lg:block">
                         <nav className="flex space-x-4" aria-label="Tabs">
@@ -698,7 +699,7 @@ export default function Home() {
                   </div>
                   <div className="hidden space-x-5 lg:flex lg:items-center lg:justify-end xl:col-span-4">
                     <Link
-                      href="/plans"
+                      href="/pricing"
                       className="text-sm font-medium text-brand-50 hover:underline"
                     >
                       Go Premium
@@ -874,8 +875,11 @@ export default function Home() {
                             alt=""
                           />
                           <div className="flex flex-col">
-                            <div className="font-semibold">
-                              {item.profile?.name}
+                            <div className="flex items-center space-x-1 font-semibold">
+                              <span>{item.profile?.name}</span>
+                              {item.profile?.premium ? (
+                                <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                              ) : null}
                             </div>
                             <div>{`@${item.profile?.username}`}</div>
                           </div>

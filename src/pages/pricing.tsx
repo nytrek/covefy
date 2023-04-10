@@ -5,23 +5,56 @@ import {
   UserButton,
   useUser,
 } from "@clerk/nextjs";
-import { Popover } from "@headlessui/react";
+import { Popover, RadioGroup } from "@headlessui/react";
 import {
   BookmarkIcon,
+  CheckIcon,
   HomeIcon,
   InboxStackIcon,
+  RectangleStackIcon,
   SwatchIcon,
   UserCircleIcon,
-  RectangleStackIcon,
-  CheckBadgeIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 
-export default function Account() {
+const frequencies = [
+  { value: "monthly", label: "Monthly", priceSuffix: "/month" },
+  { value: "annually", label: "Annually", priceSuffix: "/year" },
+];
+
+const tiers = [
+  {
+    name: "Basic",
+    id: "tier-basic",
+    href: "#",
+    price: { monthly: "$5", annually: "$50" },
+    features: ["25 credits/month"],
+    mostPopular: false,
+  },
+  {
+    name: "Premium",
+    id: "Premium",
+    href: "#",
+    price: { monthly: "$10", annually: "$100" },
+    features: ["50 credits/month", "Premium checkmark"],
+    mostPopular: true,
+  },
+  {
+    name: "Enterprise",
+    id: "tier-enterprise",
+    href: "#",
+    price: { monthly: "$40", annually: "$440" },
+    features: ["200 credits/month", "Premium checkmark"],
+    mostPopular: false,
+  },
+];
+
+export default function Pricing() {
   const { user } = useUser();
   const { route } = useRouter();
   const profile = trpc.getProfile.useQuery();
@@ -31,19 +64,7 @@ export default function Account() {
     { name: "Friend list", href: "/friends", current: route === "/friends" },
     { name: "Billing", href: "#", current: route === "/billing" },
   ];
-  const stats = [
-    { name: "Total Likes", stat: profile.data?.likes.length ?? 0 },
-    {
-      name: "Total Stats",
-      stat:
-        (profile.data?.likes.length ?? 0) +
-        (profile.data?.bookmarks.length ?? 0),
-    },
-    {
-      name: "Total Bookmarks",
-      stat: profile.data?.bookmarks.length ?? 0,
-    },
-  ];
+  const [frequency, setFrequency] = useState(frequencies[0]);
   return (
     <>
       <Popover as="header">
@@ -90,7 +111,7 @@ export default function Account() {
                 </div>
                 <div className="hidden space-x-5 lg:flex lg:items-center lg:justify-end xl:col-span-4">
                   <Link
-                    href="/pricing"
+                    href="/plans"
                     className="text-sm font-medium text-brand-50 hover:underline"
                   >
                     Go Premium
@@ -193,76 +214,103 @@ export default function Account() {
         )}
       </Popover>
       <main className="pb-36 pt-12">
-        <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <div className="md:flex md:items-center md:justify-between md:space-x-5">
-            <div className="flex items-center space-x-5">
-              <div className="flex-shrink-0">
-                <div className="relative">
-                  <img
-                    className="h-16 w-16 rounded-full"
-                    src={profile.data?.imageUrl}
-                    alt=""
-                  />
-                  <span
-                    className="absolute inset-0 rounded-full shadow-inner"
-                    aria-hidden="true"
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-2xl font-bold text-brand-50">
-                    {profile.data?.name}
-                  </h1>
-                  {profile.data?.premium ? (
-                    <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-base font-semibold leading-7 text-brand-500">
+              Pricing
+            </h2>
+            <p className="mt-2 text-4xl font-bold tracking-tight text-brand-50 sm:text-5xl">
+              Go Premium
+            </p>
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-brand-300">
+            Choose a plan and elevate your content game today.
+          </p>
+          <div className="mt-16 flex justify-center">
+            <RadioGroup
+              value={frequency}
+              onChange={setFrequency}
+              className="grid grid-cols-2 gap-x-1 rounded-full bg-brand-800 p-1 text-center text-xs font-semibold leading-5 text-brand-50"
+            >
+              <RadioGroup.Label className="sr-only">
+                Payment frequency
+              </RadioGroup.Label>
+              {frequencies.map((option) => (
+                <RadioGroup.Option
+                  key={option.value}
+                  value={option}
+                  className={({ checked }) =>
+                    clsx(
+                      checked ? "bg-brand-500" : "",
+                      "cursor-pointer rounded-full px-2.5 py-1"
+                    )
+                  }
+                >
+                  <span>{option.label}</span>
+                </RadioGroup.Option>
+              ))}
+            </RadioGroup>
+          </div>
+          <div className="isolate mx-auto mt-10 grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+            {tiers.map((tier) => (
+              <div
+                key={tier.id}
+                className={clsx(
+                  tier.mostPopular
+                    ? "bg-brand-800 ring-2 ring-brand-500"
+                    : "ring-1 ring-brand-600",
+                  "rounded-3xl p-8 xl:p-10"
+                )}
+              >
+                <div className="flex items-center justify-between gap-x-4">
+                  <h3
+                    id={tier.id}
+                    className="text-lg font-semibold leading-8 text-brand-50"
+                  >
+                    {tier.name}
+                  </h3>
+                  {tier.mostPopular ? (
+                    <p className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold leading-5 text-brand-50">
+                      Most popular
+                    </p>
                   ) : null}
                 </div>
-                <p className="text-sm font-medium text-brand-500">
-                  @{profile.data?.username}
+                <p className="mt-6 flex items-baseline gap-x-1">
+                  <span className="text-4xl font-bold tracking-tight text-brand-50">
+                    {tier.price[frequency.value as "monthly" | "annually"]}
+                  </span>
+                  <span className="text-sm font-semibold leading-6 text-brand-300">
+                    {frequency.priceSuffix}
+                  </span>
                 </p>
-              </div>
-            </div>
-            <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-              >
-                Disable account
-              </button>
-              <button
-                type="button"
-                className={clsx(
-                  !profile.data?.claim
-                    ? "cursor-not-allowed bg-brand-800 hover:bg-brand-700"
-                    : "bg-brand-600 hover:bg-brand-500",
-                  "inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                )}
-                disabled={!profile.data?.claim}
-              >
-                Claim credits
-              </button>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-base font-semibold leading-6 text-brand-50">
-              Your progress
-            </h3>
-            <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-              {stats.map((item) => (
-                <div
-                  key={item.name}
-                  className="overflow-hidden rounded-lg border border-brand-600 bg-brand-800 px-4 py-5 shadow sm:p-6"
+                <a
+                  href={tier.href}
+                  aria-describedby={tier.id}
+                  className={clsx(
+                    tier.mostPopular
+                      ? "bg-brand-500 text-brand-50 shadow-sm hover:bg-brand-300 focus-visible:outline-brand-500"
+                      : "bg-brand-600 text-brand-50 hover:bg-brand-500 focus-visible:outline-white",
+                    "mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  )}
                 >
-                  <dt className="truncate text-sm font-medium text-brand-500">
-                    {item.name}
-                  </dt>
-                  <dd className="mt-1 text-3xl font-semibold tracking-tight text-brand-50">
-                    {item.stat}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+                  Buy plan
+                </a>
+                <ul
+                  role="list"
+                  className="mt-8 space-y-3 text-sm leading-6 text-brand-300 xl:mt-10"
+                >
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex gap-x-3">
+                      <CheckIcon
+                        className="h-6 w-5 flex-none text-brand-50"
+                        aria-hidden="true"
+                      />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
       </main>
