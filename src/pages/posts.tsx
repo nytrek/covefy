@@ -28,13 +28,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { toast } from "react-hot-toast";
-import { trpc } from "../utils/trpc";
 import { Upload } from "upload-js";
+import { trpc } from "../utils/trpc";
 
 type Post = Prisma.PostGetPayload<{
   include: {
     likes: true;
     bookmarks: true;
+    profile: true;
   };
 }>;
 
@@ -74,7 +75,7 @@ function Modal({
       toast.dismiss();
       setLabelled(null);
       setAttachment(null);
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       toast.success("Post created!");
     },
     onError: (err: any) => {
@@ -89,7 +90,7 @@ function Modal({
       setOpen(false);
       toast.dismiss();
       setLabelled(null);
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       toast.success("Post updated!");
     },
     onError: (err: any) => {
@@ -108,7 +109,7 @@ function Modal({
       //clear the label
       setLabelled(null);
       //invalidate cache
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       //notification
       toast.success("Post deleted!");
     },
@@ -189,10 +190,7 @@ function Modal({
             description: target.description.value,
             attachment: fileUrl,
             attachmentPath: filePath,
-            authorId: user?.id,
-            authorName: user?.fullName,
-            authorUsername: user?.username,
-            authorProfileImageUrl: user?.profileImageUrl,
+            profileId: user?.id,
           });
         } catch (e: any) {
           toast.dismiss();
@@ -203,10 +201,7 @@ function Modal({
           label: target.label.value,
           title: target.title.value,
           description: target.description.value,
-          authorId: user?.id,
-          authorName: user?.fullName,
-          authorUsername: user?.username,
-          authorProfileImageUrl: user?.profileImageUrl,
+          profileId: user?.id,
         });
       }
     }
@@ -556,6 +551,7 @@ export default function Posts() {
   const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const profile = trpc.getProfile.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
     { name: "Ranking", href: "/ranking", current: route === "/ranking" },
@@ -563,12 +559,12 @@ export default function Posts() {
     { name: "Billing", href: "#", current: route === "/billing" },
   ];
   const [post, setPost] = useState<Post | null>(null);
-  const posts = trpc.getUserPosts.useQuery();
+  const posts = trpc.getProfilePosts.useQuery();
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       toast.success("Post liked!");
     },
     onError: (err: any) => {
@@ -581,7 +577,7 @@ export default function Posts() {
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       toast.success("Post unliked!");
     },
     onError: (err: any) => {
@@ -594,7 +590,7 @@ export default function Posts() {
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       toast.success("Post bookmarked!");
     },
     onError: (err: any) => {
@@ -607,7 +603,7 @@ export default function Posts() {
     onSuccess: () => {
       setPost(null);
       toast.dismiss();
-      utils.getUserPosts.invalidate();
+      utils.getProfilePosts.invalidate();
       toast.success("Post unbookmarked!");
     },
     onError: (err: any) => {
@@ -621,13 +617,15 @@ export default function Posts() {
     toast.loading("Loading...");
     createLike.mutate({
       postId: id,
-      authorId: user?.id,
+      profileId: user?.id,
     });
   };
   const handleOnDeleteLike = (id: number) => {
+    if (!user?.id) return;
     toast.loading("Loading...");
     deleteLike.mutate({
-      id,
+      postId: id,
+      profileId: user?.id,
     });
   };
   const handleOnCreateBookmark = (id: number) => {
@@ -635,13 +633,15 @@ export default function Posts() {
     toast.loading("Loading...");
     createBookmark.mutate({
       postId: id,
-      authorId: user?.id,
+      profileId: user?.id,
     });
   };
   const handleOnDeleteBookmark = (id: number) => {
+    if (!user?.id) return;
     toast.loading("Loading...");
     deleteBookmark.mutate({
-      id,
+      postId: id,
+      profileId: user?.id,
     });
   };
   return (
@@ -709,7 +709,7 @@ export default function Posts() {
                         className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                       >
                         <span className="sr-only">View notifications</span>
-                        <p>30</p>
+                        <p>{profile.data?.credits}</p>
                         <TicketIcon className="h-6 w-6" aria-hidden="true" />
                       </a>
                     ) : null}
@@ -767,7 +767,7 @@ export default function Posts() {
                         className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                       >
                         <span className="sr-only">View notifications</span>
-                        <p>30</p>
+                        <p>{profile.data?.credits}</p>
                         <TicketIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
                     ) : null}
@@ -848,7 +848,7 @@ export default function Posts() {
                       <button
                         type="button"
                         onClick={() => {
-                          if (item.authorId === user?.id) {
+                          if (item.profileId === user?.id) {
                             setOpen(true);
                             setPost(item as unknown as Post);
                           }
@@ -870,14 +870,14 @@ export default function Posts() {
                         <div className="flex items-center space-x-4">
                           <img
                             className="h-10 w-10 rounded-full bg-brand-700"
-                            src={item.authorProfileImageUrl}
+                            src={item.profile?.imageUrl}
                             alt=""
                           />
                           <div className="flex flex-col">
                             <div className="font-semibold">
-                              {item.authorName}
+                              {item.profile?.name}
                             </div>
-                            <div>{`@${item.authorUsername}`}</div>
+                            <div>{`@${item.profile?.username}`}</div>
                           </div>
                         </div>
                         <div className="relative flex flex-col space-y-6">
@@ -887,14 +887,9 @@ export default function Posts() {
                                 type="button"
                                 onClick={() => {
                                   !!item.likes.find(
-                                    (post: Like) => post.authorId === user?.id
-                                  )?.id
-                                    ? handleOnDeleteLike(
-                                        item.likes.find(
-                                          (post: Like) =>
-                                            post.authorId === user?.id
-                                        )?.id as number
-                                      )
+                                    (post: Like) => post.profileId === user?.id
+                                  )
+                                    ? handleOnDeleteLike(item.id)
                                     : handleOnCreateLike(item.id);
                                 }}
                                 className="inline-flex space-x-2"
@@ -930,14 +925,9 @@ export default function Posts() {
                                 onClick={() => {
                                   !!item.bookmarks.find(
                                     (post: Bookmark) =>
-                                      post.authorId === user?.id
-                                  )?.id
-                                    ? handleOnDeleteBookmark(
-                                        item.bookmarks.find(
-                                          (post: Bookmark) =>
-                                            post.authorId === user?.id
-                                        )?.id as number
-                                      )
+                                      post.profileId === user?.id
+                                  )
+                                    ? handleOnDeleteBookmark(item.id)
                                     : handleOnCreateBookmark(item.id);
                                 }}
                                 className="inline-flex space-x-2"
@@ -954,7 +944,7 @@ export default function Posts() {
                             </span>
                           </div>
                           {item.bookmarks.find(
-                            (post) => post.authorId === user?.id
+                            (post) => post.profileId === user?.id
                           ) ? (
                             <div className="flex text-sm">
                               <span className="inline-flex items-center text-sm">
