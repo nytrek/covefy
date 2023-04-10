@@ -8,12 +8,12 @@ import {
 import { Popover } from "@headlessui/react";
 import {
   BookmarkIcon,
+  CheckBadgeIcon,
   HomeIcon,
   InboxStackIcon,
+  RectangleStackIcon,
   SwatchIcon,
   UserCircleIcon,
-  RectangleStackIcon,
-  CheckBadgeIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
@@ -24,7 +24,9 @@ import { useRouter } from "next/router";
 export default function Account() {
   const { user } = useUser();
   const { route } = useRouter();
+  const likes = trpc.getLikes.useQuery();
   const profile = trpc.getProfile.useQuery();
+  const bookmarks = trpc.getBookmarks.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
     { name: "Ranking", href: "/ranking", current: route === "/ranking" },
@@ -32,16 +34,14 @@ export default function Account() {
     { name: "Billing", href: "#", current: route === "/billing" },
   ];
   const stats = [
-    { name: "Total Likes", stat: profile.data?.likes.length ?? 0 },
+    { name: "Total Likes", stat: likes.data ?? 0 },
     {
       name: "Total Stats",
-      stat:
-        (profile.data?.likes.length ?? 0) +
-        (profile.data?.bookmarks.length ?? 0),
+      stat: (likes.data ?? 0) + (bookmarks.data ?? 0),
     },
     {
       name: "Total Bookmarks",
-      stat: profile.data?.bookmarks.length ?? 0,
+      stat: bookmarks.data ?? 0,
     },
   ];
   return (
@@ -198,11 +198,15 @@ export default function Account() {
             <div className="flex items-center space-x-5">
               <div className="flex-shrink-0">
                 <div className="relative">
-                  <img
-                    className="h-16 w-16 rounded-full"
-                    src={profile.data?.imageUrl}
-                    alt=""
-                  />
+                  {profile.data?.imageUrl ? (
+                    <img
+                      className="h-16 w-16 rounded-full"
+                      src={profile.data?.imageUrl}
+                      alt=""
+                    />
+                  ) : (
+                    <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
+                  )}
                   <span
                     className="absolute inset-0 rounded-full shadow-inner"
                     aria-hidden="true"

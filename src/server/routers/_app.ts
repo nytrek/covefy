@@ -28,14 +28,24 @@ async function deleteFile(params: any) {
   }
 }
 export const appRouter = router({
+  getLikes: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.like.count({
+      where: {
+        profileId: ctx.auth.userId,
+      },
+    });
+  }),
+  getBookmarks: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.bookmark.count({
+      where: {
+        profileId: ctx.auth.userId,
+      },
+    });
+  }),
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.profile.findUnique({
       where: {
         id: ctx.auth.userId,
-      },
-      include: {
-        likes: true,
-        bookmarks: true,
       },
     });
   }),

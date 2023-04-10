@@ -21,6 +21,7 @@ import {
   TagIcon,
   UserCircleIcon,
   CheckBadgeIcon,
+  CursorArrowRaysIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Bookmark, Label, Like, Prisma } from "@prisma/client";
@@ -231,7 +232,7 @@ function Modal({
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -259,7 +260,7 @@ function Modal({
                   </div>
                 ) : null}
                 <form className="relative" onSubmit={handleOnSubmit}>
-                  <div className="overflow-hidden rounded-lg border border-brand-300 shadow-sm focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500">
+                  <div className="overflow-hidden rounded-lg">
                     <label htmlFor="title" className="sr-only">
                       Title
                     </label>
@@ -478,7 +479,7 @@ function Modal({
                     <div
                       className={clsx(
                         post ? "justify-end" : "justify-between",
-                        "flex items-center space-x-3 border-t border-brand-200 px-2 py-2 sm:px-3"
+                        "flex items-center space-x-3 px-2 py-2 sm:px-3"
                       )}
                     >
                       {!post ? (
@@ -505,13 +506,13 @@ function Modal({
                             <button
                               type="button"
                               onClick={handleOnClick}
-                              className="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                              className="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                             >
                               Delete
                             </button>
                             <button
                               type="submit"
-                              className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                              className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                             >
                               Save
                             </button>
@@ -519,19 +520,33 @@ function Modal({
                         ) : (
                           <button
                             type="submit"
-                            className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            className="inline-flex items-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                           >
-                            Create
+                            <span>Create</span>
+                            <span className="flex items-center space-x-1">
+                              <span>(1</span>
+                              <TicketIcon className="h-5 w-5" />)
+                            </span>
                           </button>
                         )}
                       </div>
                     </div>
                   </div>
                 </form>
-                <div className="mt-5 sm:mt-6">
+                <div className="mt-5 space-y-2 sm:mt-6">
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                    className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                  >
+                    <span>Use AI</span>
+                    <span className="flex items-center space-x-1">
+                      <span>(1</span>
+                      <TicketIcon className="h-5 w-5" />)
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                     onClick={() => setOpen(false)}
                   >
                     Close
@@ -869,11 +884,15 @@ export default function Home() {
                           <p>{item.description}</p>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <img
-                            className="h-10 w-10 rounded-full bg-brand-700"
-                            src={item.profile?.imageUrl}
-                            alt=""
-                          />
+                          {item.profile?.imageUrl ? (
+                            <img
+                              className="h-10 w-10 rounded-full"
+                              src={item.profile?.imageUrl}
+                              alt=""
+                            />
+                          ) : (
+                            <span className="block h-10 w-10 rounded-full bg-brand-700"></span>
+                          )}
                           <div className="flex flex-col">
                             <div className="flex items-center space-x-1 font-semibold">
                               <span>{item.profile?.name}</span>
