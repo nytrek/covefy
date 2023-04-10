@@ -8,43 +8,48 @@ datasource db {
 }
 
 model Profile {
-  id       String @id @unique
-  name     String
-  imageUrl String
-  username String
-  credits  Int
+  id        String     @id @unique
+  name      String
+  imageUrl  String
+  username  String
+  credits   Int
+  posts     Post[]
+  likes     Like[]
+  bookmarks Bookmark[]
 }
 
 model Post {
-  id                    Int        @id @default(autoincrement())
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @default(now())
-  title                 String     @db.VarChar(100)
-  description           String     @db.VarChar(360)
-  label                 Label      @default(PUBLIC)
-  likes                 Like[]
-  stat                  Int        @default(0)
-  attachment            String?
-  attachmentPath        String?
-  bookmarks             Bookmark[]
-  authorId              String
-  authorName            String
-  authorUsername        String
-  authorProfileImageUrl String
+  id             Int        @id @default(autoincrement())
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @default(now())
+  title          String     @db.VarChar(100)
+  description    String     @db.VarChar(360)
+  label          Label      @default(PUBLIC)
+  likes          Like[]
+  stat           Int        @default(0)
+  attachment     String?
+  attachmentPath String?
+  bookmarks      Bookmark[]
+  profile        Profile?   @relation(fields: [profileId], references: [id])
+  profileId      String?
 }
 
 model Like {
-  id       Int    @id @default(autoincrement())
-  postId   Int
-  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId String
+  postId    Int
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([postId, profileId])
 }
 
 model Bookmark {
-  id       Int    @id @default(autoincrement())
-  postId   Int
-  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId String
+  postId    Int
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([postId, profileId])
 }
 
 enum Label {

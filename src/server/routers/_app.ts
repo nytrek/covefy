@@ -28,14 +28,26 @@ async function deleteFile(params: any) {
   }
 }
 export const appRouter = router({
-  getUserPosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.profile.findUnique({
       where: {
-        authorId: ctx.auth.userId,
+        id: ctx.auth.userId,
       },
       include: {
         likes: true,
         bookmarks: true,
+      },
+    });
+  }),
+  getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        profileId: ctx.auth.userId,
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        profile: true,
       },
       orderBy: {
         id: "desc",
@@ -50,6 +62,7 @@ export const appRouter = router({
       include: {
         likes: true,
         bookmarks: true,
+        profile: true,
       },
       orderBy: {
         id: "desc",
@@ -61,13 +74,14 @@ export const appRouter = router({
       where: {
         bookmarks: {
           some: {
-            authorId: ctx.auth.userId,
+            profileId: ctx.auth.userId,
           },
         },
       },
       include: {
         likes: true,
         bookmarks: true,
+        profile: true,
       },
       orderBy: {
         id: "desc",
@@ -83,10 +97,7 @@ export const appRouter = router({
         description: z.string(),
         attachment: z.string().nullish(),
         attachmentPath: z.string().nullish(),
-        authorId: z.string(),
-        authorName: z.string(),
-        authorUsername: z.string(),
-        authorProfileImageUrl: z.string(),
+        profileId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -98,10 +109,11 @@ export const appRouter = router({
           description: input.description,
           attachment: input.attachment,
           attachmentPath: input.attachmentPath,
-          authorId: input.authorId,
-          authorName: input.authorName,
-          authorUsername: input.authorUsername,
-          authorProfileImageUrl: input.authorProfileImageUrl,
+          profile: {
+            connect: {
+              id: input.profileId,
+            },
+          },
         },
       });
     }),
@@ -148,7 +160,7 @@ export const appRouter = router({
     .input(
       z.object({
         postId: z.number(),
-        authorId: z.string(),
+        profileId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -156,7 +168,7 @@ export const appRouter = router({
       return await prisma.like.create({
         data: {
           postId: input.postId,
-          authorId: input.authorId,
+          profileId: input.profileId,
         },
       });
     }),
@@ -164,14 +176,18 @@ export const appRouter = router({
     // using zod schema to validate and infer input values
     .input(
       z.object({
-        id: z.number(),
+        postId: z.number(),
+        profileId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       // Here some login stuff would happen
       return await prisma.like.delete({
         where: {
-          id: input.id,
+          postId_profileId: {
+            postId: input.postId,
+            profileId: input.profileId,
+          },
         },
       });
     }),
@@ -180,7 +196,7 @@ export const appRouter = router({
     .input(
       z.object({
         postId: z.number(),
-        authorId: z.string(),
+        profileId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -188,7 +204,7 @@ export const appRouter = router({
       return await prisma.bookmark.create({
         data: {
           postId: input.postId,
-          authorId: input.authorId,
+          profileId: input.profileId,
         },
       });
     }),
@@ -196,14 +212,18 @@ export const appRouter = router({
     // using zod schema to validate and infer input values
     .input(
       z.object({
-        id: z.number(),
+        postId: z.number(),
+        profileId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       // Here some login stuff would happen
       return await prisma.bookmark.delete({
         where: {
-          id: input.id,
+          postId_profileId: {
+            postId: input.postId,
+            profileId: input.profileId,
+          },
         },
       });
     }),

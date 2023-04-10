@@ -25,19 +25,39 @@ export default async function handler(
         id: string;
         first_name: string;
         last_name: string;
-        profile_image_url: string;
+        image_url: string;
         username: string;
       };
+      type: "user.created" | "user.updated" | "user.deleted";
     };
-    await prisma.profile.create({
-      data: {
-        id: payload.data.id,
-        name: payload.data.first_name + " " + payload.data.last_name,
-        imageUrl: payload.data.profile_image_url,
-        username: payload.data.username,
-        credits: 0,
-      },
-    });
+    if (payload.type === "user.created") {
+      await prisma.profile.create({
+        data: {
+          id: payload.data.id,
+          name: payload.data.first_name + " " + payload.data.last_name,
+          imageUrl: payload.data.image_url,
+          username: payload.data.username,
+          credits: 10,
+        },
+      });
+    } else if (payload.type === "user.updated") {
+      await prisma.profile.update({
+        data: {
+          name: payload.data.first_name + " " + payload.data.last_name,
+          imageUrl: payload.data.image_url,
+          username: payload.data.username,
+        },
+        where: {
+          id: payload.data.id,
+        },
+      });
+    } else {
+      await prisma.profile.delete({
+        where: {
+          id: payload.data.id,
+        },
+      });
+    }
     res.status(200).send("success");
   } catch (err: any) {
     res.status(500).send(err.message);

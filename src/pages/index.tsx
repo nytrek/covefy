@@ -35,6 +35,7 @@ type Post = Prisma.PostGetPayload<{
   include: {
     likes: true;
     bookmarks: true;
+    profile: true;
   };
 }>;
 
@@ -189,10 +190,7 @@ function Modal({
             description: target.description.value,
             attachment: fileUrl,
             attachmentPath: filePath,
-            authorId: user?.id,
-            authorName: user?.fullName,
-            authorUsername: user?.username,
-            authorProfileImageUrl: user?.profileImageUrl,
+            profileId: user?.id,
           });
         } catch (e: any) {
           toast.dismiss();
@@ -203,10 +201,7 @@ function Modal({
           label: target.label.value,
           title: target.title.value,
           description: target.description.value,
-          authorId: user?.id,
-          authorName: user?.fullName,
-          authorUsername: user?.username,
-          authorProfileImageUrl: user?.profileImageUrl,
+          profileId: user?.id,
         });
       }
     }
@@ -556,6 +551,7 @@ export default function Home() {
   const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const profile = trpc.getProfile.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
     { name: "Ranking", href: "/ranking", current: route === "/ranking" },
@@ -621,13 +617,15 @@ export default function Home() {
     toast.loading("Loading...");
     createLike.mutate({
       postId: id,
-      authorId: user?.id,
+      profileId: user?.id,
     });
   };
   const handleOnDeleteLike = (id: number) => {
+    if (!user?.id) return;
     toast.loading("Loading...");
     deleteLike.mutate({
-      id,
+      postId: id,
+      profileId: user?.id,
     });
   };
   const handleOnCreateBookmark = (id: number) => {
@@ -635,13 +633,15 @@ export default function Home() {
     toast.loading("Loading...");
     createBookmark.mutate({
       postId: id,
-      authorId: user?.id,
+      profileId: user?.id,
     });
   };
   const handleOnDeleteBookmark = (id: number) => {
+    if (!user?.id) return;
     toast.loading("Loading...");
     deleteBookmark.mutate({
-      id,
+      postId: id,
+      profileId: user?.id,
     });
   };
   return (
@@ -709,7 +709,7 @@ export default function Home() {
                         className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                       >
                         <span className="sr-only">View notifications</span>
-                        <p>30</p>
+                        <p>{profile.data?.credits}</p>
                         <TicketIcon className="h-6 w-6" aria-hidden="true" />
                       </a>
                     ) : null}
@@ -767,7 +767,7 @@ export default function Home() {
                         className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                       >
                         <span className="sr-only">View notifications</span>
-                        <p>30</p>
+                        <p>{profile.data?.credits}</p>
                         <TicketIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
                     ) : null}
@@ -848,7 +848,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => {
-                          if (item.authorId === user?.id) {
+                          if (item.profileId === user?.id) {
                             setOpen(true);
                             setPost(item as unknown as Post);
                           }
@@ -870,14 +870,14 @@ export default function Home() {
                         <div className="flex items-center space-x-4">
                           <img
                             className="h-10 w-10 rounded-full bg-brand-700"
-                            src={item.authorProfileImageUrl}
+                            src={item.profile?.imageUrl}
                             alt=""
                           />
                           <div className="flex flex-col">
                             <div className="font-semibold">
-                              {item.authorName}
+                              {item.profile?.name}
                             </div>
-                            <div>{`@${item.authorUsername}`}</div>
+                            <div>{`@${item.profile?.username}`}</div>
                           </div>
                         </div>
                         <div className="relative flex flex-col space-y-6">
@@ -887,14 +887,9 @@ export default function Home() {
                                 type="button"
                                 onClick={() => {
                                   !!item.likes.find(
-                                    (post: Like) => post.authorId === user?.id
-                                  )?.id
-                                    ? handleOnDeleteLike(
-                                        item.likes.find(
-                                          (post: Like) =>
-                                            post.authorId === user?.id
-                                        )?.id as number
-                                      )
+                                    (post: Like) => post.profileId === user?.id
+                                  )
+                                    ? handleOnDeleteLike(item.id)
                                     : handleOnCreateLike(item.id);
                                 }}
                                 className="inline-flex space-x-2"
@@ -930,14 +925,9 @@ export default function Home() {
                                 onClick={() => {
                                   !!item.bookmarks.find(
                                     (post: Bookmark) =>
-                                      post.authorId === user?.id
-                                  )?.id
-                                    ? handleOnDeleteBookmark(
-                                        item.bookmarks.find(
-                                          (post: Bookmark) =>
-                                            post.authorId === user?.id
-                                        )?.id as number
-                                      )
+                                      post.profileId === user?.id
+                                  )
+                                    ? handleOnDeleteBookmark(item.id)
                                     : handleOnCreateBookmark(item.id);
                                 }}
                                 className="inline-flex space-x-2"
@@ -954,7 +944,7 @@ export default function Home() {
                             </span>
                           </div>
                           {item.bookmarks.find(
-                            (post) => post.authorId === user?.id
+                            (post) => post.profileId === user?.id
                           ) ? (
                             <div className="flex text-sm">
                               <span className="inline-flex items-center text-sm">
