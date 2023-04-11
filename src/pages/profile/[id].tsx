@@ -245,7 +245,7 @@ export default function Account() {
           </div>
           <div>
             <h3 className="text-base font-semibold leading-6 text-brand-50">
-              Your progress
+              {profile.data?.name}'s progress
             </h3>
             <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
               {stats.map((item) => (
