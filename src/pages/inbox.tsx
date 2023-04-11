@@ -5,10 +5,11 @@ import {
   UserButton,
   useUser,
 } from "@clerk/nextjs";
-import { Dialog, Listbox, Popover, Transition } from "@headlessui/react";
+import { Dialog, Listbox, Menu, Popover, Transition } from "@headlessui/react";
 import {
   BookmarkIcon,
   ChartBarIcon,
+  CheckBadgeIcon,
   CheckIcon,
   HandThumbUpIcon,
   HomeIcon,
@@ -20,7 +21,6 @@ import {
   SwatchIcon,
   TagIcon,
   UserCircleIcon,
-  CheckBadgeIcon,
 } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Bookmark, Label, Like, Prisma } from "@prisma/client";
@@ -281,7 +281,7 @@ function Modal({
                       name="description"
                       id="description"
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
-                      placeholder="Write a description..."
+                      placeholder="Write a description or a prompt for the AI generation"
                       defaultValue={post?.description}
                       maxLength={360}
                       required
@@ -883,15 +883,68 @@ export default function Inbox() {
                           <p>{item.description}</p>
                         </div>
                         <div className="flex items-center space-x-4">
-                          {item.profile?.imageUrl ? (
-                            <img
-                              className="h-10 w-10 rounded-full"
-                              src={item.profile?.imageUrl}
-                              alt=""
-                            />
-                          ) : (
-                            <span className="block h-10 w-10 rounded-full bg-brand-700"></span>
-                          )}
+                          <Menu
+                            as="div"
+                            className="relative inline-block text-left"
+                          >
+                            <div>
+                              <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
+                                {item.profile?.imageUrl ? (
+                                  <img
+                                    className="h-10 w-10 rounded-full"
+                                    src={item.profile?.imageUrl}
+                                    alt=""
+                                  />
+                                ) : (
+                                  <span className="block h-10 w-10 rounded-full bg-brand-700"></span>
+                                )}
+                              </Menu.Button>
+                            </div>
+                            <Transition
+                              as={Fragment}
+                              enter="transition ease-out duration-100"
+                              enterFrom="transform opacity-0 scale-95"
+                              enterTo="transform opacity-100 scale-100"
+                              leave="transition ease-in duration-75"
+                              leaveFrom="transform opacity-100 scale-100"
+                              leaveTo="transform opacity-0 scale-95"
+                            >
+                              <Menu.Items className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                                <div className="py-1">
+                                  <Menu.Item>
+                                    {({ active }) => (
+                                      <Link
+                                        href={"/profile/" + item.profileId}
+                                        className={clsx(
+                                          active
+                                            ? "bg-brand-100 text-brand-900"
+                                            : "text-brand-700",
+                                          "block px-4 py-2 text-sm"
+                                        )}
+                                      >
+                                        View profile
+                                      </Link>
+                                    )}
+                                  </Menu.Item>
+                                  <Menu.Item>
+                                    {({ active }) => (
+                                      <a
+                                        href="#"
+                                        className={clsx(
+                                          active
+                                            ? "bg-brand-100 text-brand-900"
+                                            : "text-brand-700",
+                                          "block px-4 py-2 text-sm"
+                                        )}
+                                      >
+                                        Send friend request
+                                      </a>
+                                    )}
+                                  </Menu.Item>
+                                </div>
+                              </Menu.Items>
+                            </Transition>
+                          </Menu>
                           <div className="flex flex-col">
                             <div className="flex items-center space-x-1 font-semibold">
                               <span>{item.profile?.name}</span>

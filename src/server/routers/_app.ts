@@ -28,27 +28,33 @@ async function deleteFile(params: any) {
   }
 }
 export const appRouter = router({
-  getLikes: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.like.count({
-      where: {
-        profileId: ctx.auth.userId,
-      },
-    });
-  }),
-  getBookmarks: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.bookmark.count({
-      where: {
-        profileId: ctx.auth.userId,
-      },
-    });
-  }),
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.profile.findUnique({
-      where: {
-        id: ctx.auth.userId,
-      },
-    });
-  }),
+  getLikes: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.like.count({
+        where: {
+          profileId: input ?? ctx.auth.userId,
+        },
+      });
+    }),
+  getBookmarks: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.bookmark.count({
+        where: {
+          profileId: input ?? ctx.auth.userId,
+        },
+      });
+    }),
+  getProfile: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.profile.findUnique({
+        where: {
+          id: input ?? ctx.auth.userId,
+        },
+      });
+    }),
   getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {
