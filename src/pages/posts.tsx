@@ -569,9 +569,9 @@ export default function Posts() {
   const profile = trpc.getProfile.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "#", current: route === "/billing" },
+    { name: "Billing", href: "/billing", current: route === "/billing" },
+    { name: "Support", href: "/support", current: route === "/support" },
   ];
   const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.getProfilePosts.useQuery();
@@ -669,9 +669,9 @@ export default function Posts() {
               <div className="px-4 py-4 sm:px-6 lg:px-8">
                 <div className="relative flex justify-between">
                   <div className="flex space-x-10">
-                    <div className="flex flex-shrink-0 items-center">
+                    <Link href="/" className="flex flex-shrink-0 items-center">
                       <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
-                    </div>
+                    </Link>
                     <div>
                       <div className="hidden lg:block">
                         <nav className="flex space-x-4" aria-label="Tabs">
@@ -924,21 +924,6 @@ export default function Posts() {
                                       >
                                         View profile
                                       </Link>
-                                    )}
-                                  </Menu.Item>
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <a
-                                        href="#"
-                                        className={clsx(
-                                          active
-                                            ? "bg-brand-100 text-brand-900"
-                                            : "text-brand-700",
-                                          "block px-4 py-2 text-sm"
-                                        )}
-                                      >
-                                        Send friend request
-                                      </a>
                                     )}
                                   </Menu.Item>
                                 </div>

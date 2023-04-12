@@ -20,31 +20,93 @@ import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { toast } from "react-hot-toast";
 
-export default function Account() {
+export default function Profile() {
   const { user } = useUser();
   const { query, route } = useRouter();
   const id = query.id as string;
+  const utils = trpc.useContext();
   const likes = trpc.getLikes.useQuery(id);
   const profile = trpc.getProfile.useQuery(id);
   const bookmarks = trpc.getBookmarks.useQuery(id);
+  const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
+  const recievingFriendStatus = trpc.getRecievingFriendStatus.useQuery(id);
+  const createFriendRequest = trpc.createFriendRequest.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      toast.success("Friend request sent!");
+      utils.getSendingFriendStatus.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
+  const deleteFriendRequest = trpc.deleteFriendRequest.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      toast.success("Friend request deleted!");
+      utils.getFriends.invalidate();
+      utils.getSendingFriendStatus.invalidate();
+      utils.getRecievingFriendStatus.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "#", current: route === "/billing" },
+    { name: "Billing", href: "/billing", current: route === "/billing" },
+    { name: "Support", href: "/support", current: route === "/support" },
   ];
   const stats = [
-    { name: "Total Likes", stat: likes.data ?? 0 },
+    {
+      name: "Total Likes",
+      stat:
+        likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
+    },
     {
       name: "Total Stats",
-      stat: (likes.data ?? 0) + (bookmarks.data ?? 0),
+      stat:
+        (likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0) +
+        (bookmarks.data?.reduce(
+          (prev, curr) => prev + curr._count.bookmarks,
+          0
+        ) ?? 0),
     },
     {
       name: "Total Bookmarks",
-      stat: bookmarks.data ?? 0,
+      stat:
+        bookmarks.data?.reduce(
+          (prev, curr) => prev + curr._count.bookmarks,
+          0
+        ) ?? 0,
     },
   ];
+  const handleOnCreateFriendRequest = () => {
+    if (!user?.id || !profile.data?.id) return;
+    toast.loading("Loading...");
+    createFriendRequest.mutate({
+      senderId: user.id,
+      recieverId: profile.data.id,
+    });
+  };
+  const handleOnDeleteFriendRequest = (
+    senderId?: string,
+    recieverId?: string
+  ) => {
+    if (!senderId || !recieverId) return;
+    toast.loading("Loading...");
+    deleteFriendRequest.mutate({
+      senderId,
+      recieverId,
+    });
+  };
   return (
     <>
       <Popover as="header">
@@ -229,18 +291,72 @@ export default function Account() {
               </div>
             </div>
             <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-              >
-                Report account
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              >
-                Send friend request
-              </button>
+              {recievingFriendStatus.data?.status === "PENDING" ||
+              sendingFriendStatus.data?.status === "ACCEPTED" ||
+              recievingFriendStatus.data?.status ===
+                "ACCEPTED" ? null : sendingFriendStatus.data?.status ===
+                "PENDING" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleOnDeleteFriendRequest(
+                      sendingFriendStatus.data?.senderId,
+                      sendingFriendStatus.data?.receiverId
+                    )
+                  }
+                  className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                >
+                  Delete friend request
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                >
+                  Report account
+                </button>
+              )}
+
+              {sendingFriendStatus.data?.status === "PENDING" ||
+              sendingFriendStatus.data?.status ===
+                "REJECTED" ? null : recievingFriendStatus.data?.status ===
+                "PENDING" ? (
+                <Link
+                  href="/friends"
+                  className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                >
+                  View friend request
+                </Link>
+              ) : recievingFriendStatus.data?.status === "REJECTED" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleOnDeleteFriendRequest(
+                      recievingFriendStatus.data?.senderId,
+                      recievingFriendStatus.data?.receiverId
+                    )
+                  }
+                  className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                >
+                  Delete friend request
+                </button>
+              ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
+                recievingFriendStatus.data?.status === "ACCEPTED" ? (
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                >
+                  Send a note
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleOnCreateFriendRequest}
+                  className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                >
+                  Send friend request
+                </button>
+              )}
             </div>
           </div>
           <div>

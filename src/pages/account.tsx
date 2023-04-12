@@ -29,19 +29,32 @@ export default function Account() {
   const bookmarks = trpc.getBookmarks.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "#", current: route === "/billing" },
+    { name: "Billing", href: "/billing", current: route === "/billing" },
+    { name: "Support", href: "/support", current: route === "/support" },
   ];
   const stats = [
-    { name: "Total Likes", stat: likes.data ?? 0 },
+    {
+      name: "Total Likes",
+      stat:
+        likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
+    },
     {
       name: "Total Stats",
-      stat: (likes.data ?? 0) + (bookmarks.data ?? 0),
+      stat:
+        (likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0) +
+        (bookmarks.data?.reduce(
+          (prev, curr) => prev + curr._count.bookmarks,
+          0
+        ) ?? 0),
     },
     {
       name: "Total Bookmarks",
-      stat: bookmarks.data ?? 0,
+      stat:
+        bookmarks.data?.reduce(
+          (prev, curr) => prev + curr._count.bookmarks,
+          0
+        ) ?? 0,
     },
   ];
   return (

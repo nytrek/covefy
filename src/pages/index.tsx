@@ -569,9 +569,9 @@ export default function Home() {
   const profile = trpc.getProfile.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "#", current: route === "/billing" },
+    { name: "Billing", href: "/billing", current: route === "/billing" },
+    { name: "Support", href: "/support", current: route === "/support" },
   ];
   const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.getPublicPosts.useQuery();
@@ -924,21 +924,6 @@ export default function Home() {
                                       >
                                         View profile
                                       </Link>
-                                    )}
-                                  </Menu.Item>
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <a
-                                        href="#"
-                                        className={clsx(
-                                          active
-                                            ? "bg-brand-100 text-brand-900"
-                                            : "text-brand-700",
-                                          "block px-4 py-2 text-sm"
-                                        )}
-                                      >
-                                        Send friend request
-                                      </a>
                                     )}
                                   </Menu.Item>
                                 </div>

@@ -1,7 +1,7 @@
 import { prisma } from "@src/lib/prisma";
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../trpc";
-import { Label } from "@prisma/client";
+import { Label, Status } from "@prisma/client";
 async function deleteFile(params: any) {
   const baseUrl = "https://api.upload.io";
   const path = `/v2/accounts/${params.accountId}/files`;
@@ -31,18 +31,83 @@ export const appRouter = router({
   getLikes: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
-      return await prisma.like.count({
+      return await prisma.post.findMany({
         where: {
           profileId: input ?? ctx.auth.userId,
+        },
+        select: {
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+      });
+    }),
+  getFriends: protectedProcedure.query(async ({ ctx }) => {
+    const [sending, recieving] = await prisma.$transaction([
+      prisma.friend.findMany({
+        where: {
+          senderId: ctx.auth.userId,
+        },
+        include: {
+          sender: true,
+          receiver: true,
+        },
+      }),
+      prisma.friend.findMany({
+        where: {
+          receiverId: ctx.auth.userId,
+        },
+        include: {
+          sender: true,
+          receiver: true,
+        },
+      }),
+    ]);
+    return sending.concat(recieving).sort((a, b) => {
+      if (a.createdAt > b.createdAt) return 1;
+      if (a.createdAt < b.createdAt) return -1;
+      return 0;
+    });
+  }),
+  getSendingFriendStatus: protectedProcedure
+    .input(String)
+    .query(async ({ input, ctx }) => {
+      return await prisma.friend.findUnique({
+        where: {
+          receiverId_senderId: {
+            senderId: ctx.auth.userId,
+            receiverId: input,
+          },
+        },
+      });
+    }),
+  getRecievingFriendStatus: protectedProcedure
+    .input(String)
+    .query(async ({ input, ctx }) => {
+      return await prisma.friend.findUnique({
+        where: {
+          receiverId_senderId: {
+            senderId: input,
+            receiverId: ctx.auth.userId,
+          },
         },
       });
     }),
   getBookmarks: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
-      return await prisma.bookmark.count({
+      return await prisma.post.findMany({
         where: {
           profileId: input ?? ctx.auth.userId,
+        },
+        select: {
+          _count: {
+            select: {
+              bookmarks: true,
+            },
+          },
         },
       });
     }),
@@ -255,6 +320,59 @@ export const appRouter = router({
         apiKey: process.env.UPLOAD_SECRETKEY,
         querystring: {
           filePath: input.attachmentPath,
+        },
+      });
+    }),
+  createFriendRequest: protectedProcedure
+    .input(
+      z.object({
+        senderId: z.string(),
+        recieverId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.friend.create({
+        data: {
+          senderId: input.senderId,
+          receiverId: input.recieverId,
+        },
+      });
+    }),
+  updateFriendStatus: protectedProcedure
+    .input(
+      z.object({
+        senderId: z.string(),
+        recieverId: z.string(),
+        status: z.nativeEnum(Status),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.friend.update({
+        data: {
+          status: input.status,
+        },
+        where: {
+          receiverId_senderId: {
+            senderId: input.senderId,
+            receiverId: input.recieverId,
+          },
+        },
+      });
+    }),
+  deleteFriendRequest: protectedProcedure
+    .input(
+      z.object({
+        senderId: z.string(),
+        recieverId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.friend.delete({
+        where: {
+          receiverId_senderId: {
+            senderId: input.senderId,
+            receiverId: input.recieverId,
+          },
         },
       });
     }),

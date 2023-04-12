@@ -19,12 +19,13 @@ model Profile {
   posts     Post[]
   likes     Like[]
   bookmarks Bookmark[]
+  sender    Friend[]   @relation("Sender")
+  recipent  Friend[]   @relation("Receiver")
 }
 
 model Post {
   id             Int        @id @default(autoincrement())
   createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @default(now())
   title          String     @db.VarChar(100)
   description    String     @db.VarChar(360)
   label          Label      @default(PUBLIC)
@@ -54,11 +55,28 @@ model Bookmark {
   @@id([postId, profileId])
 }
 
+model Friend {
+  sender     Profile  @relation("Sender", fields: [senderId], references: [id])
+  senderId   String
+  receiver   Profile  @relation("Receiver", fields: [receiverId], references: [id])
+  receiverId String
+  status     Status   @default(PENDING)
+  createdAt  DateTime @default(now())
+
+  @@id([receiverId, senderId])
+}
+
 enum Plan {
   FREE
   BASIC
   PREMIUM
   ENTERPRISE
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum Label {

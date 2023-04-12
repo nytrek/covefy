@@ -33,7 +33,7 @@ const tiers = [
     id: "tier-basic",
     href: "#",
     price: { monthly: "$5", annually: "$50" },
-    features: ["25 credits/month"],
+    features: ["250 credits/month"],
     mostPopular: false,
   },
   {
@@ -41,7 +41,7 @@ const tiers = [
     id: "Premium",
     href: "#",
     price: { monthly: "$10", annually: "$100" },
-    features: ["50 credits/month", "Premium checkmark"],
+    features: ["500 credits/month", "Premium checkmark"],
     mostPopular: true,
   },
   {
@@ -49,7 +49,7 @@ const tiers = [
     id: "tier-enterprise",
     href: "#",
     price: { monthly: "$40", annually: "$440" },
-    features: ["200 credits/month", "Premium checkmark"],
+    features: ["2000 credits/month", "Premium checkmark"],
     mostPopular: false,
   },
 ];
@@ -60,9 +60,9 @@ export default function Pricing() {
   const profile = trpc.getProfile.useQuery();
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "#", current: route === "/billing" },
+    { name: "Billing", href: "/billing", current: route === "/billing" },
+    { name: "Support", href: "/support", current: route === "/support" },
   ];
   const [frequency, setFrequency] = useState(frequencies[0]);
   return (
