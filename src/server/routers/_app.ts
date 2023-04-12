@@ -28,12 +28,27 @@ async function deleteFile(params: any) {
   }
 }
 export const appRouter = router({
+  getInbox: publicProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        friendId: ctx.auth.userId,
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        author: true,
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+  }),
   getLikes: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
       return await prisma.post.findMany({
         where: {
-          profileId: input ?? ctx.auth.userId,
+          authorId: input ?? ctx.auth.userId,
         },
         select: {
           _count: {
@@ -45,6 +60,40 @@ export const appRouter = router({
       });
     }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
+    const [sending, recieving] = await prisma.$transaction([
+      prisma.friend.findMany({
+        where: {
+          senderId: ctx.auth.userId,
+        },
+        include: {
+          receiver: true,
+        },
+      }),
+      prisma.friend.findMany({
+        where: {
+          receiverId: ctx.auth.userId,
+        },
+        include: {
+          sender: true,
+        },
+      }),
+    ]);
+    return [
+      ...sending.map((friend) => ({
+        friend: friend.receiver,
+        createdAt: friend.createdAt,
+      })),
+      ...recieving.map((friend) => ({
+        friend: friend.sender,
+        createdAt: friend.createdAt,
+      })),
+    ].sort((a, b) => {
+      if (a.createdAt > b.createdAt) return 1;
+      if (a.createdAt < b.createdAt) return -1;
+      return 0;
+    });
+  }),
+  getAllFriends: protectedProcedure.query(async ({ ctx }) => {
     const [sending, recieving] = await prisma.$transaction([
       prisma.friend.findMany({
         where: {
@@ -100,7 +149,7 @@ export const appRouter = router({
     .query(async ({ input, ctx }) => {
       return await prisma.post.findMany({
         where: {
-          profileId: input ?? ctx.auth.userId,
+          authorId: input ?? ctx.auth.userId,
         },
         select: {
           _count: {
@@ -123,12 +172,12 @@ export const appRouter = router({
   getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {
-        profileId: ctx.auth.userId,
+        authorId: ctx.auth.userId,
       },
       include: {
         likes: true,
         bookmarks: true,
-        profile: true,
+        author: true,
       },
       orderBy: {
         id: "desc",
@@ -143,7 +192,7 @@ export const appRouter = router({
       include: {
         likes: true,
         bookmarks: true,
-        profile: true,
+        author: true,
       },
       orderBy: {
         id: "desc",
@@ -162,7 +211,7 @@ export const appRouter = router({
       include: {
         likes: true,
         bookmarks: true,
-        profile: true,
+        author: true,
       },
       orderBy: {
         id: "desc",
@@ -178,7 +227,8 @@ export const appRouter = router({
         description: z.string(),
         attachment: z.string().nullish(),
         attachmentPath: z.string().nullish(),
-        profileId: z.string(),
+        authorId: z.string(),
+        friendId: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -190,9 +240,14 @@ export const appRouter = router({
           description: input.description,
           attachment: input.attachment,
           attachmentPath: input.attachmentPath,
-          profile: {
+          author: {
             connect: {
-              id: input.profileId,
+              id: input.authorId,
+            },
+          },
+          friend: {
+            connect: {
+              id: input.friendId,
             },
           },
         },

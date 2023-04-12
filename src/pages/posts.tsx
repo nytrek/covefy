@@ -36,20 +36,9 @@ type Post = Prisma.PostGetPayload<{
   include: {
     likes: true;
     bookmarks: true;
-    profile: true;
+    author: true;
   };
 }>;
-
-const assignees = [
-  { name: "Unassigned", value: null },
-  {
-    name: "Wade Cooper",
-    value: "wade-cooper",
-    avatar:
-      "https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-  },
-  // More items...
-];
 
 function Modal({
   open,
@@ -67,7 +56,13 @@ function Modal({
   const upload = Upload({
     apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
   });
-  const [assigned, setAssigned] = useState(assignees[0]);
+  const friends = trpc.getFriends.useQuery();
+  console.log(friends.data);
+  const [assigned, setAssigned] = useState<{
+    id: string;
+    name: string;
+    avatar: string;
+  } | null>(null);
   const [labelled, setLabelled] = useState(post?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const createMutation = trpc.createPost.useMutation({
@@ -191,7 +186,8 @@ function Modal({
             description: target.description.value,
             attachment: fileUrl,
             attachmentPath: filePath,
-            profileId: user?.id,
+            authorId: user?.id,
+            friendId: assigned?.id,
           });
         } catch (e: any) {
           toast.dismiss();
@@ -202,7 +198,8 @@ function Modal({
           label: target.label.value,
           title: target.title.value,
           description: target.description.value,
-          profileId: user?.id,
+          authorId: user?.id,
+          friendId: assigned?.id,
         });
       }
     }
@@ -319,7 +316,7 @@ function Modal({
                               </Listbox.Label>
                               <div className="relative">
                                 <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                                  {assigned.value === null ? (
+                                  {assigned === null ? (
                                     <UserCircleIcon
                                       className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
                                       aria-hidden="true"
@@ -334,13 +331,11 @@ function Modal({
 
                                   <span
                                     className={clsx(
-                                      assigned.value === null
-                                        ? ""
-                                        : "text-brand-900",
-                                      "hidden truncate sm:ml-2 sm:block"
+                                      assigned === null ? "" : "text-brand-900",
+                                      "ml-2 block truncate"
                                     )}
                                   >
-                                    {assigned.value === null
+                                    {assigned === null
                                       ? "Send to"
                                       : assigned.name}
                                   </span>
@@ -354,9 +349,31 @@ function Modal({
                                   leaveTo="opacity-0"
                                 >
                                   <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {assignees.map((assignee) => (
+                                    <Listbox.Option
+                                      key={null}
+                                      className={({ active }) =>
+                                        clsx(
+                                          active
+                                            ? "bg-brand-100"
+                                            : "bg-brand-50",
+                                          "relative cursor-default select-none px-3 py-2"
+                                        )
+                                      }
+                                      value={null}
+                                    >
+                                      <div className="flex items-center">
+                                        <UserCircleIcon
+                                          className="h-5 w-5 flex-shrink-0 text-brand-400"
+                                          aria-hidden="true"
+                                        />
+                                        <span className="ml-3 block truncate font-medium">
+                                          Unassigned
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                    {friends.data?.map((friend) => (
                                       <Listbox.Option
-                                        key={assignee.value}
+                                        key={friend.friend.id}
                                         className={({ active }) =>
                                           clsx(
                                             active
@@ -365,12 +382,16 @@ function Modal({
                                             "relative cursor-default select-none px-3 py-2"
                                           )
                                         }
-                                        value={assignee}
+                                        value={{
+                                          id: friend.friend.id,
+                                          name: friend.friend.name,
+                                          avatar: friend.friend.imageUrl,
+                                        }}
                                       >
                                         <div className="flex items-center">
-                                          {assignee.avatar ? (
+                                          {friend.friend.imageUrl ? (
                                             <img
-                                              src={assignee.avatar}
+                                              src={friend.friend.imageUrl}
                                               alt=""
                                               className="h-5 w-5 flex-shrink-0 rounded-full"
                                             />
@@ -382,7 +403,7 @@ function Modal({
                                           )}
 
                                           <span className="ml-3 block truncate font-medium">
-                                            {assignee.name}
+                                            {friend.friend.name}
                                           </span>
                                         </div>
                                       </Listbox.Option>
@@ -863,7 +884,7 @@ export default function Posts() {
                       <button
                         type="button"
                         onClick={() => {
-                          if (item.profileId === user?.id) {
+                          if (item.authorId === user?.id) {
                             setOpen(true);
                             setPost(item as unknown as Post);
                           }
@@ -889,10 +910,10 @@ export default function Posts() {
                           >
                             <div>
                               <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
-                                {item.profile?.imageUrl ? (
+                                {item.author?.imageUrl ? (
                                   <img
                                     className="h-10 w-10 rounded-full"
-                                    src={item.profile?.imageUrl}
+                                    src={item.author?.imageUrl}
                                     alt=""
                                   />
                                 ) : (
@@ -914,7 +935,7 @@ export default function Posts() {
                                   <Menu.Item>
                                     {({ active }) => (
                                       <Link
-                                        href={"/profile/" + item.profileId}
+                                        href={"/profile/" + item.authorId}
                                         className={clsx(
                                           active
                                             ? "bg-brand-100 text-brand-900"
@@ -932,12 +953,12 @@ export default function Posts() {
                           </Menu>
                           <div className="flex flex-col">
                             <div className="flex items-center space-x-1 font-semibold">
-                              <span>{item.profile?.name}</span>
-                              {item.profile?.premium ? (
+                              <span>{item.author?.name}</span>
+                              {item.author?.premium ? (
                                 <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
                               ) : null}
                             </div>
-                            <div>{`@${item.profile?.username}`}</div>
+                            <div>{`@${item.author?.username}`}</div>
                           </div>
                         </div>
                         <div className="relative flex flex-col space-y-6">

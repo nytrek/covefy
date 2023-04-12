@@ -5,7 +5,7 @@ import {
   UserButton,
   useUser,
 } from "@clerk/nextjs";
-import { Dialog, Menu, Popover, Transition } from "@headlessui/react";
+import { Dialog, Listbox, Menu, Popover, Transition } from "@headlessui/react";
 import {
   ArchiveBoxIcon,
   BookmarkIcon,
@@ -18,6 +18,7 @@ import {
   PaperClipIcon,
   RectangleStackIcon,
   SwatchIcon,
+  TagIcon,
   TrashIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
@@ -45,13 +46,15 @@ function Modal({
   const upload = Upload({
     apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
   });
+  const [labelled, setLabelled] = useState(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
       toast.dismiss();
+      setLabelled(null);
       setAttachment(null);
-      utils.getPublicPosts.invalidate();
+      utils.getInbox.invalidate();
       toast.success("Post created!");
     },
     onError: (err: any) => {
@@ -93,7 +96,8 @@ function Modal({
           description: target.description.value,
           attachment: fileUrl,
           attachmentPath: filePath,
-          profileId: user?.id,
+          authorId: user?.id,
+          friendId: friend?.id,
         });
       } catch (e: any) {
         toast.dismiss();
@@ -104,7 +108,8 @@ function Modal({
         label: target.label.value,
         title: target.title.value,
         description: target.description.value,
-        profileId: user?.id,
+        authorId: user?.id,
+        friendId: friend?.id,
       });
     }
   };
@@ -209,11 +214,87 @@ function Modal({
                               aria-hidden="true"
                             />
                           )}
-                          <span className="ml-2 truncate text-brand-900">
+
+                          <span className="ml-2 block truncate text-brand-900">
                             {friend?.name}
                           </span>
                         </div>
                       </div>
+                      <Listbox
+                        as="div"
+                        value={labelled}
+                        onChange={setLabelled}
+                        className="flex-shrink-0"
+                      >
+                        {({ open }) => (
+                          <>
+                            <Listbox.Label className="sr-only">
+                              {" "}
+                              Add a label{" "}
+                            </Listbox.Label>
+                            <div className="relative">
+                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                                <TagIcon
+                                  className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
+                                  aria-hidden="true"
+                                />
+                                <input
+                                  name="label"
+                                  key={labelled}
+                                  defaultValue={
+                                    labelled ? labelled : "Set label"
+                                  }
+                                  className="ml-2 w-16 cursor-pointer truncate bg-transparent text-brand-500"
+                                  disabled
+                                />
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                                  <Listbox.Option
+                                    key="PUBLIC"
+                                    className={({ active }) =>
+                                      clsx(
+                                        active ? "bg-brand-100" : "bg-brand-50",
+                                        "relative cursor-default select-none px-3 py-2"
+                                      )
+                                    }
+                                    value="PUBLIC"
+                                  >
+                                    <div className="flex items-center">
+                                      <span className="block truncate font-medium">
+                                        PUBLIC
+                                      </span>
+                                    </div>
+                                  </Listbox.Option>
+                                  <Listbox.Option
+                                    key="PRIVATE"
+                                    className={({ active }) =>
+                                      clsx(
+                                        active ? "bg-brand-100" : "bg-brand-50",
+                                        "relative cursor-default select-none px-3 py-2"
+                                      )
+                                    }
+                                    value="PRIVATE"
+                                  >
+                                    <div className="flex items-center">
+                                      <span className="block truncate font-medium">
+                                        PRIVATE
+                                      </span>
+                                    </div>
+                                  </Listbox.Option>
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
                     </div>
                     <div className="flex items-center justify-between space-x-3 px-2 py-2 sm:px-3">
                       <div className="flex">
@@ -232,16 +313,18 @@ function Modal({
                           </span>
                         </div>
                       </div>
-                      <button
-                        type="submit"
-                        className="inline-flex items-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                      >
-                        <span>Create</span>
-                        <span className="flex items-center space-x-1">
-                          <span>(1</span>
-                          <TicketIcon className="h-5 w-5" />)
-                        </span>
-                      </button>
+                      <div className="flex-shrink-0 space-x-1">
+                        <button
+                          type="submit"
+                          className="inline-flex items-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                        >
+                          <span>Create</span>
+                          <span className="flex items-center space-x-1">
+                            <span>(1</span>
+                            <TicketIcon className="h-5 w-5" />)
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </form>
@@ -280,12 +363,12 @@ export default function Friends() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const profile = trpc.getProfile.useQuery();
-  const friends = trpc.getFriends.useQuery();
+  const friends = trpc.getAllFriends.useQuery();
   const [friend, setFriend] = useState<Profile | null>(null);
   const updateFriendStatus = trpc.updateFriendStatus.useMutation({
     onSuccess: () => {
       toast.dismiss();
-      utils.getFriends.invalidate();
+      utils.getAllFriends.invalidate();
       toast.success("Friend request updated!");
     },
     onError: (err: any) => {
@@ -298,7 +381,7 @@ export default function Friends() {
     onSuccess: () => {
       toast.dismiss();
       toast.success("Deleted!");
-      utils.getFriends.invalidate();
+      utils.getAllFriends.invalidate();
       utils.getSendingFriendStatus.invalidate();
       utils.getRecievingFriendStatus.invalidate();
     },
