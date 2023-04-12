@@ -2,6 +2,13 @@ import { prisma } from "@src/lib/prisma";
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../trpc";
 import { Label, Status } from "@prisma/client";
+import { Configuration, OpenAIApi } from "openai";
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
 async function deleteFile(params: any) {
   const baseUrl = "https://api.upload.io";
   const path = `/v2/accounts/${params.accountId}/files`;
@@ -229,29 +236,65 @@ export const appRouter = router({
         attachmentPath: z.string().nullish(),
         authorId: z.string(),
         friendId: z.string().optional(),
+        credits: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Here some login stuff would happen
-      return await prisma.post.create({
-        data: {
-          title: input.title,
-          label: input.label,
-          description: input.description,
-          attachment: input.attachment,
-          attachmentPath: input.attachmentPath,
-          author: {
-            connect: {
-              id: input.authorId,
-            },
-          },
-          friend: {
-            connect: {
-              id: input.friendId,
-            },
-          },
-        },
-      });
+      return input.friendId
+        ? await prisma.$transaction([
+            prisma.post.create({
+              data: {
+                title: input.title,
+                label: input.label,
+                description: input.description,
+                attachment: input.attachment,
+                attachmentPath: input.attachmentPath,
+                author: {
+                  connect: {
+                    id: input.authorId,
+                  },
+                },
+                friend: {
+                  connect: {
+                    id: input.friendId,
+                  },
+                },
+              },
+            }),
+            prisma.profile.update({
+              data: {
+                credits: input.credits,
+              },
+              where: {
+                id: ctx.auth.userId,
+              },
+            }),
+          ])
+        : await prisma.$transaction([
+            prisma.post.create({
+              data: {
+                title: input.title,
+                label: input.label,
+                description: input.description,
+                attachment: input.attachment,
+                attachmentPath: input.attachmentPath,
+                author: {
+                  connect: {
+                    id: input.authorId,
+                  },
+                },
+              },
+            }),
+            prisma.profile.update({
+              data: {
+                credits: input.credits,
+              },
+              where: {
+                id: ctx.auth.userId,
+              },
+            }),
+          ]);
     }),
   updatePost: protectedProcedure
     // using zod schema to validate and infer input values
@@ -430,6 +473,33 @@ export const appRouter = router({
           },
         },
       });
+    }),
+  generateAIResponse: protectedProcedure
+    .input(
+      z.object({
+        prompt: z.string(),
+        credits: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await prisma.profile.update({
+        data: {
+          credits: input.credits,
+        },
+        where: {
+          id: ctx.auth.userId,
+        },
+      });
+      const completion = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt: input.prompt,
+        temperature: 0.6,
+        max_tokens: 480,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+      return completion.data.choices[0].text;
     }),
 });
 // export type definition of API

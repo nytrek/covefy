@@ -28,7 +28,7 @@ model Post {
   id             Int        @id @default(autoincrement())
   createdAt      DateTime   @default(now())
   title          String     @db.VarChar(100)
-  description    String     @db.VarChar(360)
+  description    String     @db.VarChar(720)
   label          Label      @default(PUBLIC)
   likes          Like[]
   attachment     String?

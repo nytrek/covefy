@@ -31,6 +31,7 @@ import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
 import { trpc } from "../utils/trpc";
+import { useRef } from "react";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -57,20 +58,37 @@ function Modal({
     apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
   });
   const friends = trpc.getFriends.useQuery();
-  console.log(friends.data);
   const [assigned, setAssigned] = useState<{
     id: string;
     name: string;
     avatar: string;
   } | null>(null);
+  const profile = trpc.getProfile.useQuery();
   const [labelled, setLabelled] = useState(post?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
+  const generateAI = trpc.generateAIResponse.useMutation({
+    onSuccess: (data) => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Updated your post with AI generated text!");
+      descriptionRef.current
+        ? (descriptionRef.current.value = data.trim())
+        : null;
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
   const createMutation = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
       toast.dismiss();
       setLabelled(null);
       setAttachment(null);
+      utils.getProfile.invalidate();
       utils.getBookmarkedPosts.invalidate();
       toast.success("Post created!");
     },
@@ -154,7 +172,7 @@ function Modal({
   };
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user?.fullName || !user?.username) return;
+    if (!user?.fullName || !user?.username || !profile.data) return;
     const target = e.target as typeof e.target & {
       title: { value: string };
       label: { value: Label };
@@ -171,7 +189,9 @@ function Modal({
         description: target.description.value,
       });
     } else {
-      if (attachment) {
+      if (profile.data.credits < 1)
+        return toast.error("You don't have enough credit");
+      else if (attachment) {
         try {
           const { fileUrl, filePath } = await upload.uploadFile(attachment, {
             path: {
@@ -188,6 +208,7 @@ function Modal({
             attachmentPath: filePath,
             authorId: user?.id,
             friendId: assigned?.id,
+            credits: profile.data.credits - 1,
           });
         } catch (e: any) {
           toast.dismiss();
@@ -200,9 +221,20 @@ function Modal({
           description: target.description.value,
           authorId: user?.id,
           friendId: assigned?.id,
+          credits: profile.data.credits - 1,
         });
       }
     }
+  };
+  const handleOnGenerateAI = (prompt: string | undefined) => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 1)
+      return toast.error("You don't have enough credit");
+    toast.loading("Loading...");
+    generateAI.mutate({
+      prompt,
+      credits: profile.data.credits - 1,
+    });
   };
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -274,13 +306,14 @@ function Modal({
                       Description
                     </label>
                     <textarea
-                      rows={2}
+                      rows={10}
+                      ref={descriptionRef}
                       name="description"
                       id="description"
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
                       defaultValue={post?.description}
-                      maxLength={360}
+                      maxLength={720}
                       required
                     />
 
@@ -556,6 +589,9 @@ function Modal({
                 <div className="mt-5 space-y-2 sm:mt-6">
                   <button
                     type="button"
+                    onClick={() =>
+                      handleOnGenerateAI(descriptionRef.current?.value)
+                    }
                     className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                   >
                     <span>Use AI</span>
