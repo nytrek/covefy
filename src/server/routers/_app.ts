@@ -249,7 +249,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // Here some login stuff would happen
       return await prisma.post.update({
         data: {
           title: input.title,
@@ -446,14 +445,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await prisma.profile.update({
-        data: {
-          credits: input.credits,
-        },
-        where: {
-          id: ctx.auth.userId,
-        },
-      });
       const completion = await openai.createCompletion({
         model: "text-davinci-003",
         prompt: input.prompt,
@@ -462,6 +453,14 @@ export const appRouter = router({
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
+      });
+      await prisma.profile.update({
+        data: {
+          credits: input.credits,
+        },
+        where: {
+          id: ctx.auth.userId,
+        },
       });
       return completion.data.choices[0].text;
     }),

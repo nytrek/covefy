@@ -74,14 +74,14 @@ export default function Navbar() {
                   Go Premium
                 </Link>
                 {user ? (
-                  <a
-                    href="#"
+                  <Link
+                    href="/pricing"
                     className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                   >
                     <span className="sr-only">View notifications</span>
                     <p>{profile.data?.credits}</p>
                     <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                  </a>
+                  </Link>
                 ) : null}
 
                 <div className="relative flex-shrink-0">
@@ -132,14 +132,14 @@ export default function Navbar() {
                   </div>
                 </div>
                 {user ? (
-                  <button
-                    type="button"
+                  <Link
+                    href="/pricing"
                     className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                   >
                     <span className="sr-only">View notifications</span>
                     <p>{profile.data?.credits}</p>
                     <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
+                  </Link>
                 ) : null}
               </div>
               <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
@@ -159,12 +159,12 @@ export default function Navbar() {
             </div>
 
             <div className="mx-auto mt-6 px-4 sm:px-6">
-              <a
-                href="#"
+              <Link
+                href="/pricing"
                 className="flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-brand-50 shadow-sm hover:bg-brand-700"
               >
                 Go premium
-              </a>
+              </Link>
             </div>
           </Popover.Panel>
         </>
