@@ -1,39 +1,16 @@
-import { prisma } from "@src/lib/prisma";
-import { z } from "zod";
-import { publicProcedure, protectedProcedure, router } from "../trpc";
 import { Label, Status } from "@prisma/client";
+import { prisma } from "@src/lib/prisma";
+import deleteFile from "@src/lib/upload";
 import { Configuration, OpenAIApi } from "openai";
+import { z } from "zod";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
 const openai = new OpenAIApi(configuration);
 
-async function deleteFile(params: any) {
-  const baseUrl = "https://api.upload.io";
-  const path = `/v2/accounts/${params.accountId}/files`;
-  const entries = (obj: any) =>
-    Object.entries(obj).filter(([, val]) => (val ?? null) !== null);
-  const query = entries(params.querystring ?? {})
-    .flatMap(([k, v]) => (Array.isArray(v) ? v.map((v2) => [k, v2]) : [[k, v]]))
-    .map((kv) => kv.join("="))
-    .join("&");
-  const response = await fetch(
-    `${baseUrl}${path}${query.length > 0 ? "?" : ""}${query}`,
-    {
-      method: "DELETE",
-      headers: Object.fromEntries(
-        entries({
-          Authorization: `Bearer ${params.apiKey}`,
-        }) as any
-      ),
-    }
-  );
-  if (Math.floor(response.status / 100) !== 2) {
-    const result = await response.json();
-    throw new Error(`Upload API Error: ${JSON.stringify(result)}`);
-  }
-}
 export const appRouter = router({
   getInbox: publicProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
@@ -50,22 +27,6 @@ export const appRouter = router({
       },
     });
   }),
-  getLikes: protectedProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      return await prisma.post.findMany({
-        where: {
-          authorId: input ?? ctx.auth.userId,
-        },
-        select: {
-          _count: {
-            select: {
-              likes: true,
-            },
-          },
-        },
-      });
-    }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
     const [sending, recieving] = await prisma.$transaction([
       prisma.friend.findMany({
@@ -151,22 +112,6 @@ export const appRouter = router({
         },
       });
     }),
-  getBookmarks: protectedProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      return await prisma.post.findMany({
-        where: {
-          authorId: input ?? ctx.auth.userId,
-        },
-        select: {
-          _count: {
-            select: {
-              bookmarks: true,
-            },
-          },
-        },
-      });
-    }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
@@ -226,7 +171,6 @@ export const appRouter = router({
     });
   }),
   createPost: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         title: z.string(),
@@ -240,7 +184,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Here some login stuff would happen
       return input.friendId
         ? await prisma.$transaction([
             prisma.post.create({
@@ -297,7 +240,6 @@ export const appRouter = router({
           ]);
     }),
   updatePost: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         id: z.number(),
@@ -320,22 +262,35 @@ export const appRouter = router({
       });
     }),
   deletePost: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         id: z.number(),
       })
     )
     .mutation(async ({ input }) => {
-      // Here some login stuff would happen
       return await prisma.post.delete({
         where: {
           id: input.id,
         },
       });
     }),
+  getLikes: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.post.findMany({
+        where: {
+          authorId: input ?? ctx.auth.userId,
+        },
+        select: {
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+      });
+    }),
   createLike: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         postId: z.number(),
@@ -343,7 +298,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // Here some login stuff would happen
       return await prisma.like.create({
         data: {
           postId: input.postId,
@@ -352,7 +306,6 @@ export const appRouter = router({
       });
     }),
   deleteLike: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         postId: z.number(),
@@ -360,7 +313,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // Here some login stuff would happen
       return await prisma.like.delete({
         where: {
           postId_profileId: {
@@ -370,8 +322,23 @@ export const appRouter = router({
         },
       });
     }),
+  getBookmarks: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.post.findMany({
+        where: {
+          authorId: input ?? ctx.auth.userId,
+        },
+        select: {
+          _count: {
+            select: {
+              bookmarks: true,
+            },
+          },
+        },
+      });
+    }),
   createBookmark: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         postId: z.number(),
@@ -379,7 +346,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // Here some login stuff would happen
       return await prisma.bookmark.create({
         data: {
           postId: input.postId,
@@ -388,7 +354,6 @@ export const appRouter = router({
       });
     }),
   deleteBookmark: protectedProcedure
-    // using zod schema to validate and infer input values
     .input(
       z.object({
         postId: z.number(),
@@ -396,7 +361,6 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // Here some login stuff would happen
       return await prisma.bookmark.delete({
         where: {
           postId_profileId: {

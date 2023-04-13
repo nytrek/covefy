@@ -1,37 +1,33 @@
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useUser,
-} from "@clerk/nextjs";
-import { Dialog, Listbox, Menu, Popover, Transition } from "@headlessui/react";
+import { useUser } from "@clerk/nextjs";
+import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
   BookmarkIcon,
   ChartBarIcon,
   CheckBadgeIcon,
   CheckIcon,
   HandThumbUpIcon,
-  HomeIcon,
-  InboxStackIcon,
-  MagnifyingGlassIcon,
   PaperClipIcon,
-  PencilSquareIcon,
-  RectangleStackIcon,
-  SwatchIcon,
   TagIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Bookmark, Label, Like, Prisma } from "@prisma/client";
+import Footer from "@src/components/footer";
+import Header from "@src/components/header";
+import Navbar from "@src/components/navbar";
+import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  FormEvent,
+  Fragment,
+  SetStateAction,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
-import { trpc } from "../utils/trpc";
-import { useRef } from "react";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -54,16 +50,16 @@ function Modal({
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
-  const upload = Upload({
-    apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
-  });
+  const profile = trpc.getProfile.useQuery();
   const friends = trpc.getFriends.useQuery();
   const [assigned, setAssigned] = useState<{
     id: string;
     name: string;
     avatar: string;
   } | null>(null);
-  const profile = trpc.getProfile.useQuery();
+  const upload = Upload({
+    apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
+  });
   const [labelled, setLabelled] = useState(post?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
@@ -73,7 +69,7 @@ function Modal({
       utils.getProfile.invalidate();
       toast.success("Updated your post with AI generated text!");
       descriptionRef.current
-        ? (descriptionRef.current.value = data.trim())
+        ? (descriptionRef.current.value = (data ?? "").trim())
         : null;
     },
     onError: (err: any) => {
@@ -104,8 +100,8 @@ function Modal({
       setOpen(false);
       toast.dismiss();
       setLabelled(null);
-      utils.getInbox.invalidate();
       toast.success("Post updated!");
+      utils.getInbox.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -115,23 +111,16 @@ function Modal({
   });
   const deleteMutation = trpc.deletePost.useMutation({
     onSuccess: () => {
-      toast.dismiss();
-      //clear post state
       setPost(null);
-      //close the modal
       setOpen(false);
-      //clear the label
+      toast.dismiss();
       setLabelled(null);
-      //invalidate cache
-      utils.getInbox.invalidate();
-      //notification
       toast.success("Post deleted!");
+      utils.getInbox.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
-      //console out error
       console.log(err.message);
-      //notification
       toast.error("API request failed, check console.log");
     },
   });
@@ -144,9 +133,7 @@ function Modal({
     },
     onError: (err: any) => {
       toast.dismiss();
-      //console out error
       console.log(err.message);
-      //notification
       toast.error("API request failed, check console.log");
     },
   });
@@ -157,8 +144,23 @@ function Modal({
     const file = target.files[0];
     setAttachment(file);
   };
+  const handleOnClose = () => {
+    setPost(null);
+    setOpen(false);
+    setLabelled(null);
+  };
+  const handleOnGenerateAI = (prompt: string | undefined) => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 1)
+      return toast.error("You don't have enough credit");
+    toast.loading("Loading...");
+    generateAI.mutate({
+      prompt,
+      credits: profile.data.credits - 1,
+    });
+  };
   const handleOnClick = () => {
-    if (!post) return; //execute if the user has selected a post
+    if (!post) return;
     toast.loading("Loading...");
     if (post.attachmentPath) {
       deleteAttachment.mutate({
@@ -195,7 +197,6 @@ function Modal({
         try {
           const { fileUrl, filePath } = await upload.uploadFile(attachment, {
             path: {
-              // See path variables: https://upload.io/dashboard/docs/path-variables
               folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
               fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
             },
@@ -226,27 +227,9 @@ function Modal({
       }
     }
   };
-  const handleOnGenerateAI = (prompt: string | undefined) => {
-    if (!prompt || !profile.data) return;
-    if (profile.data.credits < 1)
-      return toast.error("You don't have enough credit");
-    toast.loading("Loading...");
-    generateAI.mutate({
-      prompt,
-      credits: profile.data.credits - 1,
-    });
-  };
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-50"
-        onClose={() => {
-          setPost(null);
-          setOpen(false);
-          setLabelled(null);
-        }}
-      >
+      <Dialog as="div" className="relative z-50" onClose={handleOnClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -316,8 +299,6 @@ function Modal({
                       maxLength={720}
                       required
                     />
-
-                    {/* Spacer element to match the height of the toolbar */}
                     <div aria-hidden="true">
                       <div className="py-2">
                         <div className="h-9" />
@@ -332,7 +313,6 @@ function Modal({
                   </div>
 
                   <div className="absolute inset-x-px bottom-0">
-                    {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
                     <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
                       {!post ? (
                         <Listbox
@@ -619,19 +599,11 @@ function Modal({
 
 export default function Inbox() {
   const { user } = useUser();
-  const { route } = useRouter();
   const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const profile = trpc.getProfile.useQuery();
-  const tabs = [
-    { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "/billing", current: route === "/billing" },
-    { name: "Support", href: "/support", current: route === "/support" },
-  ];
-  const [post, setPost] = useState<Post | null>(null);
   const posts = trpc.getInbox.useQuery();
+  const [post, setPost] = useState<Post | null>(null);
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
       setPost(null);
@@ -689,7 +661,7 @@ export default function Inbox() {
     toast.loading("Loading...");
     createLike.mutate({
       postId: id,
-      profileId: user?.id,
+      profileId: user.id,
     });
   };
   const handleOnDeleteLike = (id: number) => {
@@ -697,7 +669,7 @@ export default function Inbox() {
     toast.loading("Loading...");
     deleteLike.mutate({
       postId: id,
-      profileId: user?.id,
+      profileId: user.id,
     });
   };
   const handleOnCreateBookmark = (id: number) => {
@@ -705,7 +677,7 @@ export default function Inbox() {
     toast.loading("Loading...");
     createBookmark.mutate({
       postId: id,
-      profileId: user?.id,
+      profileId: user.id,
     });
   };
   const handleOnDeleteBookmark = (id: number) => {
@@ -713,196 +685,20 @@ export default function Inbox() {
     toast.loading("Loading...");
     deleteBookmark.mutate({
       postId: id,
-      profileId: user?.id,
+      profileId: user.id,
     });
   };
   return (
     <>
       <Modal open={open} post={post} setOpen={setOpen} setPost={setPost} />
       <div className="pb-36">
-        <Popover as="header">
-          {({ open }) => (
-            <>
-              <div className="px-4 py-4 sm:px-6 lg:px-8">
-                <div className="relative flex justify-between">
-                  <div className="flex space-x-10">
-                    <Link href="/" className="flex flex-shrink-0 items-center">
-                      <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
-                    </Link>
-                    <div>
-                      <div className="hidden lg:block">
-                        <nav className="flex space-x-4" aria-label="Tabs">
-                          {tabs.map((tab) => (
-                            <Link
-                              key={tab.name}
-                              href={tab.href}
-                              className={clsx(
-                                tab.current
-                                  ? "bg-brand-700 text-brand-50"
-                                  : "text-brand-200 hover:text-gray-50",
-                                "rounded-md px-3 py-2 text-sm font-medium"
-                              )}
-                              aria-current={tab.current ? "page" : undefined}
-                            >
-                              {tab.name}
-                            </Link>
-                          ))}
-                        </nav>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center md:absolute md:inset-y-0 md:right-0 lg:hidden">
-                    {/* Mobile menu button */}
-                    <Popover.Button className="-mx-2 inline-flex items-center justify-center rounded-md p-2 text-brand-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-50">
-                      <span className="sr-only">Open menu</span>
-                      {open ? (
-                        <XMarkIcon
-                          className="block h-6 w-6"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Bars3Icon
-                          className="block h-6 w-6"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </Popover.Button>
-                  </div>
-                  <div className="hidden space-x-5 lg:flex lg:items-center lg:justify-end xl:col-span-4">
-                    <Link
-                      href="/pricing"
-                      className="text-sm font-medium text-brand-50 hover:underline"
-                    >
-                      Go Premium
-                    </Link>
-                    {user ? (
-                      <a
-                        href="#"
-                        className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
-                      >
-                        <span className="sr-only">View notifications</span>
-                        <p>{profile.data?.credits}</p>
-                        <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                      </a>
-                    ) : null}
-
-                    <div className="relative flex-shrink-0">
-                      <SignedOut>
-                        <SignInButton mode="modal">
-                          <button
-                            type="button"
-                            className="flex items-center justify-center rounded-full bg-brand-600"
-                          >
-                            <UserCircleIcon className="h-8 w-8 text-brand-50" />
-                          </button>
-                        </SignInButton>
-                      </SignedOut>
-
-                      <SignedIn>
-                        <UserButton />
-                      </SignedIn>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Popover.Panel as="nav" className="lg:hidden" aria-label="Global">
-                <div className="pt-4">
-                  <div className="mx-auto flex items-center px-4 sm:px-6">
-                    <div className="flex-shrink-0">
-                      <SignedOut>
-                        <SignInButton mode="modal">
-                          <button
-                            type="button"
-                            className="flex items-center justify-center rounded-full bg-brand-600"
-                          >
-                            <UserCircleIcon className="h-10 w-10 text-brand-50" />
-                          </button>
-                        </SignInButton>
-                      </SignedOut>
-
-                      <SignedIn>
-                        <UserButton />
-                      </SignedIn>
-                    </div>
-                    <div className="ml-3">
-                      <div className="text-base font-medium text-brand-50">
-                        {user?.fullName}
-                      </div>
-                      <div className="text-sm font-medium text-brand-500">
-                        {user?.username}
-                      </div>
-                    </div>
-                    {user ? (
-                      <button
-                        type="button"
-                        className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
-                      >
-                        <span className="sr-only">View notifications</span>
-                        <p>{profile.data?.credits}</p>
-                        <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
-                    {tabs.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={clsx(
-                          item.current ? "bg-brand-800" : "hover:bg-brand-800",
-                          "block rounded-md px-3 py-2 text-base font-medium text-brand-50"
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mx-auto mt-6 px-4 sm:px-6">
-                  <a
-                    href="#"
-                    className="flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-brand-50 shadow-sm hover:bg-brand-700"
-                  >
-                    Go premium
-                  </a>
-                </div>
-              </Popover.Panel>
-            </>
-          )}
-        </Popover>
-        <div className="mx-auto mt-12 max-w-xl px-4 text-center">
-          <p className="mt-2 text-3xl font-semibold text-brand-50">
-            Start a new conversation or reconnect with an old friend.
-          </p>
-          <div className="mt-8 flex flex-1 justify-center">
-            <div className="w-full px-2 lg:px-6">
-              <label htmlFor="search" className="sr-only">
-                Search projects
-              </label>
-              <div className="relative flex items-center text-brand-50">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <input
-                  id="search"
-                  name="search"
-                  className="block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 px-10 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
-                  placeholder="Search"
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                {user ? (
-                  <button type="button" onClick={() => setOpen(true)}>
-                    <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </div>
+        <Navbar />
+        <Header
+          header="Start a new conversation or reconnect with an old friend."
+          search={search}
+          setOpen={setOpen}
+          setSearch={setSearch}
+        />
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="w-full columns-1 sm:columns-2 md:columns-3 lg:w-auto lg:columns-4 xl:columns-5">
@@ -922,7 +718,7 @@ export default function Inbox() {
                         onClick={() => {
                           if (item.authorId === user?.id) {
                             setOpen(true);
-                            setPost(item as unknown as Post);
+                            setPost(item);
                           }
                         }}
                         className="absolute inset-0 rounded-2xl"
@@ -1089,25 +885,7 @@ export default function Inbox() {
           </div>
         </div>
       </div>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 sm:flex sm:justify-center sm:px-6 sm:pb-5 lg:px-8">
-        <div className="pointer-events-auto flex items-center justify-between border border-brand-600 bg-brand-900 bg-opacity-90 p-6 backdrop-blur-md sm:gap-x-16 sm:rounded-xl">
-          <Link href="/" className="border border-transparent p-2">
-            <HomeIcon className="h-8 w-8 rounded-full text-brand-50/40" />
-          </Link>
-          <Link href="/posts" className="border border-transparent p-2">
-            <RectangleStackIcon className="h-8 w-8 text-brand-50/40" />
-          </Link>
-          <Link href="/bookmarks" className="border border-transparent p-2">
-            <BookmarkIcon className="h-8 w-8 text-brand-50/40" />
-          </Link>
-          <Link
-            href="/inbox"
-            className="rounded-full border border-brand-base bg-brand-800 p-2"
-          >
-            <InboxStackIcon className="h-8 w-8 text-brand-50/70" />
-          </Link>
-        </div>
-      </div>
+      <Footer />
     </>
   );
 }
