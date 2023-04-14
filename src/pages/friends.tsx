@@ -33,14 +33,22 @@ function Modal({
   open,
   friend,
   setOpen,
+  setFriend,
 }: {
   open: boolean;
   friend: Profile | null;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  setFriend: Dispatch<SetStateAction<Profile | null>>;
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
+  const friends = trpc.getFriends.useQuery();
+  const [assigned, setAssigned] = useState<{
+    id: string;
+    name: string;
+    avatar: string;
+  } | null>(null);
   const [labelled, setLabelled] = useState(null);
   const upload = Upload({
     apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
@@ -68,7 +76,6 @@ function Modal({
       toast.dismiss();
       setLabelled(null);
       setAttachment(null);
-      utils.getInbox.invalidate();
       utils.getProfile.invalidate();
       toast.success("Post created!");
     },
@@ -84,6 +91,11 @@ function Modal({
     };
     const file = target.files[0];
     setAttachment(file);
+  };
+  const handleOnClose = () => {
+    setOpen(false);
+    setFriend(null);
+    setLabelled(null);
   };
   const handleOnGenerateAI = (prompt: string | undefined) => {
     if (!prompt || !profile.data) return;
@@ -144,7 +156,7 @@ function Modal({
   };
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={setOpen}>
+      <Dialog as="div" className="relative z-50" onClose={handleOnClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -228,26 +240,141 @@ function Modal({
 
                   <div className="absolute inset-x-px bottom-0">
                     <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
-                      <div className="flex-shrink-0">
-                        <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                          {friend?.imageUrl ? (
-                            <img
-                              src={friend.imageUrl}
-                              alt=""
-                              className="h-5 w-5 flex-shrink-0 rounded-full"
-                            />
-                          ) : (
-                            <UserCircleIcon
-                              className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                              aria-hidden="true"
-                            />
-                          )}
+                      {friend ? (
+                        <div className="flex-shrink-0">
+                          <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                            {friend.imageUrl ? (
+                              <img
+                                src={friend.imageUrl}
+                                alt=""
+                                className="h-5 w-5 flex-shrink-0 rounded-full"
+                              />
+                            ) : (
+                              <UserCircleIcon
+                                className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                                aria-hidden="true"
+                              />
+                            )}
 
-                          <span className="ml-2 block truncate text-brand-900">
-                            {friend?.name}
-                          </span>
+                            <span className="ml-2 block truncate text-brand-900">
+                              {friend.name}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <Listbox
+                          as="div"
+                          value={assigned}
+                          onChange={setAssigned}
+                          className="flex-shrink-0"
+                        >
+                          {({ open }) => (
+                            <>
+                              <Listbox.Label className="sr-only">
+                                {" "}
+                                Assign{" "}
+                              </Listbox.Label>
+                              <div className="relative">
+                                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                                  {assigned === null ? (
+                                    <UserCircleIcon
+                                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <img
+                                      src={assigned.avatar}
+                                      alt=""
+                                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                                    />
+                                  )}
+
+                                  <span
+                                    className={clsx(
+                                      assigned === null ? "" : "text-brand-900",
+                                      "ml-2 block truncate"
+                                    )}
+                                  >
+                                    {assigned === null
+                                      ? "Send to"
+                                      : assigned.name}
+                                  </span>
+                                </Listbox.Button>
+
+                                <Transition
+                                  show={open}
+                                  as={Fragment}
+                                  leave="transition ease-in duration-100"
+                                  leaveFrom="opacity-100"
+                                  leaveTo="opacity-0"
+                                >
+                                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                                    <Listbox.Option
+                                      key={null}
+                                      className={({ active }) =>
+                                        clsx(
+                                          active
+                                            ? "bg-brand-100"
+                                            : "bg-brand-50",
+                                          "relative cursor-default select-none px-3 py-2"
+                                        )
+                                      }
+                                      value={null}
+                                    >
+                                      <div className="flex items-center">
+                                        <UserCircleIcon
+                                          className="h-5 w-5 flex-shrink-0 text-brand-400"
+                                          aria-hidden="true"
+                                        />
+                                        <span className="ml-3 block truncate font-medium">
+                                          Unassigned
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                    {friends.data?.map((friend) => (
+                                      <Listbox.Option
+                                        key={friend.friend.id}
+                                        className={({ active }) =>
+                                          clsx(
+                                            active
+                                              ? "bg-brand-100"
+                                              : "bg-brand-50",
+                                            "relative cursor-default select-none px-3 py-2"
+                                          )
+                                        }
+                                        value={{
+                                          id: friend.friend.id,
+                                          name: friend.friend.name,
+                                          avatar: friend.friend.imageUrl,
+                                        }}
+                                      >
+                                        <div className="flex items-center">
+                                          {friend.friend.imageUrl ? (
+                                            <img
+                                              src={friend.friend.imageUrl}
+                                              alt=""
+                                              className="h-5 w-5 flex-shrink-0 rounded-full"
+                                            />
+                                          ) : (
+                                            <UserCircleIcon
+                                              className="h-5 w-5 flex-shrink-0 text-brand-400"
+                                              aria-hidden="true"
+                                            />
+                                          )}
+
+                                          <span className="ml-3 block truncate font-medium">
+                                            {friend.friend.name}
+                                          </span>
+                                        </div>
+                                      </Listbox.Option>
+                                    ))}
+                                  </Listbox.Options>
+                                </Transition>
+                              </div>
+                            </>
+                          )}
+                        </Listbox>
+                      )}
                       <Listbox
                         as="div"
                         value={labelled}
@@ -439,7 +566,12 @@ export default function Friends() {
   };
   return (
     <>
-      <Modal open={open} setOpen={setOpen} friend={friend} />
+      <Modal
+        open={open}
+        setOpen={setOpen}
+        friend={friend}
+        setFriend={setFriend}
+      />
       <div className="pb-36">
         <Navbar />
         <Header

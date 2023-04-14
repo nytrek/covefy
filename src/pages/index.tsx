@@ -17,6 +17,7 @@ import Header from "@src/components/header";
 import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import {
   Dispatch,
@@ -28,7 +29,6 @@ import {
 } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
-import { AnimatePresence, motion } from "framer-motion";
 
 type Post = Prisma.PostGetPayload<{
   include: {
