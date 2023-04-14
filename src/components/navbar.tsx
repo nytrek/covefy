@@ -20,7 +20,7 @@ export default function Navbar() {
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
-    { name: "Billing", href: "/billing", current: route === "/billing" },
+    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Support", href: "/support", current: route === "/support" },
   ];
   return (

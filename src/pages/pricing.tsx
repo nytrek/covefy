@@ -3,6 +3,7 @@ import { CheckIcon } from "@heroicons/react/20/solid";
 import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
 const frequencies = [
@@ -104,14 +105,36 @@ export default function Pricing() {
                     </p>
                   ) : null}
                 </div>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-brand-50">
-                    {tier.price[frequency.value as "monthly" | "annually"]}
-                  </span>
-                  <span className="text-sm font-semibold leading-6 text-brand-300">
-                    {frequency.priceSuffix}
-                  </span>
-                </p>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={frequency.label}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      transition: {
+                        ease: "easeOut",
+                        duration: 0.15,
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      x: 8,
+                      transition: {
+                        ease: "easeOut",
+                        duration: 0.15,
+                      },
+                    }}
+                    className="mt-6 flex items-baseline gap-x-1"
+                  >
+                    <span className="text-4xl font-bold tracking-tight text-brand-50">
+                      {tier.price[frequency.value as "monthly" | "annually"]}
+                    </span>
+                    <span className="text-sm font-semibold leading-6 text-brand-300">
+                      {frequency.priceSuffix}
+                    </span>
+                  </motion.p>
+                </AnimatePresence>
                 <a
                   href={tier.href}
                   aria-describedby={tier.id}
