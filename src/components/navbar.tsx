@@ -68,7 +68,7 @@ export default function Navbar() {
               </div>
               <div className="hidden space-x-5 lg:flex lg:items-center lg:justify-end xl:col-span-4">
                 <Link
-                  href="/plans"
+                  href="/pricing"
                   className="text-sm font-medium text-brand-50 hover:underline"
                 >
                   Go Premium

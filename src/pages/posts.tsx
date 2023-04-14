@@ -28,6 +28,7 @@ import {
 } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -811,9 +812,17 @@ export default function Posts() {
                                   className="h-5 w-5"
                                   aria-hidden="true"
                                 />
-                                <span className="font-medium">
-                                  {item.likes.length}
-                                </span>
+                                <AnimatePresence mode="wait">
+                                  <motion.span
+                                    key={item.likes.length}
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    className="font-medium"
+                                  >
+                                    {item.likes.length}
+                                  </motion.span>
+                                </AnimatePresence>
                                 <span className="sr-only">likes</span>
                               </button>
                             </span>
@@ -826,9 +835,19 @@ export default function Posts() {
                                   className="h-5 w-5"
                                   aria-hidden="true"
                                 />
-                                <span className="font-medium">
-                                  {item.likes.length + item.bookmarks.length}
-                                </span>
+                                <AnimatePresence mode="wait">
+                                  <motion.span
+                                    key={
+                                      item.likes.length + item.bookmarks.length
+                                    }
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    className="font-medium"
+                                  >
+                                    {item.likes.length + item.bookmarks.length}
+                                  </motion.span>
+                                </AnimatePresence>
                                 <span className="sr-only">stats</span>
                               </button>
                             </span>
@@ -849,33 +868,50 @@ export default function Posts() {
                                   className="h-5 w-5"
                                   aria-hidden="true"
                                 />
-                                <span className="font-medium">
-                                  {item.bookmarks.length}
-                                </span>
+                                <AnimatePresence mode="wait">
+                                  <motion.span
+                                    key={item.bookmarks.length}
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    className="font-medium"
+                                  >
+                                    {item.bookmarks.length}
+                                  </motion.span>
+                                </AnimatePresence>
                                 <span className="sr-only">bookmarks</span>
                               </button>
                             </span>
                           </div>
-                          {item.bookmarks.find(
-                            (post) => post.profileId === user?.id
-                          ) ? (
-                            <div className="flex text-sm">
-                              <span className="inline-flex items-center text-sm">
-                                <button
-                                  type="button"
-                                  className="inline-flex space-x-2"
+                          <div>
+                            <AnimatePresence mode="wait">
+                              {item.bookmarks.find(
+                                (post) => post.profileId === user?.id
+                              ) ? (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="flex text-sm"
                                 >
-                                  <CheckIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                  <span className="font-medium">
-                                    Bookmarked
+                                  <span className="inline-flex items-center text-sm">
+                                    <button
+                                      type="button"
+                                      className="inline-flex space-x-2"
+                                    >
+                                      <CheckIcon
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                      <span className="font-medium">
+                                        Bookmarked
+                                      </span>
+                                    </button>
                                   </span>
-                                </button>
-                              </span>
-                            </div>
-                          ) : null}
+                                </motion.div>
+                              ) : null}
+                            </AnimatePresence>
+                          </div>
                         </div>
                       </div>
                     </div>

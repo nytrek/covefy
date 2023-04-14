@@ -24,6 +24,7 @@ import {
 } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
+import { AnimatePresence, motion } from "framer-motion";
 
 function Modal({
   open,
