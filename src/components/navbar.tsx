@@ -6,7 +6,7 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import { Popover } from "@headlessui/react";
-import { SwatchIcon, UserCircleIcon } from "@heroicons/react/20/solid";
+import { UserCircleIcon } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
@@ -31,7 +31,11 @@ export default function Navbar() {
             <div className="relative flex justify-between">
               <div className="flex space-x-10">
                 <Link href="/" className="flex flex-shrink-0 items-center">
-                  <SwatchIcon className="mx-auto h-8 w-8 text-brand-50" />
+                  <img
+                    className="mx-auto block h-10 w-10"
+                    src="/logo.png"
+                    alt="logo"
+                  />
                 </Link>
                 <div>
                   <div className="hidden lg:block">
