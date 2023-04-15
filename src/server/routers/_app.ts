@@ -12,7 +12,7 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const appRouter = router({
-  getInbox: publicProcedure.query(async ({ ctx }) => {
+  getInbox: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {
         friendId: ctx.auth.userId,
