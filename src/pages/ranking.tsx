@@ -119,7 +119,7 @@ export default function Ranking() {
         </div>
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="flex w-full flex-col justify-center space-x-0 space-y-8 lg:flex-row lg:space-y-0">
+            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {ranking.data?.map((post, index) => (
                 <div key={post.id} className="px-4">
                   <h2 className="sr-only">Summary</h2>
