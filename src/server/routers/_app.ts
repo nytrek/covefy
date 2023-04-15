@@ -112,6 +112,19 @@ export const appRouter = router({
         },
       });
     }),
+  getRanking: protectedProcedure.query(async () => {
+    return await prisma.profile.findMany({
+      include: {
+        bookmarks: true,
+      },
+      orderBy: {
+        bookmarks: {
+          _count: "desc",
+        },
+      },
+      take: 10,
+    });
+  }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {

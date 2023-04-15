@@ -258,7 +258,7 @@ function Modal({
                 {attachment ? (
                   <div className="relative">
                     <img
-                      className="aspect-[1/1] h-full w-full rounded-lg"
+                      className="h-full w-full rounded-lg"
                       src={URL.createObjectURL(attachment)}
                       alt="attachment"
                     />
@@ -727,7 +727,7 @@ export default function Inbox() {
                       <div className="space-y-6 text-brand-50">
                         {item.attachment ? (
                           <img
-                            className="aspect-[1/1] h-full w-full rounded-lg"
+                            className="h-full w-full rounded-lg"
                             src={item.attachment}
                             alt="attachment"
                           />
