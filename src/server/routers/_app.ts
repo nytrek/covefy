@@ -126,7 +126,7 @@ export const appRouter = router({
           _count: "desc",
         },
       },
-      take: 10,
+      take: 8,
     });
   }),
   getProfile: protectedProcedure

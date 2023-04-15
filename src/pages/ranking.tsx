@@ -119,7 +119,7 @@ export default function Ranking() {
         </div>
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {ranking.data?.map((post, index) => (
                 <div key={post.id} className="px-4">
                   <h2 className="sr-only">Summary</h2>
@@ -130,7 +130,7 @@ export default function Ranking() {
                           Amount
                         </dt>
                         <dd className="mt-1 flex items-center space-x-2 text-base font-semibold leading-6 text-brand-50">
-                          <span>{1000 - index * 75}</span>
+                          <span>{800 - index * 75}</span>
                           <TicketIcon className="h-5 w-5" />
                         </dd>
                       </div>

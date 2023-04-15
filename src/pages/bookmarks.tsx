@@ -703,7 +703,7 @@ export default function Bookmarks() {
         />
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="w-full columns-1 md:columns-2 lg:w-auto lg:columns-3 xl:columns-5">
+            <div className="w-full columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
               {posts.data
                 ?.filter(
                   (post) =>
