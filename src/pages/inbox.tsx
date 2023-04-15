@@ -154,7 +154,7 @@ function Modal({
     if (!prompt || !profile.data) return;
     if (profile.data.credits < 1) {
       toast.dismiss();
-      return toast.error("You don't have enough credit");
+      return toast.error("You don't have enough credits");
     }
     toast.loading("Loading...");
     generateAI.mutate({
@@ -195,7 +195,7 @@ function Modal({
       });
     } else {
       if (profile.data.credits < 1)
-        return toast.error("You don't have enough credit");
+        return toast.error("You don't have enough credits");
       else if (attachment) {
         try {
           const { fileUrl, filePath } = await upload.uploadFile(attachment, {

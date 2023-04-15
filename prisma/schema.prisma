@@ -22,6 +22,7 @@ model Profile {
   sender    Friend[]   @relation("Sender")
   receiver  Friend[]   @relation("Receiver")
   inbox     Post[]     @relation("Friend")
+  Comment   Comment[]
 }
 
 model Post {
@@ -38,6 +39,16 @@ model Post {
   authorId       String
   friend         Profile?   @relation("Friend", fields: [friendId], references: [id])
   friendId       String?
+  Comment        Comment[]
+}
+
+model Comment {
+  id        Int     @id @default(autoincrement())
+  comment   String  @db.VarChar(720)
+  post      Post    @relation(fields: [postId], references: [id])
+  postId    Int
+  author    Profile @relation(fields: [profileId], references: [id])
+  profileId String
 }
 
 model Like {

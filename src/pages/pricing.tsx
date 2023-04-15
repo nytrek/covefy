@@ -4,6 +4,7 @@ import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { useState } from "react";
 
 const frequencies = [
@@ -15,7 +16,12 @@ const tiers = [
   {
     name: "Basic",
     id: "tier-basic",
-    href: "#",
+    href: {
+      monthly:
+        "https://covefy.lemonsqueezy.com/checkout/buy/a99b6ea8-aa30-4071-bf1e-e03a33fe30d1",
+      annually:
+        "https://covefy.lemonsqueezy.com/checkout/buy/b530a9b7-fe2a-4be0-a980-3089ad4fdd80",
+    },
     price: { monthly: "$5", annually: "$50" },
     features: ["125 credits/month"],
     mostPopular: false,
@@ -23,7 +29,12 @@ const tiers = [
   {
     name: "Premium",
     id: "Premium",
-    href: "#",
+    href: {
+      monthly:
+        "https://covefy.lemonsqueezy.com/checkout/buy/1e590965-dd61-44ef-b3be-84ea115640f3",
+      annually:
+        "https://covefy.lemonsqueezy.com/checkout/buy/28151292-54af-487b-a36f-994b58c1dede",
+    },
     price: { monthly: "$10", annually: "$100" },
     features: ["250 credits/month", "Premium checkmark"],
     mostPopular: true,
@@ -31,7 +42,12 @@ const tiers = [
   {
     name: "Enterprise",
     id: "tier-enterprise",
-    href: "#",
+    href: {
+      monthly:
+        "https://covefy.lemonsqueezy.com/checkout/buy/c25da43e-8011-4841-9915-0bb67e29d677",
+      annually:
+        "https://covefy.lemonsqueezy.com/checkout/buy/171e0867-399b-4ddb-b07f-cf068d4c610c",
+    },
     price: { monthly: "$40", annually: "$440" },
     features: ["1000 credits/month", "Premium checkmark"],
     mostPopular: false,
@@ -135,8 +151,8 @@ export default function Pricing() {
                     </span>
                   </motion.p>
                 </AnimatePresence>
-                <a
-                  href={tier.href}
+                <Link
+                  href={tier.href[frequency.value as "monthly" | "annually"]}
                   aria-describedby={tier.id}
                   className={clsx(
                     tier.mostPopular
@@ -146,7 +162,7 @@ export default function Pricing() {
                   )}
                 >
                   Buy plan
-                </a>
+                </Link>
                 <ul
                   role="list"
                   className="mt-8 space-y-3 text-sm leading-6 text-brand-300 xl:mt-10"
