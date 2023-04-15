@@ -192,9 +192,10 @@ function Modal({
         description: target.description.value,
       });
     } else {
-      if (profile.data.credits < 1)
+      if (profile.data.credits < 1) {
+        toast.dismiss();
         return toast.error("You don't have enough credit");
-      else if (attachment) {
+      } else if (attachment) {
         try {
           const { fileUrl, filePath } = await upload.uploadFile(attachment, {
             path: {

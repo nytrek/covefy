@@ -113,8 +113,12 @@ export const appRouter = router({
       });
     }),
   getRanking: protectedProcedure.query(async () => {
-    return await prisma.profile.findMany({
+    return await prisma.post.findMany({
+      where: {
+        label: "PUBLIC",
+      },
       include: {
+        author: true,
         bookmarks: true,
       },
       orderBy: {
@@ -460,7 +464,9 @@ export const appRouter = router({
     .mutation(async ({ input, ctx }) => {
       const completion = await openai.createCompletion({
         model: "text-davinci-003",
-        prompt: input.prompt,
+        prompt:
+          "Respond to the following prompt with a maximum of 480 characters - " +
+          input.prompt,
         temperature: 0.6,
         max_tokens: 480,
         top_p: 1,
