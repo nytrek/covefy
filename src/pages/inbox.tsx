@@ -17,6 +17,7 @@ import Header from "@src/components/header";
 import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
+import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -605,6 +606,7 @@ export default function Inbox() {
   const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const profile = trpc.getProfile.useQuery();
   const posts = trpc.getInbox.useQuery();
   const [post, setPost] = useState<Post | null>(null);
   const createLike = trpc.createLike.useMutation({
@@ -659,6 +661,18 @@ export default function Inbox() {
       toast.error("API request failed, check console.log");
     },
   });
+  const createComment = trpc.createComment.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Comment created!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      console.log(err.message);
+      toast.error("API request failed, check console.log");
+    },
+  });
   const handleOnCreateLike = (id: number) => {
     if (!user?.id) return;
     toast.loading("Loading...");
@@ -689,6 +703,20 @@ export default function Inbox() {
     deleteBookmark.mutate({
       postId: id,
       profileId: user.id,
+    });
+  };
+  const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!user?.id || !profile.data) return;
+    if (profile.data.credits < 45)
+      return toast.error("You need atleast 45 credits to comment");
+    const target = e.target as typeof e.target & {
+      comment: { id: string; value: string };
+    };
+    toast.loading("Loading");
+    createComment.mutate({
+      postId: Number(target.comment.id),
+      comment: target.comment.value,
     });
   };
   return (
@@ -847,7 +875,9 @@ export default function Inbox() {
                                     exit={{ opacity: 0, y: -4 }}
                                     className="font-medium"
                                   >
-                                    {item.likes.length + item.bookmarks.length}
+                                    {item.likes.length +
+                                      item.bookmarks.length +
+                                      item.comments.length}
                                   </motion.span>
                                 </AnimatePresence>
                                 <span className="sr-only">stats</span>
@@ -913,6 +943,88 @@ export default function Inbox() {
                                 </motion.div>
                               ) : null}
                             </AnimatePresence>
+                          </div>
+                          <ul role="list" className="space-y-6">
+                            <AnimatePresence mode="wait">
+                              {item.comments.map((comment) => (
+                                <motion.li
+                                  key={comment.id}
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="relative flex gap-x-4"
+                                >
+                                  {comment.author.imageUrl ? (
+                                    <img
+                                      src={comment.author.imageUrl}
+                                      alt=""
+                                      className="relative h-6 w-6 flex-none rounded-full bg-brand-700"
+                                    />
+                                  ) : (
+                                    <span className="relative mt-3 h-6 w-6 flex-none rounded-full bg-brand-700"></span>
+                                  )}
+                                  <div className="flex-auto rounded-md">
+                                    <div className="flex justify-between gap-x-4">
+                                      <div className="py-0.5 text-xs leading-5 text-brand-50">
+                                        <span className="font-medium text-brand-50">
+                                          {comment.author.name}
+                                        </span>{" "}
+                                        commented
+                                      </div>
+                                      <time
+                                        dateTime={comment.createdAt.toString()}
+                                        className="flex-none py-0.5 text-xs leading-5 text-brand-50"
+                                      >
+                                        {formatDistanceToNow(
+                                          comment.createdAt,
+                                          {
+                                            addSuffix: true,
+                                          }
+                                        )}
+                                      </time>
+                                    </div>
+                                    <p className="text-sm leading-6 text-brand-50">
+                                      {comment.comment}
+                                    </p>
+                                  </div>
+                                </motion.li>
+                              ))}
+                            </AnimatePresence>
+                          </ul>
+
+                          <div className="mt-6 flex gap-x-3">
+                            <img
+                              src={user?.profileImageUrl}
+                              alt=""
+                              className="h-6 w-6 flex-none rounded-full bg-brand-700"
+                            />
+                            <form
+                              className="relative flex-auto"
+                              onSubmit={handleOnCreateComment}
+                            >
+                              <div className="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-inset ring-brand-300 focus-within:ring-2">
+                                <label htmlFor="comment" className="sr-only">
+                                  Add your comment
+                                </label>
+                                <textarea
+                                  id={String(item.id)}
+                                  rows={4}
+                                  name="comment"
+                                  className="block w-full resize-none border-0 bg-transparent py-1.5 text-brand-50 placeholder:text-brand-50 focus:ring-0 sm:text-sm sm:leading-6"
+                                  placeholder="Add your comment..."
+                                  maxLength={720}
+                                />
+                              </div>
+
+                              <div className="absolute inset-x-0 bottom-0 flex justify-end py-2 pl-3 pr-2">
+                                <button
+                                  type="submit"
+                                  className="rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm ring-1 ring-inset ring-brand-300"
+                                >
+                                  Comment
+                                </button>
+                              </div>
+                            </form>
                           </div>
                         </div>
                       </div>

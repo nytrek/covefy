@@ -846,7 +846,9 @@ export default function Posts() {
                                     exit={{ opacity: 0, y: -4 }}
                                     className="font-medium"
                                   >
-                                    {item.likes.length + item.bookmarks.length}
+                                    {item.likes.length +
+                                      item.bookmarks.length +
+                                      item.comments.length}
                                   </motion.span>
                                 </AnimatePresence>
                                 <span className="sr-only">stats</span>

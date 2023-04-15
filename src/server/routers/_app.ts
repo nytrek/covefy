@@ -13,18 +13,51 @@ const openai = new OpenAIApi(configuration);
 
 export const appRouter = router({
   getInbox: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
-      where: {
-        friendId: ctx.auth.userId,
-      },
-      include: {
-        likes: true,
-        bookmarks: true,
-        author: true,
-      },
-      orderBy: {
-        id: "desc",
-      },
+    const [sending, recieving] = await prisma.$transaction([
+      prisma.post.findMany({
+        where: {
+          authorId: ctx.auth.userId,
+          friendId: {
+            startsWith: "user",
+          },
+        },
+        include: {
+          likes: true,
+          bookmarks: true,
+          author: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
+        },
+        orderBy: {
+          id: "desc",
+        },
+      }),
+      prisma.post.findMany({
+        where: {
+          friendId: ctx.auth.userId,
+        },
+        include: {
+          likes: true,
+          bookmarks: true,
+          author: true,
+          comments: {
+            include: {
+              author: true,
+            },
+          },
+        },
+        orderBy: {
+          id: "desc",
+        },
+      }),
+    ]);
+    return sending.concat(recieving).sort((a, b) => {
+      if (a.createdAt > b.createdAt) return 1;
+      if (a.createdAt < b.createdAt) return -1;
+      return 0;
     });
   }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
@@ -147,6 +180,7 @@ export const appRouter = router({
         likes: true,
         bookmarks: true,
         author: true,
+        comments: true,
       },
       orderBy: {
         id: "desc",
@@ -162,6 +196,7 @@ export const appRouter = router({
         likes: true,
         bookmarks: true,
         author: true,
+        comments: true,
       },
       orderBy: {
         id: "desc",
@@ -181,6 +216,7 @@ export const appRouter = router({
         likes: true,
         bookmarks: true,
         author: true,
+        comments: true,
       },
       orderBy: {
         id: "desc",
@@ -383,6 +419,22 @@ export const appRouter = router({
             postId: input.postId,
             profileId: input.profileId,
           },
+        },
+      });
+    }),
+  createComment: protectedProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+        comment: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.comment.create({
+        data: {
+          postId: input.postId,
+          comment: input.comment,
+          authorId: ctx.auth.userId,
         },
       });
     }),
