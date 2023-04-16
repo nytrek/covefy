@@ -11,7 +11,46 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
+const date = new Date();
+const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
 export const appRouter = router({
+  getRanking: protectedProcedure.query(async () => {
+    return await prisma.post.findMany({
+      where: {
+        label: "PUBLIC",
+        createdAt: {
+          gte: firstDay,
+          lte: lastDay,
+        },
+      },
+      include: {
+        author: true,
+        likes: true,
+        comments: true,
+        bookmarks: true,
+      },
+      orderBy: [
+        {
+          likes: {
+            _count: "desc",
+          },
+        },
+        {
+          comments: {
+            _count: "desc",
+          },
+        },
+        {
+          bookmarks: {
+            _count: "desc",
+          },
+        },
+      ],
+      take: 8,
+    });
+  }),
   getInbox: protectedProcedure.query(async ({ ctx }) => {
     const [sending, recieving] = await prisma.$transaction([
       prisma.post.findMany({
@@ -214,23 +253,6 @@ export const appRouter = router({
         },
       });
     }),
-  getRanking: protectedProcedure.query(async () => {
-    return await prisma.post.findMany({
-      where: {
-        label: "PUBLIC",
-      },
-      include: {
-        author: true,
-        bookmarks: true,
-      },
-      orderBy: {
-        bookmarks: {
-          _count: "desc",
-        },
-      },
-      take: 8,
-    });
-  }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {

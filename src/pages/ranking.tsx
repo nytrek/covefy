@@ -1,5 +1,10 @@
-import { CheckBadgeIcon, UserCircleIcon } from "@heroicons/react/20/solid";
-import { TicketIcon, BookmarkIcon } from "@heroicons/react/24/outline";
+import {
+  ChartBarIcon,
+  CheckBadgeIcon,
+  PencilSquareIcon,
+  UserCircleIcon,
+} from "@heroicons/react/20/solid";
+import { TicketIcon } from "@heroicons/react/24/outline";
 import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
@@ -7,11 +12,10 @@ import { differenceInSeconds } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-export default function Ranking() {
+function Countdown() {
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
-  const ranking = trpc.getRanking.useQuery();
   useEffect(() => {
     let interval = setInterval(() => {
       const today = new Date();
@@ -32,91 +36,98 @@ export default function Ranking() {
     return () => clearInterval(interval);
   }, []);
   return (
+    <div className="mx-auto mt-12 max-w-7xl px-4 text-center">
+      <img src="/ranking.png" alt="ranking" className="mx-auto mt-2 w-24" />
+      <div className="mt-8 flex flex-1 justify-center">
+        <div className="flex w-full items-center justify-center space-x-6 px-2 text-2xl font-bold text-brand-50 sm:text-4xl lg:px-6">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={hours}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: {
+                  ease: "easeInOut",
+                  duration: 0.2,
+                },
+              }}
+              exit={{
+                opacity: 0,
+                y: -8,
+                transition: {
+                  ease: "easeInOut",
+                  duration: 0.2,
+                },
+              }}
+            >
+              {hours}
+            </motion.p>
+          </AnimatePresence>
+          &nbsp;H
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={minutes}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: {
+                  ease: "easeInOut",
+                  duration: 0.2,
+                },
+              }}
+              exit={{
+                opacity: 0,
+                y: -8,
+                transition: {
+                  ease: "easeInOut",
+                  duration: 0.2,
+                },
+              }}
+            >
+              {minutes}
+            </motion.p>
+          </AnimatePresence>
+          &nbsp;M
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={seconds}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: {
+                  ease: "easeInOut",
+                  duration: 0.2,
+                },
+              }}
+              exit={{
+                opacity: 0,
+                y: -8,
+                transition: {
+                  ease: "easeInOut",
+                  duration: 0.2,
+                },
+              }}
+            >
+              {seconds}
+            </motion.p>
+          </AnimatePresence>
+          &nbsp;S
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Ranking() {
+  const ranking = trpc.getRanking.useQuery();
+  return (
     <>
       <div className="pb-36">
         <Navbar />
-        <div className="mx-auto mt-12 max-w-7xl px-4 text-center">
-          <img src="/ranking.png" alt="ranking" className="mx-auto mt-2 w-24" />
-          <div className="mt-8 flex flex-1 justify-center">
-            <div className="flex w-full items-center justify-center space-x-6 px-2 text-2xl font-bold text-brand-50 sm:text-4xl lg:px-6">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={hours}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      ease: "easeInOut",
-                      duration: 0.2,
-                    },
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -8,
-                    transition: {
-                      ease: "easeInOut",
-                      duration: 0.2,
-                    },
-                  }}
-                >
-                  {hours}
-                </motion.p>
-              </AnimatePresence>
-              &nbsp;H
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={minutes}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      ease: "easeInOut",
-                      duration: 0.2,
-                    },
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -8,
-                    transition: {
-                      ease: "easeInOut",
-                      duration: 0.2,
-                    },
-                  }}
-                >
-                  {minutes}
-                </motion.p>
-              </AnimatePresence>
-              &nbsp;M
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={seconds}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      ease: "easeInOut",
-                      duration: 0.2,
-                    },
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -8,
-                    transition: {
-                      ease: "easeInOut",
-                      duration: 0.2,
-                    },
-                  }}
-                >
-                  {seconds}
-                </motion.p>
-              </AnimatePresence>
-              &nbsp;S
-            </div>
-          </div>
-        </div>
+        <Countdown />
         <div className="mt-8 px-2 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="grid w-full grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -164,14 +175,30 @@ export default function Ranking() {
                       </div>
                       <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
                         <dt className="flex-none">
-                          <span className="sr-only">Bookmarks</span>
-                          <BookmarkIcon
+                          <span className="sr-only">Title</span>
+                          <PencilSquareIcon
                             className="h-6 w-5 text-brand-50"
                             aria-hidden="true"
                           />
                         </dt>
                         <dd className="text-sm leading-6 text-brand-50">
-                          <p>{post.bookmarks?.length} Bookmarks</p>
+                          <p>{post.title}</p>
+                        </dd>
+                      </div>
+                      <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
+                        <dt className="flex-none">
+                          <span className="sr-only">Stats</span>
+                          <ChartBarIcon
+                            className="h-6 w-5 text-brand-50"
+                            aria-hidden="true"
+                          />
+                        </dt>
+                        <dd className="text-sm leading-6 text-brand-50">
+                          <p>
+                            {post.likes.length +
+                              post.comments.length +
+                              post.bookmarks?.length}
+                          </p>
                         </dd>
                       </div>
                     </dl>
