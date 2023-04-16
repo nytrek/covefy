@@ -1,17 +1,23 @@
 import { useUser } from "@clerk/nextjs";
 import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
-  BookmarkIcon,
-  ChartBarIcon,
+  BookmarkIcon as BookmarkIconSolid,
+  ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
   CheckBadgeIcon,
   CheckIcon,
-  HandThumbUpIcon,
+  HandThumbUpIcon as HandThumbUpIconSolid,
   PaperClipIcon,
   TagIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import { TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Bookmark, Label, Like, Prisma } from "@prisma/client";
+import {
+  BookmarkIcon as BookmarkIconOutline,
+  ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconOutline,
+  HandThumbUpIcon as HandThumbUpIconOutline,
+  TicketIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { Label, Prisma, Profile } from "@prisma/client";
 import Footer from "@src/components/footer";
 import Header from "@src/components/header";
 import Navbar from "@src/components/navbar";
@@ -31,39 +37,331 @@ import {
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
 
+const MAX_TOKENS = 720;
+const API_ERROR_MESSAGE =
+  "API request failed, please refresh the page and try again.";
+
 type Post = Prisma.PostGetPayload<{
   include: {
     likes: true;
     bookmarks: true;
     author: true;
+    friend: true;
+    comments: {
+      include: {
+        author: true;
+      };
+    };
   };
 }>;
 
-function Modal({
-  open,
+function Attachment({
   post,
-  setOpen,
-  setPost,
+  attachment,
+  setAttachment,
 }: {
-  open: boolean;
   post: Post | null;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  setPost: Dispatch<SetStateAction<Post | null>>;
+  attachment: File | null;
+  setAttachment: Dispatch<SetStateAction<File | null>>;
 }) {
-  const { user } = useUser();
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
-  const friends = trpc.getFriends.useQuery();
-  const [assigned, setAssigned] = useState<{
-    id: string;
-    name: string;
-    avatar: string;
-  } | null>(null);
-  const upload = Upload({
-    apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Post updated!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
   });
-  const [labelled, setLabelled] = useState(post?.label ?? null);
-  const [attachment, setAttachment] = useState<File | null>(null);
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnDeleteAttachment = () => {
+    if (!post?.attachmentPath) return;
+    toast.loading("Loading...");
+    deleteAttachment.mutate(
+      {
+        attachmentPath: post.attachmentPath,
+      },
+      {
+        onSuccess: () => {
+          updatePost.mutate({
+            id: post.id,
+            label: post.label,
+            title: post.title,
+            description: post.description,
+            attachment: null,
+            attachmentPath: null,
+          });
+        },
+      }
+    );
+  };
+  return (
+    <>
+      {attachment ? (
+        <div className="relative">
+          <img
+            className="h-full w-full rounded-lg"
+            src={URL.createObjectURL(attachment)}
+            alt="attachment"
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+            onClick={() => setAttachment(null)}
+          >
+            <XMarkIcon className="h-5 w-5 text-brand-600" />
+          </button>
+        </div>
+      ) : post?.attachment && profile.data?.plan === "ENTERPRISE" ? (
+        <div className="relative">
+          <img
+            className="h-full w-full rounded-lg"
+            src={post.attachment}
+            alt="attachment"
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+            onClick={handleOnDeleteAttachment}
+          >
+            <XMarkIcon className="h-5 w-5 text-brand-600" />
+          </button>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function FriendDropdown({
+  post,
+  friend,
+  setFriend,
+}: {
+  post: Post | null;
+  friend: Profile | null;
+  setFriend: Dispatch<SetStateAction<Profile | null>>;
+}) {
+  const friends = trpc.getFriends.useQuery();
+  return (
+    <>
+      {post?.friend ? (
+        <div className="flex-shrink-0">
+          <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+            {post.friend.imageUrl ? (
+              <img
+                src={post.friend.imageUrl}
+                alt=""
+                className="h-5 w-5 flex-shrink-0 rounded-full"
+              />
+            ) : (
+              <UserCircleIcon
+                className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                aria-hidden="true"
+              />
+            )}
+
+            <span className="ml-2 block truncate text-sm font-bold text-brand-500">
+              {post.friend.name}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <Listbox
+          as="div"
+          value={friend}
+          onChange={setFriend}
+          className="flex-shrink-0"
+        >
+          {({ open }) => (
+            <>
+              <Listbox.Label className="sr-only"> Send to </Listbox.Label>
+              <div className="relative">
+                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                  {friend === null ? (
+                    <UserCircleIcon
+                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <img
+                      src={friend.imageUrl}
+                      alt=""
+                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                    />
+                  )}
+
+                  <span className="ml-2 block truncate text-sm font-bold text-brand-500">
+                    {friend === null ? "Send to" : friend.name}
+                  </span>
+                </Listbox.Button>
+
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                    <Listbox.Option
+                      key={null}
+                      className={({ active }) =>
+                        clsx(
+                          active ? "bg-brand-100" : "bg-brand-50",
+                          "relative cursor-default select-none px-3 py-2"
+                        )
+                      }
+                      value={null}
+                    >
+                      <div className="flex items-center">
+                        <UserCircleIcon
+                          className="h-5 w-5 flex-shrink-0 text-brand-400"
+                          aria-hidden="true"
+                        />
+                        <span className="ml-3 block truncate text-sm font-bold text-brand-500">
+                          Send to
+                        </span>
+                      </div>
+                    </Listbox.Option>
+                    {friends.data?.map((friend) => (
+                      <Listbox.Option
+                        key={friend.friend.id}
+                        className={({ active }) =>
+                          clsx(
+                            active ? "bg-brand-100" : "bg-brand-50",
+                            "relative cursor-default select-none px-3 py-2"
+                          )
+                        }
+                        value={friend.friend}
+                      >
+                        <div className="flex items-center">
+                          {friend.friend.imageUrl ? (
+                            <img
+                              src={friend.friend.imageUrl}
+                              alt=""
+                              className="h-5 w-5 flex-shrink-0 rounded-full"
+                            />
+                          ) : (
+                            <UserCircleIcon
+                              className="h-5 w-5 flex-shrink-0 text-brand-400"
+                              aria-hidden="true"
+                            />
+                          )}
+
+                          <span className="ml-3 block truncate text-sm font-bold text-brand-500">
+                            {friend.friend.name}
+                          </span>
+                        </div>
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </>
+          )}
+        </Listbox>
+      )}
+    </>
+  );
+}
+
+function LabelDropdown({
+  post,
+  label,
+  setLabel,
+}: {
+  post: Post | null;
+  label: Label | null;
+  setLabel: Dispatch<SetStateAction<Label | null>>;
+}) {
+  return (
+    <Listbox
+      as="div"
+      value={label}
+      onChange={setLabel}
+      className="flex-shrink-0"
+    >
+      {({ open }) => (
+        <>
+          <Listbox.Label className="sr-only"> Add a label </Listbox.Label>
+          <div className="relative">
+            <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+              <TagIcon
+                className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
+                aria-hidden="true"
+              />
+              <input
+                name="label"
+                key={label}
+                defaultValue={
+                  label ? label : post?.label ? post?.label : "Set label"
+                }
+                className="ml-2 w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500"
+                disabled
+              />
+            </Listbox.Button>
+
+            <Transition
+              show={open}
+              as={Fragment}
+              leave="transition ease-in duration-100"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                <Listbox.Option
+                  key="PUBLIC"
+                  className={({ active }) =>
+                    clsx(
+                      active ? "bg-brand-100" : "bg-brand-50",
+                      "relative cursor-default select-none px-3 py-2"
+                    )
+                  }
+                  value="PUBLIC"
+                >
+                  <div className="flex items-center">
+                    <span className="block truncate text-sm font-bold text-brand-500">
+                      PUBLIC
+                    </span>
+                  </div>
+                </Listbox.Option>
+                <Listbox.Option
+                  key="PRIVATE"
+                  className={({ active }) =>
+                    clsx(
+                      active ? "bg-brand-100" : "bg-brand-50",
+                      "relative cursor-default select-none px-3 py-2"
+                    )
+                  }
+                  value="PRIVATE"
+                >
+                  <div className="flex items-center">
+                    <span className="block truncate text-sm font-bold text-brand-500">
+                      PRIVATE
+                    </span>
+                  </div>
+                </Listbox.Option>
+              </Listbox.Options>
+            </Transition>
+          </div>
+        </>
+      )}
+    </Listbox>
+  );
+}
+
+function UseAI() {
+  const utils = trpc.useContext();
+  const profile = trpc.getProfile.useQuery();
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const generateAI = trpc.generateAIResponse.useMutation({
     onSuccess: (data) => {
@@ -76,69 +374,57 @@ function Modal({
     },
     onError: (err: any) => {
       toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
+      toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const createMutation = trpc.createPost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
+  const handleOnGenerateAI = (prompt: string | undefined) => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 5) {
       toast.dismiss();
-      setLabelled(null);
-      setAttachment(null);
-      utils.getProfile.invalidate();
-      utils.getInbox.invalidate();
-      toast.success("Post created!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
+      return toast.error("You don't have enough credits");
+    }
+    toast.loading("Loading...");
+    generateAI.mutate({
+      prompt,
+      credits: profile.data.credits - 5,
+    });
+  };
+  return (
+    <div className="mt-5 space-y-2 sm:mt-6">
+      <button
+        type="button"
+        onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
+        className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        <span>Use AI</span>
+        <span className="flex items-center space-x-1">
+          <span>(5</span>
+          <TicketIcon className="h-5 w-5" />)
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function Modal({
+  open,
+  post,
+  setOpen,
+}: {
+  open: boolean;
+  post: Post | null;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { user } = useUser();
+  const utils = trpc.useContext();
+  const profile = trpc.getProfile.useQuery();
+  const [friend, setFriend] = useState<Profile | null>(null);
+  const upload = Upload({
+    apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
   });
-  const updateMutation = trpc.updatePost.useMutation({
-    onSuccess: () => {
-      setPost(null);
-      setOpen(false);
-      toast.dismiss();
-      setLabelled(null);
-      toast.success("Post updated!");
-      utils.getInbox.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
-  });
-  const deleteMutation = trpc.deletePost.useMutation({
-    onSuccess: () => {
-      setPost(null);
-      setOpen(false);
-      toast.dismiss();
-      setLabelled(null);
-      toast.success("Post deleted!");
-      utils.getInbox.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
-  });
-  const deleteAttachment = trpc.deleteAttachment.useMutation({
-    onSuccess: () => {
-      if (!post) return;
-      deleteMutation.mutate({
-        id: post.id,
-      });
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
-  });
+  const [label, setLabel] = useState(post?.label ?? null);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
     const target = event.target as typeof event.target & {
       files: FileList;
@@ -146,32 +432,68 @@ function Modal({
     const file = target.files[0];
     setAttachment(file);
   };
-  const handleOnClose = () => {
-    setPost(null);
-    setOpen(false);
-    setLabelled(null);
-  };
-  const handleOnGenerateAI = (prompt: string | undefined) => {
-    if (!prompt || !profile.data) return;
-    if (profile.data.credits < 1) {
+  const createPost = trpc.createPost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
       toast.dismiss();
-      return toast.error("You don't have enough credits");
-    }
-    toast.loading("Loading...");
-    generateAI.mutate({
-      prompt,
-      credits: profile.data.credits - 1,
-    });
-  };
-  const handleOnClick = () => {
+      utils.getInbox.invalidate();
+      utils.getProfile.invalidate();
+      toast.success("Post created!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Post updated!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const deletePost = trpc.deletePost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      utils.getProfile.invalidate();
+      toast.success("Post deleted!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnDeletePost = () => {
     if (!post) return;
     toast.loading("Loading...");
     if (post.attachmentPath) {
-      deleteAttachment.mutate({
-        attachmentPath: post.attachmentPath,
-      });
+      deleteAttachment.mutate(
+        {
+          attachmentPath: post.attachmentPath,
+        },
+        {
+          onSuccess: () => {
+            if (!post) return;
+            deletePost.mutate({
+              id: post.id,
+            });
+          },
+        }
+      );
     } else {
-      deleteMutation.mutate({
+      deletePost.mutate({
         id: post.id,
       });
     }
@@ -188,12 +510,36 @@ function Modal({
       return toast("Please set a label for the post");
     toast.loading("Loading...");
     if (post) {
-      updateMutation.mutate({
-        id: post.id,
-        label: target.label.value,
-        title: target.title.value,
-        description: target.description.value,
-      });
+      if (attachment) {
+        try {
+          const { fileUrl, filePath } = await upload.uploadFile(attachment, {
+            path: {
+              folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
+              fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
+            },
+          });
+          updatePost.mutate({
+            id: post.id,
+            label: target.label.value,
+            title: target.title.value,
+            description: target.description.value,
+            attachment: fileUrl,
+            attachmentPath: filePath,
+            friendId: friend?.id,
+          });
+        } catch (e: any) {
+          toast.dismiss();
+          toast.error(e.message ?? API_ERROR_MESSAGE);
+        }
+      } else {
+        updatePost.mutate({
+          id: post.id,
+          label: target.label.value,
+          title: target.title.value,
+          description: target.description.value,
+          friendId: friend?.id,
+        });
+      }
     } else {
       if (profile.data.credits < 1)
         return toast.error("You don't have enough credits");
@@ -205,27 +551,27 @@ function Modal({
               fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
             },
           });
-          createMutation.mutate({
+          createPost.mutate({
             label: target.label.value,
             title: target.title.value,
             description: target.description.value,
             attachment: fileUrl,
             attachmentPath: filePath,
             authorId: user?.id,
-            friendId: assigned?.id,
+            friendId: friend?.id,
             credits: profile.data.credits - 1,
           });
         } catch (e: any) {
           toast.dismiss();
-          toast.error(e.message);
+          toast.error(e.message ?? API_ERROR_MESSAGE);
         }
       } else {
-        createMutation.mutate({
+        createPost.mutate({
           label: target.label.value,
           title: target.title.value,
           description: target.description.value,
           authorId: user?.id,
-          friendId: assigned?.id,
+          friendId: friend?.id,
           credits: profile.data.credits - 1,
         });
       }
@@ -233,7 +579,7 @@ function Modal({
   };
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={handleOnClose}>
+      <Dialog as="div" className="relative z-50" onClose={setOpen}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -258,23 +604,19 @@ function Modal({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
-                {attachment ? (
-                  <div className="relative">
-                    <img
-                      className="h-full w-full rounded-lg"
-                      src={URL.createObjectURL(attachment)}
-                      alt="attachment"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-                      onClick={() => setAttachment(null)}
-                    >
-                      <XMarkIcon className="h-5 w-5 text-brand-600" />
-                    </button>
-                  </div>
-                ) : null}
+                <Attachment
+                  post={post}
+                  attachment={attachment}
+                  setAttachment={setAttachment}
+                />
                 <form className="relative" onSubmit={handleOnSubmit}>
+                  <button
+                    type="button"
+                    className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+                    onClick={() => setOpen(false)}
+                  >
+                    <XMarkIcon className="h-5 w-5 text-brand-600" />
+                  </button>
                   <div className="overflow-hidden rounded-lg">
                     <label htmlFor="title" className="sr-only">
                       Title
@@ -283,7 +625,7 @@ function Modal({
                       type="text"
                       name="title"
                       id="title"
-                      className="block w-full border-0 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
+                      className="block w-full border-0 pr-12 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
                       placeholder="Title"
                       defaultValue={post?.title}
                       maxLength={100}
@@ -300,7 +642,7 @@ function Modal({
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
                       defaultValue={post?.description}
-                      maxLength={720}
+                      maxLength={MAX_TOKENS}
                       required
                     />
                     <div aria-hidden="true">
@@ -318,208 +660,25 @@ function Modal({
 
                   <div className="absolute inset-x-px bottom-0">
                     <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
-                      {!post ? (
-                        <Listbox
-                          as="div"
-                          value={assigned}
-                          onChange={setAssigned}
-                          className="flex-shrink-0"
-                        >
-                          {({ open }) => (
-                            <>
-                              <Listbox.Label className="sr-only">
-                                {" "}
-                                Assign{" "}
-                              </Listbox.Label>
-                              <div className="relative">
-                                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                                  {assigned === null ? (
-                                    <UserCircleIcon
-                                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                                      aria-hidden="true"
-                                    />
-                                  ) : (
-                                    <img
-                                      src={assigned.avatar}
-                                      alt=""
-                                      className="h-5 w-5 flex-shrink-0 rounded-full"
-                                    />
-                                  )}
+                      <FriendDropdown
+                        post={post}
+                        friend={friend}
+                        setFriend={setFriend}
+                      />
 
-                                  <span
-                                    className={clsx(
-                                      assigned === null ? "" : "text-brand-900",
-                                      "ml-2 block truncate"
-                                    )}
-                                  >
-                                    {assigned === null
-                                      ? "Send to"
-                                      : assigned.name}
-                                  </span>
-                                </Listbox.Button>
-
-                                <Transition
-                                  show={open}
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                >
-                                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                                    <Listbox.Option
-                                      key={null}
-                                      className={({ active }) =>
-                                        clsx(
-                                          active
-                                            ? "bg-brand-100"
-                                            : "bg-brand-50",
-                                          "relative cursor-default select-none px-3 py-2"
-                                        )
-                                      }
-                                      value={null}
-                                    >
-                                      <div className="flex items-center">
-                                        <UserCircleIcon
-                                          className="h-5 w-5 flex-shrink-0 text-brand-400"
-                                          aria-hidden="true"
-                                        />
-                                        <span className="ml-3 block truncate font-medium">
-                                          Unassigned
-                                        </span>
-                                      </div>
-                                    </Listbox.Option>
-                                    {friends.data?.map((friend) => (
-                                      <Listbox.Option
-                                        key={friend.friend.id}
-                                        className={({ active }) =>
-                                          clsx(
-                                            active
-                                              ? "bg-brand-100"
-                                              : "bg-brand-50",
-                                            "relative cursor-default select-none px-3 py-2"
-                                          )
-                                        }
-                                        value={{
-                                          id: friend.friend.id,
-                                          name: friend.friend.name,
-                                          avatar: friend.friend.imageUrl,
-                                        }}
-                                      >
-                                        <div className="flex items-center">
-                                          {friend.friend.imageUrl ? (
-                                            <img
-                                              src={friend.friend.imageUrl}
-                                              alt=""
-                                              className="h-5 w-5 flex-shrink-0 rounded-full"
-                                            />
-                                          ) : (
-                                            <UserCircleIcon
-                                              className="h-5 w-5 flex-shrink-0 text-brand-400"
-                                              aria-hidden="true"
-                                            />
-                                          )}
-
-                                          <span className="ml-3 block truncate font-medium">
-                                            {friend.friend.name}
-                                          </span>
-                                        </div>
-                                      </Listbox.Option>
-                                    ))}
-                                  </Listbox.Options>
-                                </Transition>
-                              </div>
-                            </>
-                          )}
-                        </Listbox>
-                      ) : null}
-
-                      <Listbox
-                        as="div"
-                        value={labelled}
-                        onChange={setLabelled}
-                        className="flex-shrink-0"
-                      >
-                        {({ open }) => (
-                          <>
-                            <Listbox.Label className="sr-only">
-                              {" "}
-                              Add a label{" "}
-                            </Listbox.Label>
-                            <div className="relative">
-                              <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                                <TagIcon
-                                  className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
-                                  aria-hidden="true"
-                                />
-                                <input
-                                  name="label"
-                                  key={labelled}
-                                  defaultValue={
-                                    labelled
-                                      ? labelled
-                                      : post?.label
-                                      ? post?.label
-                                      : "Set label"
-                                  }
-                                  className="ml-2 w-16 cursor-pointer truncate bg-transparent text-brand-500"
-                                  disabled
-                                />
-                              </Listbox.Button>
-
-                              <Transition
-                                show={open}
-                                as={Fragment}
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                                  <Listbox.Option
-                                    key="PUBLIC"
-                                    className={({ active }) =>
-                                      clsx(
-                                        active ? "bg-brand-100" : "bg-brand-50",
-                                        "relative cursor-default select-none px-3 py-2"
-                                      )
-                                    }
-                                    value="PUBLIC"
-                                  >
-                                    <div className="flex items-center">
-                                      <span className="block truncate font-medium">
-                                        PUBLIC
-                                      </span>
-                                    </div>
-                                  </Listbox.Option>
-                                  <Listbox.Option
-                                    key="PRIVATE"
-                                    className={({ active }) =>
-                                      clsx(
-                                        active ? "bg-brand-100" : "bg-brand-50",
-                                        "relative cursor-default select-none px-3 py-2"
-                                      )
-                                    }
-                                    value="PRIVATE"
-                                  >
-                                    <div className="flex items-center">
-                                      <span className="block truncate font-medium">
-                                        PRIVATE
-                                      </span>
-                                    </div>
-                                  </Listbox.Option>
-                                </Listbox.Options>
-                              </Transition>
-                            </div>
-                          </>
-                        )}
-                      </Listbox>
+                      <LabelDropdown
+                        post={post}
+                        label={label}
+                        setLabel={setLabel}
+                      />
                     </div>
                     <div
                       className={clsx(
-                        post ? "justify-end" : "justify-between",
+                        post?.attachment ? "justify-end" : "justify-between",
                         "flex items-center space-x-3 px-2 py-2 sm:px-3"
                       )}
                     >
-                      {!post ? (
+                      {!post?.attachment ? (
                         <div className="flex">
                           <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                             <input
@@ -542,7 +701,7 @@ function Modal({
                           <>
                             <button
                               type="button"
-                              onClick={handleOnClick}
+                              onClick={handleOnDeletePost}
                               className="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                             >
                               Delete
@@ -570,28 +729,7 @@ function Modal({
                     </div>
                   </div>
                 </form>
-                <div className="mt-5 space-y-2 sm:mt-6">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleOnGenerateAI(descriptionRef.current?.value)
-                    }
-                    className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                  >
-                    <span>Use AI</span>
-                    <span className="flex items-center space-x-1">
-                      <span>(1</span>
-                      <TicketIcon className="h-5 w-5" />)
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                    onClick={() => setOpen(false)}
-                  >
-                    Close
-                  </button>
-                </div>
+                <UseAI />
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -601,76 +739,76 @@ function Modal({
   );
 }
 
-export default function Inbox() {
+function Dropdown({ item }: { item: Post }) {
+  return (
+    <Menu as="div" className="relative inline-block text-left">
+      <div>
+        <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
+          {item.author?.imageUrl ? (
+            <img
+              className="h-10 w-10 rounded-full"
+              src={item.author?.imageUrl}
+              alt=""
+            />
+          ) : (
+            <span className="block h-10 w-10 rounded-full bg-brand-700"></span>
+          )}
+        </Menu.Button>
+      </div>
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+          <div className="py-1">
+            <Menu.Item>
+              {({ active }) => (
+                <Link
+                  href={"/profile/" + item.authorId}
+                  className={clsx(
+                    active ? "bg-brand-100 text-brand-900" : "text-brand-700",
+                    "block px-4 py-2 text-sm"
+                  )}
+                >
+                  View profile
+                </Link>
+              )}
+            </Menu.Item>
+          </div>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  );
+}
+
+function Like({ item }: { item: Post }) {
   const { user } = useUser();
   const utils = trpc.useContext();
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const profile = trpc.getProfile.useQuery();
-  const posts = trpc.getInbox.useQuery();
-  const [post, setPost] = useState<Post | null>(null);
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
-      setPost(null);
       toast.dismiss();
       utils.getInbox.invalidate();
       toast.success("Post liked!");
     },
     onError: (err: any) => {
       toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
+      toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
   const deleteLike = trpc.deleteLike.useMutation({
     onSuccess: () => {
-      setPost(null);
       toast.dismiss();
       utils.getInbox.invalidate();
       toast.success("Post unliked!");
     },
     onError: (err: any) => {
       toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
-  });
-  const createBookmark = trpc.createBookmark.useMutation({
-    onSuccess: () => {
-      setPost(null);
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      toast.success("Post bookmarked!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
-  });
-  const deleteBookmark = trpc.deleteBookmark.useMutation({
-    onSuccess: () => {
-      setPost(null);
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      toast.success("Post unbookmarked!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
-    },
-  });
-  const createComment = trpc.createComment.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      toast.success("Comment created!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      console.log(err.message);
-      toast.error("API request failed, check console.log");
+      toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
   const handleOnCreateLike = (id: number) => {
@@ -689,6 +827,94 @@ export default function Inbox() {
       profileId: user.id,
     });
   };
+  return (
+    <div className="inline-flex items-center text-sm">
+      <button
+        type="button"
+        onClick={() => {
+          !!item.likes.find((post) => post.profileId === user?.id)
+            ? handleOnDeleteLike(item.id)
+            : handleOnCreateLike(item.id);
+        }}
+        className="inline-flex space-x-2"
+      >
+        {item.likes.find((like) => like.profileId === user?.id) ? (
+          <HandThumbUpIconSolid className="h-5 w-5" aria-hidden="true" />
+        ) : (
+          <HandThumbUpIconOutline className="h-5 w-5" aria-hidden="true" />
+        )}
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={item.likes.length}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="font-medium"
+          >
+            {item.likes.length}
+          </motion.span>
+        </AnimatePresence>
+        <span className="sr-only">likes</span>
+      </button>
+    </div>
+  );
+}
+
+function Comment({ item }: { item: Post }) {
+  const { user } = useUser();
+  return (
+    <span className="inline-flex items-center text-sm">
+      <button type="button" className="inline-flex space-x-2">
+        {item.comments.find((comment) => comment.authorId === user?.id) ? (
+          <ChatBubbleOvalLeftIconSolid className="h-5 w-5" aria-hidden="true" />
+        ) : (
+          <ChatBubbleOvalLeftIconOutline
+            className="h-5 w-5"
+            aria-hidden="true"
+          />
+        )}
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={item.comments.length}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="font-medium"
+          >
+            {item.comments.length}
+          </motion.span>
+        </AnimatePresence>
+        <span className="sr-only">comments</span>
+      </button>
+    </span>
+  );
+}
+
+function Bookmark({ item }: { item: Post }) {
+  const { user } = useUser();
+  const utils = trpc.useContext();
+  const createBookmark = trpc.createBookmark.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Post bookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const deleteBookmark = trpc.deleteBookmark.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Post unbookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
   const handleOnCreateBookmark = (id: number) => {
     if (!user?.id) return;
     toast.loading("Loading...");
@@ -705,29 +931,261 @@ export default function Inbox() {
       profileId: user.id,
     });
   };
+  return (
+    <span className="inline-flex items-center text-sm">
+      <button
+        type="button"
+        onClick={() => {
+          !!item.bookmarks.find((post) => post.profileId === user?.id)
+            ? handleOnDeleteBookmark(item.id)
+            : handleOnCreateBookmark(item.id);
+        }}
+        className="inline-flex space-x-2"
+      >
+        {item.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
+          <BookmarkIconSolid className="h-5 w-5" aria-hidden="true" />
+        ) : (
+          <BookmarkIconOutline className="h-5 w-5" aria-hidden="true" />
+        )}
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={item.bookmarks.length}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="font-medium"
+          >
+            {item.bookmarks.length}
+          </motion.span>
+        </AnimatePresence>
+        <span className="sr-only">bookmarks</span>
+      </button>
+    </span>
+  );
+}
+
+function BookmarkCheck({ item }: { item: Post }) {
+  const { user } = useUser();
+  return (
+    <div>
+      <AnimatePresence mode="wait">
+        {item.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex text-sm"
+          >
+            <span className="inline-flex items-center text-sm">
+              <button type="button" className="inline-flex space-x-2">
+                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                <span className="font-medium">Bookmarked</span>
+              </button>
+            </span>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function Comments({ item }: { item: Post }) {
+  const { user } = useUser();
+  const utils = trpc.useContext();
+  const deleteComment = trpc.deleteComment.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Comment deleted!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  return (
+    <ul role="list" className="space-y-6">
+      <AnimatePresence mode="wait">
+        {item.comments.map((comment) => (
+          <motion.li
+            key={comment.id}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="relative flex gap-x-4"
+          >
+            {item.authorId === user?.id || comment.authorId === user?.id ? (
+              <Menu
+                as="div"
+                className="absolute inset-0 inline-block text-left"
+              >
+                <div>
+                  <Menu.Button className="absolute inset-0"></Menu.Button>
+                </div>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              deleteComment.mutate({ id: comment.id })
+                            }
+                            className={clsx(
+                              active
+                                ? "bg-brand-100 text-brand-900"
+                                : "text-brand-700",
+                              "block w-full px-4 py-2 text-left text-sm"
+                            )}
+                          >
+                            Delete comment
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+            ) : null}
+            {comment.author.imageUrl ? (
+              <img
+                src={comment.author.imageUrl}
+                alt=""
+                className="relative h-6 w-6 flex-none rounded-full bg-brand-700"
+              />
+            ) : (
+              <span className="relative mt-3 h-6 w-6 flex-none rounded-full bg-brand-700"></span>
+            )}
+            <div className="flex-auto rounded-md">
+              <div className="flex justify-between gap-x-4">
+                <div className="py-0.5 text-xs leading-5 text-brand-50">
+                  <span className="font-medium text-brand-50">
+                    {comment.author.name}
+                  </span>{" "}
+                  commented
+                </div>
+                <time
+                  dateTime={comment.createdAt.toString()}
+                  className="flex-none py-0.5 text-xs leading-5 text-brand-50"
+                >
+                  {formatDistanceToNow(comment.createdAt, {
+                    addSuffix: true,
+                  })}
+                </time>
+              </div>
+              <p className="text-sm leading-6 text-brand-50">
+                {comment.comment}
+              </p>
+            </div>
+          </motion.li>
+        ))}
+      </AnimatePresence>
+    </ul>
+  );
+}
+
+function CommentBox({ item }: { item: Post }) {
+  const { user } = useUser();
+  const utils = trpc.useContext();
+  const profile = trpc.getProfile.useQuery();
+  const createComment = trpc.createComment.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getInbox.invalidate();
+      toast.success("Comment created!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
   const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.id || !profile.data) return;
     if (profile.data.credits < 45)
       return toast.error("You need atleast 45 credits to comment");
     const target = e.target as typeof e.target & {
+      reset: () => void;
       comment: { id: string; value: string };
     };
     toast.loading("Loading");
-    createComment.mutate({
-      postId: Number(target.comment.id),
-      comment: target.comment.value,
-    });
+    createComment.mutate(
+      {
+        postId: Number(target.comment.id),
+        comment: target.comment.value,
+      },
+      {
+        onSuccess: () => {
+          target.reset();
+        },
+      }
+    );
   };
   return (
+    <div className="mt-6 flex gap-x-3">
+      {user ? (
+        <img
+          src={user.profileImageUrl}
+          alt=""
+          className="h-6 w-6 flex-none rounded-full bg-brand-700"
+        />
+      ) : (
+        <span className="block h-6 w-6 flex-none rounded-full bg-brand-700"></span>
+      )}
+      <form className="relative flex-auto" onSubmit={handleOnCreateComment}>
+        <div className="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-inset ring-brand-300 focus-within:ring-2">
+          <label htmlFor="comment" className="sr-only">
+            Add your comment
+          </label>
+          <textarea
+            id={String(item.id)}
+            rows={2}
+            name="comment"
+            className="block w-full resize-none border-0 bg-transparent py-1.5 text-brand-50 placeholder:text-brand-50 focus:ring-0 sm:text-sm sm:leading-6"
+            placeholder="Add your comment..."
+            maxLength={MAX_TOKENS}
+            required
+          />
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 flex justify-end py-2 pl-3 pr-2">
+          <button
+            type="submit"
+            className="rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm"
+          >
+            Comment
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default function Inbox() {
+  const { user } = useUser();
+  const posts = trpc.getInbox.useQuery();
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [post, setPost] = useState<Post | null>(null);
+  return (
     <>
-      <Modal open={open} post={post} setOpen={setOpen} setPost={setPost} />
+      <Modal open={open} post={post} setOpen={setOpen} />
       <div className="pb-36">
         <Navbar />
         <Header
           header="Start a new conversation or reconnect with an old friend."
           search={search}
           setOpen={setOpen}
+          setPost={setPost}
           setSearch={setSearch}
         />
         <div className="mt-8 px-2 lg:px-8">
@@ -767,53 +1225,7 @@ export default function Inbox() {
                           <p>{item.description}</p>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <Menu
-                            as="div"
-                            className="relative inline-block text-left"
-                          >
-                            <div>
-                              <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
-                                {item.author?.imageUrl ? (
-                                  <img
-                                    className="h-10 w-10 rounded-full"
-                                    src={item.author?.imageUrl}
-                                    alt=""
-                                  />
-                                ) : (
-                                  <span className="block h-10 w-10 rounded-full bg-brand-700"></span>
-                                )}
-                              </Menu.Button>
-                            </div>
-                            <Transition
-                              as={Fragment}
-                              enter="transition ease-out duration-100"
-                              enterFrom="transform opacity-0 scale-95"
-                              enterTo="transform opacity-100 scale-100"
-                              leave="transition ease-in duration-75"
-                              leaveFrom="transform opacity-100 scale-100"
-                              leaveTo="transform opacity-0 scale-95"
-                            >
-                              <Menu.Items className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                                <div className="py-1">
-                                  <Menu.Item>
-                                    {({ active }) => (
-                                      <Link
-                                        href={"/profile/" + item.authorId}
-                                        className={clsx(
-                                          active
-                                            ? "bg-brand-100 text-brand-900"
-                                            : "text-brand-700",
-                                          "block px-4 py-2 text-sm"
-                                        )}
-                                      >
-                                        View profile
-                                      </Link>
-                                    )}
-                                  </Menu.Item>
-                                </div>
-                              </Menu.Items>
-                            </Transition>
-                          </Menu>
+                          <Dropdown item={item} />
                           <div className="flex flex-col">
                             <div className="flex items-center space-x-1 font-semibold">
                               <span>{item.author?.name}</span>
@@ -826,207 +1238,14 @@ export default function Inbox() {
                         </div>
                         <div className="relative flex flex-col space-y-6">
                           <div className="flex space-x-6">
-                            <span className="inline-flex items-center text-sm">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  !!item.likes.find(
-                                    (post: Like) => post.profileId === user?.id
-                                  )
-                                    ? handleOnDeleteLike(item.id)
-                                    : handleOnCreateLike(item.id);
-                                }}
-                                className="inline-flex space-x-2"
-                              >
-                                <HandThumbUpIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
-                                <AnimatePresence mode="wait">
-                                  <motion.span
-                                    key={item.likes.length}
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    className="font-medium"
-                                  >
-                                    {item.likes.length}
-                                  </motion.span>
-                                </AnimatePresence>
-                                <span className="sr-only">likes</span>
-                              </button>
-                            </span>
-                            <span className="inline-flex items-center text-sm">
-                              <button
-                                type="button"
-                                className="inline-flex space-x-2"
-                              >
-                                <ChartBarIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
-                                <AnimatePresence mode="wait">
-                                  <motion.span
-                                    key={
-                                      item.likes.length + item.bookmarks.length
-                                    }
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    className="font-medium"
-                                  >
-                                    {item.likes.length +
-                                      item.bookmarks.length +
-                                      item.comments.length}
-                                  </motion.span>
-                                </AnimatePresence>
-                                <span className="sr-only">stats</span>
-                              </button>
-                            </span>
-                            <span className="inline-flex items-center text-sm">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  !!item.bookmarks.find(
-                                    (post: Bookmark) =>
-                                      post.profileId === user?.id
-                                  )
-                                    ? handleOnDeleteBookmark(item.id)
-                                    : handleOnCreateBookmark(item.id);
-                                }}
-                                className="inline-flex space-x-2"
-                              >
-                                <BookmarkIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
-                                <AnimatePresence mode="wait">
-                                  <motion.span
-                                    key={item.bookmarks.length}
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    className="font-medium"
-                                  >
-                                    {item.bookmarks.length}
-                                  </motion.span>
-                                </AnimatePresence>
-                                <span className="sr-only">bookmarks</span>
-                              </button>
-                            </span>
+                            <Like item={item} />
+                            <Comment item={item} />
+                            <Bookmark item={item} />
                           </div>
-                          <div>
-                            <AnimatePresence mode="wait">
-                              {item.bookmarks.find(
-                                (post) => post.profileId === user?.id
-                              ) ? (
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: "auto" }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  className="flex text-sm"
-                                >
-                                  <span className="inline-flex items-center text-sm">
-                                    <button
-                                      type="button"
-                                      className="inline-flex space-x-2"
-                                    >
-                                      <CheckIcon
-                                        className="h-5 w-5"
-                                        aria-hidden="true"
-                                      />
-                                      <span className="font-medium">
-                                        Bookmarked
-                                      </span>
-                                    </button>
-                                  </span>
-                                </motion.div>
-                              ) : null}
-                            </AnimatePresence>
-                          </div>
-                          <ul role="list" className="space-y-6">
-                            <AnimatePresence mode="wait">
-                              {item.comments.map((comment) => (
-                                <motion.li
-                                  key={comment.id}
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: "auto" }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  className="relative flex gap-x-4"
-                                >
-                                  {comment.author.imageUrl ? (
-                                    <img
-                                      src={comment.author.imageUrl}
-                                      alt=""
-                                      className="relative h-6 w-6 flex-none rounded-full bg-brand-700"
-                                    />
-                                  ) : (
-                                    <span className="relative mt-3 h-6 w-6 flex-none rounded-full bg-brand-700"></span>
-                                  )}
-                                  <div className="flex-auto rounded-md">
-                                    <div className="flex justify-between gap-x-4">
-                                      <div className="py-0.5 text-xs leading-5 text-brand-50">
-                                        <span className="font-medium text-brand-50">
-                                          {comment.author.name}
-                                        </span>{" "}
-                                        commented
-                                      </div>
-                                      <time
-                                        dateTime={comment.createdAt.toString()}
-                                        className="flex-none py-0.5 text-xs leading-5 text-brand-50"
-                                      >
-                                        {formatDistanceToNow(
-                                          comment.createdAt,
-                                          {
-                                            addSuffix: true,
-                                          }
-                                        )}
-                                      </time>
-                                    </div>
-                                    <p className="text-sm leading-6 text-brand-50">
-                                      {comment.comment}
-                                    </p>
-                                  </div>
-                                </motion.li>
-                              ))}
-                            </AnimatePresence>
-                          </ul>
+                          <BookmarkCheck item={item} />
+                          <Comments item={item} />
 
-                          <div className="mt-6 flex gap-x-3">
-                            <img
-                              src={user?.profileImageUrl}
-                              alt=""
-                              className="h-6 w-6 flex-none rounded-full bg-brand-700"
-                            />
-                            <form
-                              className="relative flex-auto"
-                              onSubmit={handleOnCreateComment}
-                            >
-                              <div className="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-inset ring-brand-300 focus-within:ring-2">
-                                <label htmlFor="comment" className="sr-only">
-                                  Add your comment
-                                </label>
-                                <textarea
-                                  id={String(item.id)}
-                                  rows={4}
-                                  name="comment"
-                                  className="block w-full resize-none border-0 bg-transparent py-1.5 text-brand-50 placeholder:text-brand-50 focus:ring-0 sm:text-sm sm:leading-6"
-                                  placeholder="Add your comment..."
-                                  maxLength={720}
-                                  required
-                                />
-                              </div>
-
-                              <div className="absolute inset-x-0 bottom-0 flex justify-end py-2 pl-3 pr-2">
-                                <button
-                                  type="submit"
-                                  className="rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm ring-1 ring-inset ring-brand-300"
-                                >
-                                  Comment
-                                </button>
-                              </div>
-                            </form>
-                          </div>
+                          <CommentBox item={item} />
                         </div>
                       </div>
                     </div>

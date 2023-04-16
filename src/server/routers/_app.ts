@@ -25,6 +25,7 @@ export const appRouter = router({
           likes: true,
           bookmarks: true,
           author: true,
+          friend: true,
           comments: {
             include: {
               author: true,
@@ -43,6 +44,7 @@ export const appRouter = router({
           likes: true,
           bookmarks: true,
           author: true,
+          friend: true,
           comments: {
             include: {
               author: true,
@@ -58,6 +60,73 @@ export const appRouter = router({
       if (a.createdAt > b.createdAt) return 1;
       if (a.createdAt < b.createdAt) return -1;
       return 0;
+    });
+  }),
+  getPublicPosts: publicProcedure.query(async () => {
+    return await prisma.post.findMany({
+      where: {
+        label: "PUBLIC",
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        author: true,
+        friend: true,
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+  }),
+  getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        authorId: ctx.auth.userId,
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        author: true,
+        friend: true,
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+  }),
+  getBookmarkedPosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        bookmarks: {
+          some: {
+            profileId: ctx.auth.userId,
+          },
+        },
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        author: true,
+        friend: true,
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "desc",
+      },
     });
   }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
@@ -171,58 +240,6 @@ export const appRouter = router({
         },
       });
     }),
-  getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
-      where: {
-        authorId: ctx.auth.userId,
-      },
-      include: {
-        likes: true,
-        bookmarks: true,
-        author: true,
-        comments: true,
-      },
-      orderBy: {
-        id: "desc",
-      },
-    });
-  }),
-  getPublicPosts: publicProcedure.query(async () => {
-    return await prisma.post.findMany({
-      where: {
-        label: "PUBLIC",
-      },
-      include: {
-        likes: true,
-        bookmarks: true,
-        author: true,
-        comments: true,
-      },
-      orderBy: {
-        id: "desc",
-      },
-    });
-  }),
-  getBookmarkedPosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
-      where: {
-        bookmarks: {
-          some: {
-            profileId: ctx.auth.userId,
-          },
-        },
-      },
-      include: {
-        likes: true,
-        bookmarks: true,
-        author: true,
-        comments: true,
-      },
-      orderBy: {
-        id: "desc",
-      },
-    });
-  }),
   createPost: protectedProcedure
     .input(
       z.object({
@@ -299,19 +316,42 @@ export const appRouter = router({
         title: z.string(),
         label: z.nativeEnum(Label),
         description: z.string(),
+        attachment: z.string().nullish(),
+        attachmentPath: z.string().nullish(),
+        friendId: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
-      return await prisma.post.update({
-        data: {
-          title: input.title,
-          label: input.label,
-          description: input.description,
-        },
-        where: {
-          id: input.id,
-        },
-      });
+      return input.friendId
+        ? await prisma.post.update({
+            data: {
+              title: input.title,
+              label: input.label,
+              description: input.description,
+              attachment: input.attachment,
+              attachmentPath: input.attachmentPath,
+              friend: {
+                connect: {
+                  id: input.friendId,
+                },
+              },
+            },
+            where: {
+              id: input.id,
+            },
+          })
+        : await prisma.post.update({
+            data: {
+              title: input.title,
+              label: input.label,
+              description: input.description,
+              attachment: input.attachment,
+              attachmentPath: input.attachmentPath,
+            },
+            where: {
+              id: input.id,
+            },
+          });
     }),
   deletePost: protectedProcedure
     .input(
@@ -435,6 +475,19 @@ export const appRouter = router({
           postId: input.postId,
           comment: input.comment,
           authorId: ctx.auth.userId,
+        },
+      });
+    }),
+  deleteComment: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.comment.delete({
+        where: {
+          id: input.id,
         },
       });
     }),

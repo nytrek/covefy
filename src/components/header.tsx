@@ -3,16 +3,33 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
 } from "@heroicons/react/20/solid";
+import { Prisma } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
+
+type Post = Prisma.PostGetPayload<{
+  include: {
+    likes: true;
+    bookmarks: true;
+    author: true;
+    friend: true;
+    comments: {
+      include: {
+        author: true;
+      };
+    };
+  };
+}>;
 
 export default function Header({
   header,
   search,
   setOpen,
+  setPost,
   setSearch,
 }: {
   header: string;
   search: string;
+  setPost?: Dispatch<SetStateAction<Post | null>>;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setSearch: Dispatch<SetStateAction<string>>;
 }) {
@@ -39,7 +56,15 @@ export default function Header({
               onChange={(e) => setSearch(e.target.value)}
             />
             {user ? (
-              <button type="button" onClick={() => setOpen(true)}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (setPost) {
+                    setOpen(true);
+                    setPost(null);
+                  }
+                }}
+              >
                 <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
               </button>
             ) : null}

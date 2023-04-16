@@ -49,7 +49,11 @@ const tiers = [
         "https://covefy.lemonsqueezy.com/checkout/buy/171e0867-399b-4ddb-b07f-cf068d4c610c",
     },
     price: { monthly: "$40", annually: "$440" },
-    features: ["1000 credits/month", "Premium checkmark"],
+    features: [
+      "1000 credits/month",
+      "Premium checkmark",
+      "Change attachment after posting",
+    ],
     mostPopular: false,
   },
 ];

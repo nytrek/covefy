@@ -35,9 +35,9 @@ model Post {
   attachment     String?
   attachmentPath String?
   bookmarks      Bookmark[]
-  author         Profile    @relation("Author", fields: [authorId], references: [id])
+  author         Profile    @relation("Author", fields: [authorId], references: [id], onDelete: Cascade)
   authorId       String
-  friend         Profile?   @relation("Friend", fields: [friendId], references: [id])
+  friend         Profile?   @relation("Friend", fields: [friendId], references: [id], onDelete: Cascade)
   friendId       String?
   comments       Comment[]
 }
@@ -46,9 +46,9 @@ model Comment {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   comment   String   @db.VarChar(720)
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
-  author    Profile  @relation(fields: [authorId], references: [id])
+  author    Profile  @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId  String
 }
 
@@ -71,9 +71,9 @@ model Bookmark {
 }
 
 model Friend {
-  sender     Profile  @relation("Sender", fields: [senderId], references: [id])
+  sender     Profile  @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
   senderId   String
-  receiver   Profile  @relation("Receiver", fields: [receiverId], references: [id])
+  receiver   Profile  @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
   receiverId String
   status     Status   @default(PENDING)
   createdAt  DateTime @default(now())
