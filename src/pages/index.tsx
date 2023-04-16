@@ -58,16 +58,19 @@ type Post = Prisma.PostGetPayload<{
 function Attachment({
   post,
   attachment,
+  setOpen,
   setAttachment,
 }: {
   post: Post | null;
   attachment: File | null;
+  setOpen: Dispatch<SetStateAction<boolean>>;
   setAttachment: Dispatch<SetStateAction<File | null>>;
 }) {
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
+      setOpen(false);
       toast.dismiss();
       toast.success("Post updated!");
       utils.getPublicPosts.invalidate();
@@ -447,6 +450,7 @@ function Modal({
   });
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
+      setOpen(false);
       toast.dismiss();
       toast.success("Post updated!");
       utils.getPublicPosts.invalidate();
@@ -607,6 +611,7 @@ function Modal({
                 <Attachment
                   post={post}
                   attachment={attachment}
+                  setOpen={setOpen}
                   setAttachment={setAttachment}
                 />
                 <form className="relative" onSubmit={handleOnSubmit}>
@@ -1150,7 +1155,7 @@ function CommentBox({ item }: { item: Post }) {
             id={String(item.id)}
             rows={2}
             name="comment"
-            className="block w-full resize-none border-0 bg-transparent py-1.5 text-brand-50 placeholder:text-brand-50 focus:ring-0 sm:text-sm sm:leading-6"
+            className="block w-full resize-none border-0 bg-transparent py-1.5 text-sm leading-6 text-brand-50 placeholder:text-brand-50 focus:ring-0"
             placeholder="Add your comment..."
             maxLength={MAX_TOKENS}
             required
