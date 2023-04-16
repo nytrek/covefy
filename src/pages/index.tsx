@@ -1187,7 +1187,7 @@ export default function Home() {
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Discover, learn and connect with like-minded individuals."
+          header="Discover, learn and connect."
           search={search}
           setOpen={setOpen}
           setPost={setPost}

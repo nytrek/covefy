@@ -1187,7 +1187,7 @@ export default function Posts() {
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Personalize your content board and share your story."
+          header="Personalize your content board."
           search={search}
           setOpen={setOpen}
           setPost={setPost}

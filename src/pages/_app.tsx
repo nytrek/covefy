@@ -1,5 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import "@src/styles/globals.css";
+import { MotionConfig } from "framer-motion";
 import type { AppType } from "next/app";
 import { Toaster } from "react-hot-toast";
 import { Tokens } from "../../.mirrorful/theme";
@@ -16,7 +17,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         }}
       />
       <ClerkProvider {...pageProps}>
-        <Component {...pageProps} />
+        <MotionConfig reducedMotion="user">
+          <Component {...pageProps} />
+        </MotionConfig>
       </ClerkProvider>
     </>
   );

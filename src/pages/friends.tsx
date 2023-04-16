@@ -576,7 +576,7 @@ export default function Friends() {
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Find your accepted, rejected and pending friend requests."
+          header="Manage your friend requests."
           search={search}
           setOpen={setOpen}
           setSearch={setSearch}

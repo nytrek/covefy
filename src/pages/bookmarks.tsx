@@ -1187,7 +1187,7 @@ export default function Bookmarks() {
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Organize and collect your favorite content in one place."
+          header="Organize your favorite content."
           search={search}
           setOpen={setOpen}
           setPost={setPost}
