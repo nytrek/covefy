@@ -1199,6 +1199,7 @@ export default function Friends() {
           setOpen={setOpen}
           setPost={setPost}
           setSearch={setSearch}
+          setFriend={setFriend}
         />
         {user ? (
           <div className="mt-8 px-2 lg:px-8">
