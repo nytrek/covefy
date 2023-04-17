@@ -70,6 +70,7 @@ function Header() {
 
 function Progress() {
   const likes = trpc.getLikes.useQuery();
+  const comments = trpc.getComments.useQuery();
   const bookmarks = trpc.getBookmarks.useQuery();
   const stats = [
     {
@@ -78,13 +79,10 @@ function Progress() {
         likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
     },
     {
-      name: "Total Stats",
+      name: "Total Comments",
       stat:
-        (likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0) +
-        (bookmarks.data?.reduce(
-          (prev, curr) => prev + curr._count.bookmarks,
-          0
-        ) ?? 0),
+        comments.data?.reduce((prev, curr) => prev + curr._count.comments, 0) ??
+        0,
     },
     {
       name: "Total Bookmarks",

@@ -548,6 +548,31 @@ export const appRouter = router({
         },
       });
     }),
+  getComments: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.post.findMany({
+        where: {
+          authorId: input ?? ctx.auth.userId,
+          comments: {
+            every: {
+              authorId: {
+                not: {
+                  equals: input ?? ctx.auth.userId,
+                },
+              },
+            },
+          },
+        },
+        select: {
+          _count: {
+            select: {
+              comments: true,
+            },
+          },
+        },
+      });
+    }),
   createComment: protectedProcedure
     .input(
       z.object({

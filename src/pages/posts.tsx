@@ -30,6 +30,7 @@ import {
   Dispatch,
   FormEvent,
   Fragment,
+  MutableRefObject,
   SetStateAction,
   useRef,
   useState,
@@ -362,10 +363,13 @@ function LabelDropdown({
   );
 }
 
-function UseAI() {
+function UseAI({
+  descriptionRef,
+}: {
+  descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
+}) {
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
-  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const generateAI = trpc.generateAIResponse.useMutation({
     onSuccess: (data) => {
       toast.dismiss();
@@ -734,7 +738,7 @@ function Modal({
                     </div>
                   </div>
                 </form>
-                <UseAI />
+                <UseAI descriptionRef={descriptionRef} />
               </Dialog.Panel>
             </Transition.Child>
           </div>

@@ -772,6 +772,8 @@ function Dropdown({
     onSuccess: () => {
       toast.dismiss();
       utils.getAllFriends.invalidate();
+      utils.getSendingFriendStatus.invalidate();
+      utils.getRecievingFriendStatus.invalidate();
       toast.success("Friend request updated!");
     },
     onError: (err: any) => {
