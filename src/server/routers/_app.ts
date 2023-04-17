@@ -16,6 +16,15 @@ const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
 const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
 export const appRouter = router({
+  getProfile: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      return await prisma.profile.findUnique({
+        where: {
+          id: input ?? ctx.auth.userId,
+        },
+      });
+    }),
   getRanking: protectedProcedure.query(async () => {
     return await prisma.post.findMany({
       where: {
@@ -71,9 +80,6 @@ export const appRouter = router({
             },
           },
         },
-        orderBy: {
-          id: "desc",
-        },
       }),
       prisma.post.findMany({
         where: {
@@ -90,14 +96,11 @@ export const appRouter = router({
             },
           },
         },
-        orderBy: {
-          id: "desc",
-        },
       }),
     ]);
     return sending.concat(recieving).sort((a, b) => {
-      if (a.createdAt > b.createdAt) return 1;
-      if (a.createdAt < b.createdAt) return -1;
+      if (a.createdAt < b.createdAt) return 1;
+      if (a.createdAt > b.createdAt) return -1;
       return 0;
     });
   }),
@@ -118,7 +121,7 @@ export const appRouter = router({
         },
       },
       orderBy: {
-        id: "desc",
+        createdAt: "desc",
       },
     });
   }),
@@ -139,7 +142,7 @@ export const appRouter = router({
         },
       },
       orderBy: {
-        id: "desc",
+        createdAt: "desc",
       },
     });
   }),
@@ -164,7 +167,7 @@ export const appRouter = router({
         },
       },
       orderBy: {
-        id: "desc",
+        createdAt: "desc",
       },
     });
   }),
@@ -197,8 +200,8 @@ export const appRouter = router({
         createdAt: friend.createdAt,
       })),
     ].sort((a, b) => {
-      if (a.createdAt > b.createdAt) return 1;
-      if (a.createdAt < b.createdAt) return -1;
+      if (a.createdAt < b.createdAt) return 1;
+      if (a.createdAt > b.createdAt) return -1;
       return 0;
     });
   }),
@@ -209,8 +212,16 @@ export const appRouter = router({
           senderId: ctx.auth.userId,
         },
         include: {
-          sender: true,
-          receiver: true,
+          sender: {
+            include: {
+              posts: true,
+            },
+          },
+          receiver: {
+            include: {
+              posts: true,
+            },
+          },
         },
       }),
       prisma.friend.findMany({
@@ -218,14 +229,22 @@ export const appRouter = router({
           receiverId: ctx.auth.userId,
         },
         include: {
-          sender: true,
-          receiver: true,
+          sender: {
+            include: {
+              posts: true,
+            },
+          },
+          receiver: {
+            include: {
+              posts: true,
+            },
+          },
         },
       }),
     ]);
     return sending.concat(recieving).sort((a, b) => {
-      if (a.createdAt > b.createdAt) return 1;
-      if (a.createdAt < b.createdAt) return -1;
+      if (a.createdAt < b.createdAt) return 1;
+      if (a.createdAt > b.createdAt) return -1;
       return 0;
     });
   }),
@@ -253,12 +272,57 @@ export const appRouter = router({
         },
       });
     }),
-  getProfile: protectedProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      return await prisma.profile.findUnique({
+  createFriendRequest: protectedProcedure
+    .input(
+      z.object({
+        senderId: z.string(),
+        recieverId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.friend.create({
+        data: {
+          senderId: input.senderId,
+          receiverId: input.recieverId,
+        },
+      });
+    }),
+  updateFriendStatus: protectedProcedure
+    .input(
+      z.object({
+        senderId: z.string(),
+        recieverId: z.string(),
+        status: z.nativeEnum(Status),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.friend.update({
+        data: {
+          status: input.status,
+          updatedAt: new Date(),
+        },
         where: {
-          id: input ?? ctx.auth.userId,
+          receiverId_senderId: {
+            senderId: input.senderId,
+            receiverId: input.recieverId,
+          },
+        },
+      });
+    }),
+  deleteFriendRequest: protectedProcedure
+    .input(
+      z.object({
+        senderId: z.string(),
+        recieverId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.friend.delete({
+        where: {
+          receiverId_senderId: {
+            senderId: input.senderId,
+            receiverId: input.recieverId,
+          },
         },
       });
     }),
@@ -525,59 +589,6 @@ export const appRouter = router({
         apiKey: process.env.UPLOAD_SECRETKEY,
         querystring: {
           filePath: input.attachmentPath,
-        },
-      });
-    }),
-  createFriendRequest: protectedProcedure
-    .input(
-      z.object({
-        senderId: z.string(),
-        recieverId: z.string(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.friend.create({
-        data: {
-          senderId: input.senderId,
-          receiverId: input.recieverId,
-        },
-      });
-    }),
-  updateFriendStatus: protectedProcedure
-    .input(
-      z.object({
-        senderId: z.string(),
-        recieverId: z.string(),
-        status: z.nativeEnum(Status),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.friend.update({
-        data: {
-          status: input.status,
-        },
-        where: {
-          receiverId_senderId: {
-            senderId: input.senderId,
-            receiverId: input.recieverId,
-          },
-        },
-      });
-    }),
-  deleteFriendRequest: protectedProcedure
-    .input(
-      z.object({
-        senderId: z.string(),
-        recieverId: z.string(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.friend.delete({
-        where: {
-          receiverId_senderId: {
-            senderId: input.senderId,
-            receiverId: input.recieverId,
-          },
         },
       });
     }),
