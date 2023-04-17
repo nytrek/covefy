@@ -10,6 +10,7 @@ import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import { differenceInSeconds } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 function Countdown() {
@@ -182,7 +183,12 @@ export default function Ranking() {
                           />
                         </dt>
                         <dd className="text-sm leading-6 text-brand-50">
-                          <p>{post.title}</p>
+                          <Link
+                            href={"/post/" + post.id}
+                            className="hover:underline"
+                          >
+                            {post.title}
+                          </Link>
                         </dd>
                       </div>
                       <div className="mt-4 flex w-full flex-none gap-x-4 px-6">

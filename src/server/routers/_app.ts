@@ -16,6 +16,24 @@ const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
 const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
 export const appRouter = router({
+  getPost: publicProcedure.input(Number).query(async ({ input }) => {
+    return await prisma.post.findUnique({
+      where: {
+        id: input,
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        author: true,
+        friend: true,
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+      },
+    });
+  }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {

@@ -26,6 +26,7 @@ import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import {
   Dispatch,
   FormEvent,
@@ -1181,6 +1182,7 @@ function CommentBox({ item }: { item: Post }) {
 
 export default function Home() {
   const { user } = useUser();
+  const { push } = useRouter();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const posts = trpc.getPublicPosts.useQuery();
@@ -1217,6 +1219,8 @@ export default function Home() {
                           if (item.authorId === user?.id) {
                             setOpen(true);
                             setPost(item);
+                          } else {
+                            push("/post/" + item.id);
                           }
                         }}
                         className="absolute inset-0 rounded-2xl"
