@@ -1187,7 +1187,7 @@ export default function Inbox() {
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Scour through your digital inbox"
+          header="Scour through your digital inbox."
           search={search}
           setOpen={setOpen}
           setPost={setPost}

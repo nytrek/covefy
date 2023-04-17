@@ -1187,7 +1187,7 @@ export default function Posts() {
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Personalize your content board."
+          header="Collect your notes in one place."
           search={search}
           setOpen={setOpen}
           setPost={setPost}

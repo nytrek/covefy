@@ -22,6 +22,11 @@ export default function Navbar() {
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
     { name: "Friend list", href: "/friends", current: route === "/friends" },
+    {
+      name: "Marketplace",
+      href: "/marketplace",
+      current: route === "/marketplace",
+    },
     { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Support", href: "/support", current: route === "/support" },
   ];
