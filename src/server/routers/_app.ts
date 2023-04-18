@@ -34,6 +34,13 @@ export const appRouter = router({
       },
     });
   }),
+  getBanners: protectedProcedure.query(async () => {
+    return await prisma.banner.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
+  }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {

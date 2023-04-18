@@ -22,7 +22,8 @@ model Profile {
   sender    Friend[]   @relation("Sender")
   receiver  Friend[]   @relation("Receiver")
   inbox     Post[]     @relation("Friend")
-  Comment   Comment[]
+  comment   Comment[]
+  purchases Purchase[]
 }
 
 model Post {
@@ -40,6 +41,17 @@ model Post {
   friend         Profile?   @relation("Friend", fields: [friendId], references: [id], onDelete: Cascade)
   friendId       String?
   comments       Comment[]
+}
+
+model Banner {
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime   @default(now())
+  title       String
+  description String
+  imageUrl    String
+  price       Int
+  verified    Boolean
+  purchases   Purchase[]
 }
 
 model Comment {
@@ -80,6 +92,15 @@ model Friend {
   updatedAt  DateTime @default(now())
 
   @@id([receiverId, senderId])
+}
+
+model Purchase {
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+  banner    Banner  @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  bannerId  Int
+
+  @@id([profileId, bannerId])
 }
 
 enum Plan {

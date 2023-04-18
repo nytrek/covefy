@@ -26,6 +26,7 @@
     "eslint": "8.38.0",
     "eslint-config-next": "13.3.0",
     "framer-motion": "^10.11.6",
+    "jsonwebtoken": "^9.0.0",
     "micro": "^10.0.1",
     "next": "13.3.0",
     "openai": "^3.2.1",
@@ -41,6 +42,7 @@
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.3",
+    "@types/jsonwebtoken": "^9.0.1",
     "autoprefixer": "^10.4.14",
     "mirrorful": "^5.0.7",
     "postcss": "^8.4.21",
