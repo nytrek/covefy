@@ -1016,7 +1016,7 @@ function Comments({ item }: { item: Post }) {
   });
   return (
     <ul role="list" className="space-y-6">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {item.comments.map((comment) => (
           <motion.li
             key={comment.id}
@@ -1200,9 +1200,9 @@ export default function Bookmarks() {
           setPost={setPost}
           setSearch={setSearch}
         />
-        <div className="mt-8 px-2 lg:px-8">
+        <div className="mt-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="w-full columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
+            <div className="w-full columns-sm gap-6 space-y-6">
               {posts.data
                 ?.filter(
                   (post) =>
@@ -1212,7 +1212,7 @@ export default function Bookmarks() {
                       .includes(search.toLowerCase())
                 )
                 .map((item, index) => (
-                  <div key={index} className="relative w-full px-4 py-6">
+                  <div key={index} className="relative w-full">
                     <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
                       <button
                         type="button"

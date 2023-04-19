@@ -4,7 +4,7 @@ import { TicketIcon } from "@heroicons/react/24/outline";
 import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
 
@@ -103,9 +103,11 @@ function Banner({
 export default function Marketplace() {
   const { user } = useUser();
   const banners = trpc.getBanners.useQuery();
+  const [isAuth, setIsAuth] = useState(false);
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
+      setIsAuth(true);
     } catch (err: any) {
       console.log(err.message);
     }
@@ -117,7 +119,7 @@ export default function Marketplace() {
   return (
     <>
       <Navbar />
-      {user ? (
+      {isAuth ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             {banners.data?.map((banner) => (
