@@ -34,10 +34,17 @@ export const appRouter = router({
       },
     });
   }),
-  getBanners: protectedProcedure.query(async () => {
+  getBanners: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.banner.findMany({
       orderBy: {
         id: "asc",
+      },
+      include: {
+        purchases: {
+          where: {
+            profileId: ctx.auth.userId,
+          },
+        },
       },
     });
   }),
@@ -626,6 +633,32 @@ export const appRouter = router({
           id: input.id,
         },
       });
+    }),
+  createPurchase: protectedProcedure
+    .input(
+      z.object({
+        bannerId: z.number(),
+        profileId: z.string(),
+        credits: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.$transaction([
+        prisma.purchase.create({
+          data: {
+            bannerId: input.bannerId,
+            profileId: input.profileId,
+          },
+        }),
+        prisma.profile.update({
+          data: {
+            credits: input.credits,
+          },
+          where: {
+            id: input.profileId,
+          },
+        }),
+      ]);
     }),
   deleteAttachment: protectedProcedure
     .input(
