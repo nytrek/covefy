@@ -33,6 +33,10 @@ const MAX_TOKENS = 720;
 const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
 
+const upload = Upload({
+  apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
+});
+
 type Post = Prisma.PostGetPayload<{
   include: {
     likes: true;
@@ -435,9 +439,6 @@ function Modal({
   const { user } = useUser();
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
-  const upload = Upload({
-    apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
-  });
   const [label, setLabel] = useState(post?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
