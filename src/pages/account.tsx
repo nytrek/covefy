@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/nextjs";
 import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
@@ -118,11 +119,11 @@ function Progress() {
 }
 
 export default function Account() {
-  const profile = trpc.getProfile.useQuery();
+  const { user } = useUser();
   return (
     <>
       <Navbar />
-      {profile.data ? (
+      {user ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             <div className="relative">
