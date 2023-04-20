@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
 import { Menu, RadioGroup, Transition } from "@headlessui/react";
 import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import Footer from "@src/components/footer";
@@ -270,6 +270,10 @@ export default function Account() {
             <Progress />
           </div>
         </main>
+      ) : !user ? (
+        <div className="mt-16 flex w-screen justify-center">
+          <SignIn />
+        </div>
       ) : null}
       <Footer />
     </>

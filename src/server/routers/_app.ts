@@ -728,6 +728,7 @@ export const appRouter = router({
       z.object({
         postId: z.number(),
         comment: z.string(),
+        credits: z.number(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -735,13 +736,23 @@ export const appRouter = router({
       if (!success) {
         throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
       }
-      return await prisma.comment.create({
-        data: {
-          postId: input.postId,
-          comment: input.comment,
-          authorId: ctx.auth.userId,
-        },
-      });
+      return await prisma.$transaction([
+        prisma.comment.create({
+          data: {
+            postId: input.postId,
+            comment: input.comment,
+            authorId: ctx.auth.userId,
+          },
+        }),
+        prisma.profile.update({
+          data: {
+            credits: input.credits,
+          },
+          where: {
+            id: ctx.auth.userId,
+          },
+        }),
+      ]);
     }),
   deleteComment: protectedProcedure
     .input(

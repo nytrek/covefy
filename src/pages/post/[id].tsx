@@ -12,6 +12,7 @@ import {
   BookmarkIcon as BookmarkIconOutline,
   ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconOutline,
   HandThumbUpIcon as HandThumbUpIconOutline,
+  TicketIcon,
 } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
 import Footer from "@src/components/footer";
@@ -405,6 +406,7 @@ function CommentBox({ item }: { item: Post }) {
     onSuccess: () => {
       toast.dismiss();
       utils.getPost.invalidate();
+      utils.getProfile.invalidate();
       toast.success("Comment created!");
     },
     onError: (err: any) => {
@@ -415,8 +417,8 @@ function CommentBox({ item }: { item: Post }) {
   const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 45)
-      return toast.error("You need atleast 45 credits to comment");
+    if (profile.data.credits < 1)
+      return toast.error("You don't have enough credits");
     const target = e.target as typeof e.target & {
       reset: () => void;
       comment: { id: string; value: string };
@@ -426,6 +428,7 @@ function CommentBox({ item }: { item: Post }) {
       {
         postId: Number(target.comment.id),
         comment: target.comment.value,
+        credits: profile.data.credits - 1,
       },
       {
         onSuccess: () => {
@@ -464,9 +467,10 @@ function CommentBox({ item }: { item: Post }) {
         <div className="absolute inset-x-0 bottom-0 flex justify-end py-2 pl-3 pr-2">
           <button
             type="submit"
-            className="rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm"
+            className="flex items-center space-x-1 rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm"
           >
-            Comment
+            <span>Comment (1</span>
+            <TicketIcon className="h-5 w-5" />)
           </button>
         </div>
       </form>

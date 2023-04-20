@@ -1,5 +1,6 @@
 import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
+import { TicketIcon } from "@heroicons/react/24/outline";
 
 const faqs = [
   {
@@ -47,6 +48,33 @@ export default function Support() {
               ))}
             </dl>
           </div>
+          <section className="mt-16 rounded-lg">
+            <h2 className="text-2xl font-medium text-brand-50">Credit usage</h2>
+
+            <dl className="mt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <dt className="text-brand-50">Use AI</dt>
+                <dd className="flex items-center space-x-1 font-medium text-brand-50">
+                  <span>5</span>
+                  <TicketIcon className="h-5 w-5" />
+                </dd>
+              </div>
+              <div className="flex items-center justify-between border-t border-brand-200 pt-4">
+                <dt className="text-brand-50">Create note</dt>
+                <dd className="flex items-center space-x-1 font-medium text-brand-50">
+                  <span>1</span>
+                  <TicketIcon className="h-5 w-5" />
+                </dd>
+              </div>
+              <div className="flex items-center justify-between border-t border-brand-200 pt-4">
+                <dt className="text-brand-50">Comment</dt>
+                <dd className="flex items-center space-x-1 font-medium text-brand-50">
+                  <span>1</span>
+                  <TicketIcon className="h-5 w-5" />
+                </dd>
+              </div>
+            </dl>
+          </section>
         </div>
       </div>
       <Footer />

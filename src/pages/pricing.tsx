@@ -36,7 +36,7 @@ const tiers = [
       annually:
         "https://covefy.lemonsqueezy.com/checkout/buy/28151292-54af-487b-a36f-994b58c1dede",
     },
-    price: { monthly: "$10", annually: "$100" },
+    price: { monthly: "$10", annually: "$90" },
     features: ["250 credits/month", "Premium checkmark"],
     mostPopular: true,
   },
@@ -49,7 +49,7 @@ const tiers = [
       annually:
         "https://covefy.lemonsqueezy.com/checkout/buy/171e0867-399b-4ddb-b07f-cf068d4c610c",
     },
-    price: { monthly: "$40", annually: "$440" },
+    price: { monthly: "$40", annually: "$320" },
     features: [
       "1000 credits/month",
       "Premium checkmark",
