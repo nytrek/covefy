@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 const ratelimiter = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "10 s"),
+  limiter: Ratelimit.slidingWindow(20, "20 s"),
 });
 
 const configuration = new Configuration({

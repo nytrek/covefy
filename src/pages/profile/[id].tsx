@@ -605,7 +605,7 @@ function Progress() {
   const { query } = useRouter();
   const id = query.id as string;
   const likes = trpc.getLikes.useQuery(id);
-  const profile = trpc.getProfile.useQuery();
+  const profile = trpc.getProfile.useQuery(id);
   const comments = trpc.getComments.useQuery(id);
   const bookmarks = trpc.getBookmarks.useQuery(id);
   const stats = [
