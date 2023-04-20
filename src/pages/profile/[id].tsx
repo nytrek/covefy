@@ -676,13 +676,6 @@ export default function Account() {
                 alt="banner"
                 className="rounded-lg object-cover"
               />
-              <span className="absolute inset-0" />
-              <button
-                type="button"
-                className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-              >
-                <PencilSquareIcon className="h-5 w-5 text-brand-600" />
-              </button>
             </div>
             <Header setOpen={setOpen} />
             <Progress />

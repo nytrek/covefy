@@ -13,6 +13,7 @@ model Profile {
   imageUrl  String
   username  String
   credits   Int
+  banner    String?
   claim     Boolean    @default(false)
   premium   Boolean    @default(false)
   plan      Plan       @default(FREE)

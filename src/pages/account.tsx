@@ -1,9 +1,20 @@
 import { useUser } from "@clerk/nextjs";
+import { Menu, RadioGroup, Transition } from "@headlessui/react";
 import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
+import { Fragment, useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import { Upload } from "upload-js";
+
+const API_ERROR_MESSAGE =
+  "API request failed, please refresh the page and try again.";
+
+const upload = Upload({
+  apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
+});
 
 function Header() {
   const profile = trpc.getProfile.useQuery();
@@ -120,25 +131,128 @@ function Progress() {
 
 export default function Account() {
   const { user } = useUser();
+  const utils = trpc.useContext();
+  const profile = trpc.getProfile.useQuery();
+  const [isAuth, setIsAuth] = useState(false);
+  const banners = trpc.getProfileBanners.useQuery();
+  const updateBanner = trpc.updateProfileBanner.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Banner updated!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const initializeAuthSession = async () => {
+    try {
+      await upload.beginAuthSession("/api/auth", async () => ({}));
+      setIsAuth(true);
+    } catch (err: any) {
+      console.log(err.message);
+    }
+  };
+  useEffect(() => {
+    if (user) initializeAuthSession();
+    else upload.endAuthSession();
+  }, [user]);
   return (
     <>
       <Navbar />
-      {user ? (
+      {isAuth && profile.data ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             <div className="relative">
               <img
-                src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                src={
+                  profile.data.banner ??
+                  "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                }
                 alt="banner"
                 className="rounded-lg object-cover"
               />
               <span className="absolute inset-0" />
-              <button
-                type="button"
+              <Menu
+                as="div"
                 className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
               >
-                <PencilSquareIcon className="h-5 w-5 text-brand-600" />
-              </button>
+                <div>
+                  <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
+                    <PencilSquareIcon className="h-5 w-5 text-brand-600" />
+                  </Menu.Button>
+                </div>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                    <div className="p-4">
+                      <Menu.Item>
+                        <RadioGroup
+                          value={profile.data.banner}
+                          onChange={(banner: string) =>
+                            updateBanner.mutate({ banner })
+                          }
+                        >
+                          <RadioGroup.Label className="sr-only">
+                            Banners
+                          </RadioGroup.Label>
+                          <div className="space-y-4">
+                            {banners.data?.map((banner) => (
+                              <RadioGroup.Option
+                                key={banner.id}
+                                value={banner.imageUrl}
+                                className={({ checked, active }) =>
+                                  clsx(
+                                    checked
+                                      ? "border-transparent"
+                                      : "border-brand-300",
+                                    active
+                                      ? "border-brand-600 ring-2 ring-brand-600"
+                                      : "",
+                                    "relative block cursor-pointer rounded-lg border bg-brand-50 p-1"
+                                  )
+                                }
+                              >
+                                {({ active, checked }) => (
+                                  <>
+                                    <span className="flex items-center">
+                                      <span className="flex flex-col text-sm">
+                                        <img
+                                          src={banner.imageUrl}
+                                          alt="banner"
+                                          className="rounded-md"
+                                        />
+                                      </span>
+                                    </span>
+                                    <span
+                                      className={clsx(
+                                        active ? "border" : "border-2",
+                                        checked
+                                          ? "border-brand-600"
+                                          : "border-transparent",
+                                        "pointer-events-none absolute -inset-px rounded-lg"
+                                      )}
+                                      aria-hidden="true"
+                                    />
+                                  </>
+                                )}
+                              </RadioGroup.Option>
+                            ))}
+                          </div>
+                        </RadioGroup>
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
             </div>
             <Header />
             <Progress />

@@ -34,20 +34,6 @@ export const appRouter = router({
       },
     });
   }),
-  getBanners: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.banner.findMany({
-      orderBy: {
-        id: "asc",
-      },
-      include: {
-        purchases: {
-          where: {
-            profileId: ctx.auth.userId,
-          },
-        },
-      },
-    });
-  }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
@@ -57,41 +43,6 @@ export const appRouter = router({
         },
       });
     }),
-  getRanking: protectedProcedure.query(async () => {
-    return await prisma.post.findMany({
-      where: {
-        label: "PUBLIC",
-        createdAt: {
-          gte: firstDay,
-          lte: lastDay,
-        },
-      },
-      include: {
-        author: true,
-        likes: true,
-        comments: true,
-        bookmarks: true,
-      },
-      orderBy: [
-        {
-          likes: {
-            _count: "desc",
-          },
-        },
-        {
-          comments: {
-            _count: "desc",
-          },
-        },
-        {
-          bookmarks: {
-            _count: "desc",
-          },
-        },
-      ],
-      take: 8,
-    });
-  }),
   getInbox: protectedProcedure.query(async ({ ctx }) => {
     const [sending, recieving] = await prisma.$transaction([
       prisma.post.findMany({
@@ -134,6 +85,69 @@ export const appRouter = router({
       if (a.createdAt < b.createdAt) return 1;
       if (a.createdAt > b.createdAt) return -1;
       return 0;
+    });
+  }),
+  getRanking: protectedProcedure.query(async () => {
+    return await prisma.post.findMany({
+      where: {
+        label: "PUBLIC",
+        createdAt: {
+          gte: firstDay,
+          lte: lastDay,
+        },
+      },
+      include: {
+        author: true,
+        likes: true,
+        comments: true,
+        bookmarks: true,
+      },
+      orderBy: [
+        {
+          likes: {
+            _count: "desc",
+          },
+        },
+        {
+          comments: {
+            _count: "desc",
+          },
+        },
+        {
+          bookmarks: {
+            _count: "desc",
+          },
+        },
+      ],
+      take: 8,
+    });
+  }),
+  getBanners: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.banner.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        purchases: {
+          where: {
+            profileId: ctx.auth.userId,
+          },
+        },
+      },
+    });
+  }),
+  getProfileBanners: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.banner.findMany({
+      where: {
+        purchases: {
+          some: {
+            profileId: ctx.auth.userId,
+          },
+        },
+      },
+      orderBy: {
+        id: "asc",
+      },
     });
   }),
   getPublicPosts: publicProcedure.query(async () => {
@@ -659,6 +673,22 @@ export const appRouter = router({
           },
         }),
       ]);
+    }),
+  updateProfileBanner: protectedProcedure
+    .input(
+      z.object({
+        banner: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.profile.update({
+        data: {
+          banner: input.banner,
+        },
+        where: {
+          id: ctx.auth.userId,
+        },
+      });
     }),
   deleteAttachment: protectedProcedure
     .input(
