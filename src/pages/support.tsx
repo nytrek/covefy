@@ -1,42 +1,24 @@
-import Navbar from "@src/components/navbar";
 import Footer from "@src/components/footer";
+import Navbar from "@src/components/navbar";
 
 const faqs = [
   {
     id: 1,
     question: "What are credits used for?",
     answer:
-      "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
+      "Credits can be used to create notes, interact with AI and purchase banners in the marketplace. The use of credits will expand as new features come in.",
   },
   {
     id: 2,
     question: "How do I earn a spot in the top 8?",
     answer:
-      "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
+      "The top 8 consists of the top most engaging notes. To earn a spot in the top 8, create valueable notes for the community.",
   },
   {
     id: 3,
     question: "When can I claim my credits?",
     answer:
-      "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
-  },
-  {
-    id: 4,
-    question: "Do I lose 2 credits if I use AI?",
-    answer:
-      "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
-  },
-  {
-    id: 5,
-    question: "Likes vs bookmarks?",
-    answer:
-      "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
-  },
-  {
-    id: 6,
-    question: "Where can I disable my account?",
-    answer:
-      "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
+      "You can claim your credits at the end of each month if you've subscribed to a plan or won a spot in the top 8.",
   },
   // More questions...
 ];
@@ -51,7 +33,7 @@ export default function Support() {
             Frequently asked questions
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-center text-xl text-gray-300 sm:text-2xl">
-            Have a different question? Contact us at ktra99@outlook.com
+            Have a different question? Contact us at kennytran.dev@outlook.com
           </p>
           <div className="mt-20">
             <dl className="space-y-16 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 sm:space-y-0 lg:grid-cols-3 lg:gap-x-10">

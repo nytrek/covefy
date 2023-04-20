@@ -37,8 +37,9 @@ function Banner({
   const createPurchase = trpc.createPurchase.useMutation({
     onSuccess: () => {
       toast.dismiss();
-      toast.success("Banner purchased!");
       utils.getBanners.invalidate();
+      utils.getProfile.invalidate();
+      toast.success("Banner purchased!");
     },
     onError: (err: any) => {
       toast.dismiss();
