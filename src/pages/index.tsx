@@ -1212,7 +1212,10 @@ export default function Home() {
                       .includes(search.toLowerCase())
                 )
                 .map((item, index) => (
-                  <div key={index} className="relative w-full">
+                  <div
+                    key={index}
+                    className="relative w-full break-inside-avoid-column"
+                  >
                     <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
                       <button
                         type="button"
