@@ -5,6 +5,7 @@ import {
   ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
   CheckBadgeIcon,
   CheckIcon,
+  EllipsisVerticalIcon,
   HandThumbUpIcon as HandThumbUpIconSolid,
 } from "@heroicons/react/20/solid";
 import {
@@ -474,66 +475,171 @@ function CommentBox({ item }: { item: Post }) {
 }
 
 export default function Post() {
-  const { query } = useRouter();
+  const { user } = useUser();
+  const { back, query } = useRouter();
+  const utils = trpc.useContext();
   const post = trpc.getPost.useQuery(Number(query.id));
+  const deletePost = trpc.deletePost.useMutation({
+    onSuccess: () => {
+      back();
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Post deleted!");
+      utils.getProfilePosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnDeletePost = () => {
+    if (!post.data) return;
+    toast.loading("Loading...");
+    if (post.data.attachmentPath) {
+      deleteAttachment.mutate(
+        {
+          attachmentPath: post.data.attachmentPath,
+        },
+        {
+          onSuccess: () => {
+            if (!post.data) return;
+            deletePost.mutate({
+              id: post.data.id,
+            });
+          },
+        }
+      );
+    } else {
+      deletePost.mutate({
+        id: post.data.id,
+      });
+    }
+  };
   return (
     <>
       <div className="pb-36">
         <Navbar />
         {post.data ? (
           <>
-            <div className="mx-auto mt-12 max-w-7xl px-4 text-center">
-              <img src="/post.png" alt="post" className="mx-auto mt-2 w-24" />
-              <div className="mt-8 flex flex-1 justify-center">
-                <div className="flex w-full items-center justify-center space-x-6 px-2 text-2xl font-bold text-brand-50 sm:text-4xl lg:px-6">
-                  <p>#{post.data.id}</p>
+            {post.data.label === "PUBLIC" ? (
+              <>
+                <div className="mx-auto mt-12 max-w-7xl px-4 text-center">
+                  <img
+                    src="/post.png"
+                    alt="post"
+                    className="mx-auto mt-2 w-24"
+                  />
+                  <div className="mt-8 flex flex-1 justify-center">
+                    <div className="flex w-full items-center justify-center space-x-6 px-2 text-2xl font-bold text-brand-50 sm:text-4xl lg:px-6">
+                      <p>#{post.data.id}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
-              <div className="flex items-center justify-center">
-                <div className="relative w-full px-4 py-6">
-                  <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
-                    <div className="space-y-6 text-brand-50">
-                      {post.data.attachment ? (
-                        <img
-                          className="h-full w-full rounded-lg"
-                          src={post.data.attachment}
-                          alt="attachment"
-                        />
-                      ) : null}
-                      <div className="space-y-4">
-                        <h4 className="text-lg">{post.data.title}</h4>
-                        <p>{post.data.description}</p>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <Dropdown item={post.data} />
-                        <div className="flex flex-col">
-                          <div className="flex items-center space-x-1 font-semibold">
-                            <span>{post.data.author?.name}</span>
-                            {post.data.author?.premium ? (
-                              <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
-                            ) : null}
+                <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
+                  <div className="flex items-center justify-center">
+                    <div className="relative w-full px-4 py-6">
+                      <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                        <div className="space-y-6 text-brand-50">
+                          {post.data.attachment ? (
+                            <img
+                              className="h-full w-full rounded-lg"
+                              src={post.data.attachment}
+                              alt="attachment"
+                            />
+                          ) : null}
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-lg">{post.data.title}</h4>
+                              {post.data.authorId === user?.id ? (
+                                <Menu
+                                  as="div"
+                                  className="relative inline-block text-left"
+                                >
+                                  <div>
+                                    <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
+                                      <EllipsisVerticalIcon
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                    </Menu.Button>
+                                  </div>
+                                  <Transition
+                                    as={Fragment}
+                                    enter="transition ease-out duration-100"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-75"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
+                                  >
+                                    <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                                      <div className="py-1">
+                                        <>
+                                          <Menu.Item>
+                                            {({ active }) => (
+                                              <button
+                                                type="button"
+                                                onClick={handleOnDeletePost}
+                                                className={clsx(
+                                                  active
+                                                    ? "bg-brand-100 text-brand-900"
+                                                    : "text-brand-700",
+                                                  "w-full px-4 py-2 text-left text-sm"
+                                                )}
+                                              >
+                                                Delete
+                                              </button>
+                                            )}
+                                          </Menu.Item>
+                                        </>
+                                      </div>
+                                    </Menu.Items>
+                                  </Transition>
+                                </Menu>
+                              ) : null}
+                            </div>
+                            <p>{post.data.description}</p>
                           </div>
-                          <div>{`@${post.data.author?.username}`}</div>
-                        </div>
-                      </div>
-                      <div className="relative flex flex-col space-y-6">
-                        <div className="flex space-x-6">
-                          <Like item={post.data} />
-                          <Comment item={post.data} />
-                          <Bookmark item={post.data} />
-                        </div>
-                        <BookmarkCheck item={post.data} />
-                        <Comments item={post.data} />
+                          <div className="flex items-center space-x-4">
+                            <Dropdown item={post.data} />
+                            <div className="flex flex-col">
+                              <div className="flex items-center space-x-1 font-semibold">
+                                <span>{post.data.author?.name}</span>
+                                {post.data.author?.premium ? (
+                                  <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                                ) : null}
+                              </div>
+                              <div>{`@${post.data.author?.username}`}</div>
+                            </div>
+                          </div>
+                          <div className="relative flex flex-col space-y-6">
+                            <div className="flex space-x-6">
+                              <Like item={post.data} />
+                              <Comment item={post.data} />
+                              <Bookmark item={post.data} />
+                            </div>
+                            <BookmarkCheck item={post.data} />
+                            <Comments item={post.data} />
 
-                        <CommentBox item={post.data} />
+                            <CommentBox item={post.data} />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </>
+            ) : (
+              <span className="flex h-[30rem] w-screen items-center justify-center text-white">
+                This post is not publicly accessible
+              </span>
+            )}
           </>
         ) : null}
       </div>

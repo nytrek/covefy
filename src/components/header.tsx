@@ -3,7 +3,9 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
 } from "@heroicons/react/20/solid";
-import { Prisma, Profile } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import clsx from "clsx";
+import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
 type Post = Prisma.PostGetPayload<{
@@ -26,16 +28,15 @@ export default function Header({
   setOpen,
   setPost,
   setSearch,
-  setFriend,
 }: {
   header: string;
   search: string;
   setPost: Dispatch<SetStateAction<Post | null>>;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setSearch: Dispatch<SetStateAction<string>>;
-  setFriend?: Dispatch<SetStateAction<Profile | null>>;
 }) {
   const { user } = useUser();
+  const { route } = useRouter();
   return (
     <div className="mx-auto mt-12 max-w-xl px-4 text-center">
       <p className="mt-2 text-3xl font-semibold text-brand-50">{header}</p>
@@ -51,19 +52,21 @@ export default function Header({
             <input
               id="search"
               name="search"
-              className="block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 px-10 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
+              className={clsx(
+                !user || route === "/friends" ? "pl-10" : "px-10",
+                "block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
+              )}
               placeholder="Search"
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {user ? (
+            {user && route !== "/friends" ? (
               <button
                 type="button"
                 onClick={() => {
                   setOpen(true);
                   setPost(null);
-                  setFriend ? setFriend(null) : null;
                 }}
               >
                 <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />

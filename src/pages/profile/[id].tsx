@@ -174,7 +174,7 @@ function LabelDropdown({
   );
 }
 
-function UseAI({
+function PostButtons({
   descriptionRef,
 }: {
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
@@ -217,6 +217,16 @@ function UseAI({
         <span>Use AI</span>
         <span className="flex items-center space-x-1">
           <span>(5</span>
+          <TicketIcon className="h-5 w-5" />)
+        </span>
+      </button>
+      <button
+        type="submit"
+        className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        <span>Create</span>
+        <span className="flex items-center space-x-1">
+          <span>(1</span>
           <TicketIcon className="h-5 w-5" />)
         </span>
       </button>
@@ -384,12 +394,7 @@ function Modal({
                   </div>
 
                   <div className="absolute inset-x-px bottom-0">
-                    <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
-                      <FriendDropdown friend={friend} />
-
-                      <LabelDropdown label={label} setLabel={setLabel} />
-                    </div>
-                    <div className="flex items-center justify-between space-x-3 px-2 py-2 sm:px-3">
+                    <div className="flex items-center justify-between space-x-3 py-2 pl-2">
                       <div className="flex">
                         <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                           <input
@@ -406,22 +411,15 @@ function Modal({
                           </span>
                         </div>
                       </div>
-                      <div className="flex-shrink-0 space-x-1">
-                        <button
-                          type="submit"
-                          className="inline-flex items-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                        >
-                          <span>Create</span>
-                          <span className="flex items-center space-x-1">
-                            <span>(1</span>
-                            <TicketIcon className="h-5 w-5" />)
-                          </span>
-                        </button>
+                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
+                        <FriendDropdown friend={friend} />
+
+                        <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
+                    <PostButtons descriptionRef={descriptionRef} />
                   </div>
                 </form>
-                <UseAI descriptionRef={descriptionRef} />
               </Dialog.Panel>
             </Transition.Child>
           </div>

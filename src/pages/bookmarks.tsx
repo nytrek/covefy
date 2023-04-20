@@ -5,6 +5,7 @@ import {
   ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
   CheckBadgeIcon,
   CheckIcon,
+  EllipsisVerticalIcon,
   HandThumbUpIcon as HandThumbUpIconSolid,
   PaperClipIcon,
   TagIcon,
@@ -368,9 +369,11 @@ function LabelDropdown({
   );
 }
 
-function UseAI({
+function PostButtons({
+  edit,
   descriptionRef,
 }: {
+  edit: boolean;
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
 }) {
   const utils = trpc.useContext();
@@ -413,6 +416,22 @@ function UseAI({
           <span>(5</span>
           <TicketIcon className="h-5 w-5" />)
         </span>
+      </button>
+      <button
+        type="submit"
+        className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        {edit ? (
+          <span>Save</span>
+        ) : (
+          <>
+            <span>Create</span>
+            <span className="flex items-center space-x-1">
+              <span>(1</span>
+              <TicketIcon className="h-5 w-5" />)
+            </span>
+          </>
+        )}
       </button>
     </div>
   );
@@ -466,48 +485,6 @@ function Modal({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const deletePost = trpc.deletePost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      toast.success("Post deleted!");
-      utils.getBookmarkedPosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const deleteAttachment = trpc.deleteAttachment.useMutation({
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnDeletePost = () => {
-    if (!post) return;
-    toast.loading("Loading...");
-    if (post.attachmentPath) {
-      deleteAttachment.mutate(
-        {
-          attachmentPath: post.attachmentPath,
-        },
-        {
-          onSuccess: () => {
-            if (!post) return;
-            deletePost.mutate({
-              id: post.id,
-            });
-          },
-        }
-      );
-    } else {
-      deletePost.mutate({
-        id: post.id,
-      });
-    }
-  };
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.fullName || !user?.username || !profile.data) return;
@@ -670,23 +647,10 @@ function Modal({
                   </div>
 
                   <div className="absolute inset-x-px bottom-0">
-                    <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
-                      <FriendDropdown
-                        post={post}
-                        friend={friend}
-                        setFriend={setFriend}
-                      />
-
-                      <LabelDropdown
-                        post={post}
-                        label={label}
-                        setLabel={setLabel}
-                      />
-                    </div>
                     <div
                       className={clsx(
                         post?.attachment ? "justify-end" : "justify-between",
-                        "flex items-center space-x-3 px-2 py-2 sm:px-3"
+                        "flex items-center space-x-3 py-2 pl-2"
                       )}
                     >
                       {!post?.attachment ? (
@@ -707,40 +671,26 @@ function Modal({
                           </div>
                         </div>
                       ) : null}
-                      <div className="flex-shrink-0 space-x-1">
-                        {post ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={handleOnDeletePost}
-                              className="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              type="submit"
-                              className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                            >
-                              Save
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            type="submit"
-                            className="inline-flex items-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                          >
-                            <span>Create</span>
-                            <span className="flex items-center space-x-1">
-                              <span>(1</span>
-                              <TicketIcon className="h-5 w-5" />)
-                            </span>
-                          </button>
-                        )}
+                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
+                        <FriendDropdown
+                          post={post}
+                          friend={friend}
+                          setFriend={setFriend}
+                        />
+
+                        <LabelDropdown
+                          post={post}
+                          label={label}
+                          setLabel={setLabel}
+                        />
                       </div>
                     </div>
+                    <PostButtons
+                      edit={!!post}
+                      descriptionRef={descriptionRef}
+                    />
                   </div>
                 </form>
-                <UseAI descriptionRef={descriptionRef} />
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -1183,18 +1133,63 @@ function CommentBox({ item }: { item: Post }) {
 
 export default function Bookmarks() {
   const { user } = useUser();
-  const { push } = useRouter();
+  const utils = trpc.useContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const posts = trpc.getBookmarkedPosts.useQuery();
   const [post, setPost] = useState<Post | null>(null);
+  const deletePost = trpc.deletePost.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Post deleted!");
+      utils.getBookmarkedPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnEditPost = (post: Post) => {
+    setOpen(true);
+    setPost(post);
+  };
+  const handleOnDeletePost = (post: Post) => {
+    if (!post) return;
+    toast.loading("Loading...");
+    if (post.attachmentPath) {
+      deleteAttachment.mutate(
+        {
+          attachmentPath: post.attachmentPath,
+        },
+        {
+          onSuccess: () => {
+            if (!post) return;
+            deletePost.mutate({
+              id: post.id,
+            });
+          },
+        }
+      );
+    } else {
+      deletePost.mutate({
+        id: post.id,
+      });
+    }
+  };
   return (
     <>
       <Modal open={open} post={post} setOpen={setOpen} />
       <div className="pb-36">
         <Navbar />
         <Header
-          header="Organize your favorite notes."
+          header="Bookmark your favorite notes."
           search={search}
           setOpen={setOpen}
           setPost={setPost}
@@ -1217,18 +1212,6 @@ export default function Bookmarks() {
                     className="relative w-full break-inside-avoid-column"
                   >
                     <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (item.authorId === user?.id) {
-                            setOpen(true);
-                            setPost(item);
-                          } else {
-                            push("/post/" + item.id);
-                          }
-                        }}
-                        className="absolute inset-0 rounded-2xl"
-                      ></button>
                       <div className="space-y-6 text-brand-50">
                         {item.attachment ? (
                           <img
@@ -1238,7 +1221,94 @@ export default function Bookmarks() {
                           />
                         ) : null}
                         <div className="space-y-4">
-                          <h4 className="text-lg">{item.title}</h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-lg">{item.title}</h4>
+                            <Menu
+                              as="div"
+                              className="relative inline-block text-left"
+                            >
+                              <div>
+                                <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
+                                  <EllipsisVerticalIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                </Menu.Button>
+                              </div>
+                              <Transition
+                                as={Fragment}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95"
+                              >
+                                <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                                  <div className="py-1">
+                                    {item.authorId === user?.id ? (
+                                      <>
+                                        <Menu.Item>
+                                          {({ active }) => (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleOnEditPost(item)
+                                              }
+                                              className={clsx(
+                                                active
+                                                  ? "bg-brand-100 text-brand-900"
+                                                  : "text-brand-700",
+                                                "w-full px-4 py-2 text-left text-sm"
+                                              )}
+                                            >
+                                              Edit
+                                            </button>
+                                          )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                          {({ active }) => (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleOnDeletePost(item)
+                                              }
+                                              className={clsx(
+                                                active
+                                                  ? "bg-brand-100 text-brand-900"
+                                                  : "text-brand-700",
+                                                "w-full px-4 py-2 text-left text-sm"
+                                              )}
+                                            >
+                                              Delete
+                                            </button>
+                                          )}
+                                        </Menu.Item>
+                                      </>
+                                    ) : null}
+                                    <Menu.Item>
+                                      {({ active }) => (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleOnDeletePost(item)
+                                          }
+                                          className={clsx(
+                                            active
+                                              ? "bg-brand-100 text-brand-900"
+                                              : "text-brand-700",
+                                            "w-full px-4 py-2 text-left text-sm"
+                                          )}
+                                        >
+                                          Delete
+                                        </button>
+                                      )}
+                                    </Menu.Item>
+                                  </div>
+                                </Menu.Items>
+                              </Transition>
+                            </Menu>
+                          </div>
                           <p>{item.description}</p>
                         </div>
                         <div className="flex items-center space-x-4">

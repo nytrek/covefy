@@ -37,20 +37,6 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
-type Post = Prisma.PostGetPayload<{
-  include: {
-    likes: true;
-    bookmarks: true;
-    author: true;
-    friend: true;
-    comments: {
-      include: {
-        author: true;
-      };
-    };
-  };
-}>;
-
 type Friend = Prisma.FriendGetPayload<{
   include: {
     sender: {
@@ -67,57 +53,12 @@ type Friend = Prisma.FriendGetPayload<{
 }>;
 
 function Attachment({
-  post,
   attachment,
-  setOpen,
   setAttachment,
 }: {
-  post: Post | null;
   attachment: File | null;
-  setOpen: Dispatch<SetStateAction<boolean>>;
   setAttachment: Dispatch<SetStateAction<File | null>>;
 }) {
-  const utils = trpc.useContext();
-  const profile = trpc.getProfile.useQuery();
-  const updatePost = trpc.updatePost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      toast.success("Post updated!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const deleteAttachment = trpc.deleteAttachment.useMutation({
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnDeleteAttachment = () => {
-    if (!post?.attachmentPath) return;
-    toast.loading("Loading...");
-    deleteAttachment.mutate(
-      {
-        attachmentPath: post.attachmentPath,
-      },
-      {
-        onSuccess: () => {
-          updatePost.mutate({
-            id: post.id,
-            label: post.label,
-            title: post.title,
-            description: post.description,
-            attachment: null,
-            attachmentPath: null,
-          });
-        },
-      }
-    );
-  };
   return (
     <>
       {attachment ? (
@@ -135,44 +76,20 @@ function Attachment({
             <XMarkIcon className="h-5 w-5 text-brand-600" />
           </button>
         </div>
-      ) : post?.attachment && profile.data?.plan === "ENTERPRISE" ? (
-        <div className="relative">
-          <img
-            className="h-full w-full rounded-lg"
-            src={post.attachment}
-            alt="attachment"
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-            onClick={handleOnDeleteAttachment}
-          >
-            <XMarkIcon className="h-5 w-5 text-brand-600" />
-          </button>
-        </div>
       ) : null}
     </>
   );
 }
 
-function FriendDropdown({
-  post,
-  friend,
-  setFriend,
-}: {
-  post: Post | null;
-  friend: Profile | null;
-  setFriend: Dispatch<SetStateAction<Profile | null>>;
-}) {
-  const friends = trpc.getFriends.useQuery();
+function FriendDropdown({ friend }: { friend: Profile | null }) {
   return (
     <>
-      {post?.friend ? (
+      {friend ? (
         <div className="flex-shrink-0">
           <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-            {post.friend.imageUrl ? (
+            {friend.imageUrl ? (
               <img
-                src={post.friend.imageUrl}
+                src={friend.imageUrl}
                 alt=""
                 className="h-5 w-5 flex-shrink-0 rounded-full"
               />
@@ -184,116 +101,19 @@ function FriendDropdown({
             )}
 
             <span className="ml-2 block truncate text-sm font-bold text-brand-500">
-              {post.friend.name}
+              {friend.name}
             </span>
           </div>
         </div>
-      ) : (
-        <Listbox
-          as="div"
-          value={friend}
-          onChange={setFriend}
-          className="flex-shrink-0"
-        >
-          {({ open }) => (
-            <>
-              <Listbox.Label className="sr-only"> Send to </Listbox.Label>
-              <div className="relative">
-                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                  {friend === null ? (
-                    <UserCircleIcon
-                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <img
-                      src={friend.imageUrl}
-                      alt=""
-                      className="h-5 w-5 flex-shrink-0 rounded-full"
-                    />
-                  )}
-
-                  <span className="ml-2 block truncate text-sm font-bold text-brand-500">
-                    {friend === null ? "Send to" : friend.name}
-                  </span>
-                </Listbox.Button>
-
-                <Transition
-                  show={open}
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                    <Listbox.Option
-                      key={null}
-                      className={({ active }) =>
-                        clsx(
-                          active ? "bg-brand-100" : "bg-brand-50",
-                          "relative cursor-default select-none px-3 py-2"
-                        )
-                      }
-                      value={null}
-                    >
-                      <div className="flex items-center">
-                        <UserCircleIcon
-                          className="h-5 w-5 flex-shrink-0 text-brand-400"
-                          aria-hidden="true"
-                        />
-                        <span className="ml-3 block truncate text-sm font-bold text-brand-500">
-                          Send to
-                        </span>
-                      </div>
-                    </Listbox.Option>
-                    {friends.data?.map((friend) => (
-                      <Listbox.Option
-                        key={friend.friend.id}
-                        className={({ active }) =>
-                          clsx(
-                            active ? "bg-brand-100" : "bg-brand-50",
-                            "relative cursor-default select-none px-3 py-2"
-                          )
-                        }
-                        value={friend.friend}
-                      >
-                        <div className="flex items-center">
-                          {friend.friend.imageUrl ? (
-                            <img
-                              src={friend.friend.imageUrl}
-                              alt=""
-                              className="h-5 w-5 flex-shrink-0 rounded-full"
-                            />
-                          ) : (
-                            <UserCircleIcon
-                              className="h-5 w-5 flex-shrink-0 text-brand-400"
-                              aria-hidden="true"
-                            />
-                          )}
-
-                          <span className="ml-3 block truncate text-sm font-bold text-brand-500">
-                            {friend.friend.name}
-                          </span>
-                        </div>
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </Transition>
-              </div>
-            </>
-          )}
-        </Listbox>
-      )}
+      ) : null}
     </>
   );
 }
 
 function LabelDropdown({
-  post,
   label,
   setLabel,
 }: {
-  post: Post | null;
   label: Label | null;
   setLabel: Dispatch<SetStateAction<Label | null>>;
 }) {
@@ -316,9 +136,7 @@ function LabelDropdown({
               <input
                 name="label"
                 key={label}
-                defaultValue={
-                  label ? label : post?.label ? post?.label : "Set label"
-                }
+                defaultValue={label ? label : "Set label"}
                 className="ml-2 w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500"
                 disabled
               />
@@ -373,7 +191,7 @@ function LabelDropdown({
   );
 }
 
-function UseAI({
+function PostButtons({
   descriptionRef,
 }: {
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
@@ -419,27 +237,33 @@ function UseAI({
           <TicketIcon className="h-5 w-5" />)
         </span>
       </button>
+      <button
+        type="submit"
+        className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        <span>Create</span>
+        <span className="flex items-center space-x-1">
+          <span>(1</span>
+          <TicketIcon className="h-5 w-5" />)
+        </span>
+      </button>
     </div>
   );
 }
 
 function Modal({
   open,
-  post,
   friend,
   setOpen,
-  setFriend,
 }: {
   open: boolean;
-  post: Post | null;
   friend: Profile | null;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  setFriend: Dispatch<SetStateAction<Profile | null>>;
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
-  const [label, setLabel] = useState(post?.label ?? null);
+  const [label, setLabel] = useState<Label | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
@@ -462,60 +286,6 @@ function Modal({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const updatePost = trpc.updatePost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      toast.success("Post updated!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const deletePost = trpc.deletePost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      utils.getProfile.invalidate();
-      toast.success("Post deleted!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const deleteAttachment = trpc.deleteAttachment.useMutation({
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnDeletePost = () => {
-    if (!post) return;
-    toast.loading("Loading...");
-    if (post.attachmentPath) {
-      deleteAttachment.mutate(
-        {
-          attachmentPath: post.attachmentPath,
-        },
-        {
-          onSuccess: () => {
-            if (!post) return;
-            deletePost.mutate({
-              id: post.id,
-            });
-          },
-        }
-      );
-    } else {
-      deletePost.mutate({
-        id: post.id,
-      });
-    }
-  };
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.fullName || !user?.username || !profile.data) return;
@@ -527,72 +297,39 @@ function Modal({
     if (target.label.value !== "PUBLIC" && target.label.value !== "PRIVATE")
       return toast("Please set a label for the post");
     toast.loading("Loading...");
-    if (post) {
-      if (attachment) {
-        try {
-          const { fileUrl, filePath } = await upload.uploadFile(attachment, {
-            path: {
-              folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
-              fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
-            },
-          });
-          updatePost.mutate({
-            id: post.id,
-            label: target.label.value,
-            title: target.title.value,
-            description: target.description.value,
-            attachment: fileUrl,
-            attachmentPath: filePath,
-            friendId: friend?.id,
-          });
-        } catch (e: any) {
-          toast.dismiss();
-          toast.error(e.message ?? API_ERROR_MESSAGE);
-        }
-      } else {
-        updatePost.mutate({
-          id: post.id,
-          label: target.label.value,
-          title: target.title.value,
-          description: target.description.value,
-          friendId: friend?.id,
+    if (profile.data.credits < 1)
+      return toast.error("You don't have enough credits");
+    else if (attachment) {
+      try {
+        const { fileUrl, filePath } = await upload.uploadFile(attachment, {
+          path: {
+            folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
+            fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
+          },
         });
-      }
-    } else {
-      if (profile.data.credits < 1)
-        return toast.error("You don't have enough credits");
-      else if (attachment) {
-        try {
-          const { fileUrl, filePath } = await upload.uploadFile(attachment, {
-            path: {
-              folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
-              fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
-            },
-          });
-          createPost.mutate({
-            label: target.label.value,
-            title: target.title.value,
-            description: target.description.value,
-            attachment: fileUrl,
-            attachmentPath: filePath,
-            authorId: user?.id,
-            friendId: friend?.id,
-            credits: profile.data.credits - 1,
-          });
-        } catch (e: any) {
-          toast.dismiss();
-          toast.error(e.message ?? API_ERROR_MESSAGE);
-        }
-      } else {
         createPost.mutate({
           label: target.label.value,
           title: target.title.value,
           description: target.description.value,
+          attachment: fileUrl,
+          attachmentPath: filePath,
           authorId: user?.id,
           friendId: friend?.id,
           credits: profile.data.credits - 1,
         });
+      } catch (e: any) {
+        toast.dismiss();
+        toast.error(e.message ?? API_ERROR_MESSAGE);
       }
+    } else {
+      createPost.mutate({
+        label: target.label.value,
+        title: target.title.value,
+        description: target.description.value,
+        authorId: user?.id,
+        friendId: friend?.id,
+        credits: profile.data.credits - 1,
+      });
     }
   };
   return (
@@ -623,9 +360,7 @@ function Modal({
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
                 <Attachment
-                  post={post}
                   attachment={attachment}
-                  setOpen={setOpen}
                   setAttachment={setAttachment}
                 />
                 <form className="relative" onSubmit={handleOnSubmit}>
@@ -646,7 +381,6 @@ function Modal({
                       id="title"
                       className="block w-full border-0 pr-12 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
                       placeholder="Title"
-                      defaultValue={post?.title}
                       maxLength={100}
                       required
                     />
@@ -660,7 +394,6 @@ function Modal({
                       id="description"
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
-                      defaultValue={post?.description}
                       maxLength={MAX_TOKENS}
                       required
                     />
@@ -678,77 +411,32 @@ function Modal({
                   </div>
 
                   <div className="absolute inset-x-px bottom-0">
-                    <div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3">
-                      <FriendDropdown
-                        post={post}
-                        friend={friend}
-                        setFriend={setFriend}
-                      />
-
-                      <LabelDropdown
-                        post={post}
-                        label={label}
-                        setLabel={setLabel}
-                      />
-                    </div>
-                    <div
-                      className={clsx(
-                        post?.attachment ? "justify-end" : "justify-between",
-                        "flex items-center space-x-3 px-2 py-2 sm:px-3"
-                      )}
-                    >
-                      {!post?.attachment ? (
-                        <div className="flex">
-                          <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
-                            <input
-                              type="file"
-                              className="absolute inset-0 opacity-0"
-                              onChange={(event) => onFileSelected(event)}
-                            />
-                            <PaperClipIcon
-                              className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
-                              aria-hidden="true"
-                            />
-                            <span className="text-sm italic text-brand-500 group-hover:text-brand-600">
-                              Attach a file
-                            </span>
-                          </div>
+                    <div className="flex items-center justify-between space-x-3 py-2 pl-2">
+                      <div className="flex">
+                        <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
+                          <input
+                            type="file"
+                            className="absolute inset-0 opacity-0"
+                            onChange={(event) => onFileSelected(event)}
+                          />
+                          <PaperClipIcon
+                            className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm italic text-brand-500 group-hover:text-brand-600">
+                            Attach a file
+                          </span>
                         </div>
-                      ) : null}
-                      <div className="flex-shrink-0 space-x-1">
-                        {post ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={handleOnDeletePost}
-                              className="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              type="submit"
-                              className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                            >
-                              Save
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            type="submit"
-                            className="inline-flex items-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                          >
-                            <span>Create</span>
-                            <span className="flex items-center space-x-1">
-                              <span>(1</span>
-                              <TicketIcon className="h-5 w-5" />)
-                            </span>
-                          </button>
-                        )}
+                      </div>
+                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
+                        <FriendDropdown friend={friend} />
+
+                        <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
+                    <PostButtons descriptionRef={descriptionRef} />
                   </div>
                 </form>
-                <UseAI descriptionRef={descriptionRef} />
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -1183,26 +871,18 @@ export default function Friends() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const friends = trpc.getAllFriends.useQuery();
-  const [_, setPost] = useState<Post | null>(null);
   const [friend, setFriend] = useState<Profile | null>(null);
   return (
     <>
-      <Modal
-        open={open}
-        post={_}
-        friend={friend}
-        setOpen={setOpen}
-        setFriend={setFriend}
-      />
+      <Modal open={open} friend={friend} setOpen={setOpen} />
       <div className="pb-36">
         <Navbar />
         <Header
           header="Manage your friend requests."
           search={search}
           setOpen={setOpen}
-          setPost={setPost}
+          setPost={() => null}
           setSearch={setSearch}
-          setFriend={setFriend}
         />
         {user ? (
           <div className="mt-8 px-2 lg:px-8">
