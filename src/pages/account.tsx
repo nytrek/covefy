@@ -5,6 +5,7 @@ import Footer from "@src/components/footer";
 import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
+import { useRouter } from "next/router";
 import { Fragment, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
@@ -17,7 +18,17 @@ const upload = Upload({
 });
 
 function Header() {
+  const { reload } = useRouter();
   const profile = trpc.getProfile.useQuery();
+  const deleteProfile = trpc.deleteProfile.useMutation({
+    onSuccess: () => {
+      reload();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
   return (
     <>
       {profile.data ? (
@@ -57,9 +68,10 @@ function Header() {
           <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
             <button
               type="button"
+              onClick={() => deleteProfile.mutate()}
               className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
             >
-              Disable account
+              Delete account
             </button>
             <button
               type="button"

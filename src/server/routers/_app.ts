@@ -705,6 +705,14 @@ export const appRouter = router({
         },
       });
     }),
+  deleteProfile: protectedProcedure.mutation(async ({ ctx }) => {
+    return await fetch("https://api.clerk.com/v1/users/" + ctx.auth.userId, {
+      method: "DELETE",
+      headers: {
+        authorization: "Bearer " + process.env.CLERK_SECRET_KEY,
+      },
+    });
+  }),
   generateAIResponse: protectedProcedure
     .input(
       z.object({

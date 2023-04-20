@@ -3,7 +3,6 @@ import { Dialog, Listbox, Transition } from "@headlessui/react";
 import {
   CheckBadgeIcon,
   PaperClipIcon,
-  PencilSquareIcon,
   TagIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
