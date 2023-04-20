@@ -1202,7 +1202,7 @@ export default function Bookmarks() {
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="w-full columns-sm gap-6 space-y-6">
+            <div className="w-full columns-xs gap-6 space-y-6">
               {posts.data
                 ?.filter(
                   (post) =>
