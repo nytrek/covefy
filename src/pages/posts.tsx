@@ -1,4 +1,4 @@
-import { SignIn, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
   BookmarkIcon as BookmarkIconSolid,
@@ -1205,11 +1205,6 @@ export default function Posts() {
           setSearch={setSearch}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
-          {!user ? (
-            <div className="flex w-screen justify-center">
-              <SignIn />
-            </div>
-          ) : null}
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
               {posts.data ? (
