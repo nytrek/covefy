@@ -1088,6 +1088,7 @@ function CommentBox({ item }: { item: Post }) {
       },
       {
         onSuccess: () => {
+          setLength(0);
           target.reset();
         },
       }
