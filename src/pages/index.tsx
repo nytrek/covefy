@@ -1201,143 +1201,241 @@ export default function Home() {
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
-              {posts.data
-                ?.filter(
-                  (post) =>
-                    post.title.toLowerCase().includes(search.toLowerCase()) ||
-                    post.description
-                      .toLowerCase()
-                      .includes(search.toLowerCase())
-                )
-                .map((item, index) => (
-                  <div
-                    key={index}
-                    className="relative w-full break-inside-avoid-column"
-                  >
-                    <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
-                      <div className="space-y-6 text-brand-50">
-                        {item.attachment ? (
-                          <img
-                            className="h-full w-full rounded-lg"
-                            src={item.attachment}
-                            alt="attachment"
-                          />
-                        ) : null}
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-lg">{item.title}</h4>
-                            <Menu
-                              as="div"
-                              className="relative inline-block text-left"
-                            >
-                              <div>
-                                <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
-                                  <EllipsisVerticalIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </Menu.Button>
-                              </div>
-                              <Transition
-                                as={Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95"
-                              >
-                                <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                                  <div className="py-1">
-                                    {item.authorId === user?.id ? (
-                                      <>
-                                        <Menu.Item>
-                                          {({ active }) => (
-                                            <button
-                                              type="button"
-                                              onClick={() =>
-                                                handleOnEditPost(item)
-                                              }
-                                              className={clsx(
-                                                active
-                                                  ? "bg-brand-100 text-brand-900"
-                                                  : "text-brand-700",
-                                                "w-full px-4 py-2 text-left text-sm"
-                                              )}
-                                            >
-                                              Edit
-                                            </button>
-                                          )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                          {({ active }) => (
-                                            <button
-                                              type="button"
-                                              onClick={() =>
-                                                handleOnDeletePost(item)
-                                              }
-                                              className={clsx(
-                                                active
-                                                  ? "bg-brand-100 text-brand-900"
-                                                  : "text-brand-700",
-                                                "w-full px-4 py-2 text-left text-sm"
-                                              )}
-                                            >
-                                              Delete
-                                            </button>
-                                          )}
-                                        </Menu.Item>
-                                      </>
-                                    ) : null}
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <Link
-                                          href={"/post/" + item.id}
-                                          className={clsx(
-                                            active
-                                              ? "bg-brand-100 text-brand-900"
-                                              : "text-brand-700",
-                                            "block w-full px-4 py-2 text-left text-sm"
-                                          )}
-                                        >
-                                          View post
-                                        </Link>
-                                      )}
-                                    </Menu.Item>
+              {user ? (
+                <>
+                  {posts.data
+                    ?.filter(
+                      (post) =>
+                        post.title
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        post.description
+                          .toLowerCase()
+                          .includes(search.toLowerCase())
+                    )
+                    .map((item, index) => (
+                      <div
+                        key={index}
+                        className="relative w-full break-inside-avoid-column"
+                      >
+                        <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                          <div className="space-y-6 text-brand-50">
+                            {item.attachment ? (
+                              <img
+                                className="h-full w-full rounded-lg"
+                                src={item.attachment}
+                                alt="attachment"
+                              />
+                            ) : null}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-lg">{item.title}</h4>
+                                <Menu
+                                  as="div"
+                                  className="relative inline-block text-left"
+                                >
+                                  <div>
+                                    <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
+                                      <EllipsisVerticalIcon
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                    </Menu.Button>
                                   </div>
-                                </Menu.Items>
-                              </Transition>
-                            </Menu>
-                          </div>
-                          <p>{item.description}</p>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <Dropdown item={item} />
-                          <div className="flex flex-col">
-                            <div className="flex items-center space-x-1 font-semibold">
-                              <span>{item.author?.name}</span>
-                              {item.author?.premium ? (
-                                <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
-                              ) : null}
+                                  <Transition
+                                    as={Fragment}
+                                    enter="transition ease-out duration-100"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-75"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
+                                  >
+                                    <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                                      <div className="py-1">
+                                        {item.authorId === user?.id ? (
+                                          <>
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleOnEditPost(item)
+                                                  }
+                                                  className={clsx(
+                                                    active
+                                                      ? "bg-brand-100 text-brand-900"
+                                                      : "text-brand-700",
+                                                    "w-full px-4 py-2 text-left text-sm"
+                                                  )}
+                                                >
+                                                  Edit
+                                                </button>
+                                              )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleOnDeletePost(item)
+                                                  }
+                                                  className={clsx(
+                                                    active
+                                                      ? "bg-brand-100 text-brand-900"
+                                                      : "text-brand-700",
+                                                    "w-full px-4 py-2 text-left text-sm"
+                                                  )}
+                                                >
+                                                  Delete
+                                                </button>
+                                              )}
+                                            </Menu.Item>
+                                          </>
+                                        ) : null}
+                                        <Menu.Item>
+                                          {({ active }) => (
+                                            <Link
+                                              href={"/post/" + item.id}
+                                              className={clsx(
+                                                active
+                                                  ? "bg-brand-100 text-brand-900"
+                                                  : "text-brand-700",
+                                                "block w-full px-4 py-2 text-left text-sm"
+                                              )}
+                                            >
+                                              View post
+                                            </Link>
+                                          )}
+                                        </Menu.Item>
+                                      </div>
+                                    </Menu.Items>
+                                  </Transition>
+                                </Menu>
+                              </div>
+                              <p>{item.description}</p>
                             </div>
-                            <div>{`@${item.author?.username}`}</div>
-                          </div>
-                        </div>
-                        <div className="relative flex flex-col space-y-6">
-                          <div className="flex space-x-6">
-                            <Like item={item} />
-                            <Comment item={item} />
-                            <Bookmark item={item} />
-                          </div>
-                          <BookmarkCheck item={item} />
-                          <Comments item={item} />
+                            <div className="flex items-center space-x-4">
+                              <Dropdown item={item} />
+                              <div className="flex flex-col">
+                                <div className="flex items-center space-x-1 font-semibold">
+                                  <span>{item.author?.name}</span>
+                                  {item.author?.premium ? (
+                                    <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                                  ) : null}
+                                </div>
+                                <div>{`@${item.author?.username}`}</div>
+                              </div>
+                            </div>
+                            <div className="relative flex flex-col space-y-6">
+                              <div className="flex space-x-6">
+                                <Like item={item} />
+                                <Comment item={item} />
+                                <Bookmark item={item} />
+                              </div>
+                              <BookmarkCheck item={item} />
+                              <Comments item={item} />
 
-                          <CommentBox item={item} />
+                              <CommentBox item={item} />
+                            </div>
+                          </div>
                         </div>
+                      </div>
+                    ))}
+                </>
+              ) : !user || posts.isLoading || posts.isError ? (
+                <>
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative h-48 rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
                       </div>
                     </div>
                   </div>
-                ))}
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative h-[24.5rem] rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative h-72 rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative h-[29rem] rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/6 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-7/12 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative h-80 rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/6 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-7/12 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative h-64 rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/6 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-7/12 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
         </div>
