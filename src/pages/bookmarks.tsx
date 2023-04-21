@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
 import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
   BookmarkIcon as BookmarkIconSolid,
@@ -27,7 +27,6 @@ import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import {
   Dispatch,
   FormEvent,
@@ -1211,10 +1210,10 @@ export default function Bookmarks() {
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
-              {user ? (
+              {posts.data ? (
                 <>
                   {posts.data
-                    ?.filter(
+                    .filter(
                       (post) =>
                         post.title
                           .toLowerCase()
@@ -1356,7 +1355,7 @@ export default function Bookmarks() {
                       </div>
                     ))}
                 </>
-              ) : !user || posts.isLoading || posts.isError ? (
+              ) : posts.isLoading || posts.isError ? (
                 <>
                   <div className="relative w-full break-inside-avoid-column">
                     <div className="relative h-48 rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
@@ -1448,6 +1447,8 @@ export default function Bookmarks() {
                     </div>
                   </div>
                 </>
+              ) : !user ? (
+                <SignIn />
               ) : null}
             </div>
           </div>
