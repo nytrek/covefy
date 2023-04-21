@@ -1057,6 +1057,7 @@ function Comments({ item }: { item: Post }) {
 function CommentBox({ item }: { item: Post }) {
   const { user } = useUser();
   const utils = trpc.useContext();
+  const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const createComment = trpc.createComment.useMutation({
     onSuccess: () => {
@@ -1093,6 +1094,10 @@ function CommentBox({ item }: { item: Post }) {
       }
     );
   };
+  const progress = `
+    radial-gradient(closest-side, #242427 85%, transparent 80% 100%),
+    conic-gradient(white ${Math.round((length / MAX_TOKENS) * 100)}%, #242427 0)
+  `;
   return (
     <div className="mt-6 flex gap-x-3">
       {user ? (
@@ -1116,11 +1121,16 @@ function CommentBox({ item }: { item: Post }) {
             className="block w-full resize-none border-0 bg-transparent py-1.5 text-sm leading-6 text-brand-50 placeholder:text-brand-50 focus:ring-0"
             placeholder="Add your comment..."
             maxLength={MAX_TOKENS}
+            onChange={(e) => setLength(e.target.value.length)}
             required
           />
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 flex justify-end py-2 pl-3 pr-2">
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-end py-2 pl-3 pr-2">
+          <div
+            className="h-4 w-4 rounded-full"
+            style={{ background: progress }}
+          ></div>
           <button
             type="submit"
             className="flex items-center space-x-1 rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm"
