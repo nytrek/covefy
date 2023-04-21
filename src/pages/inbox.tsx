@@ -1209,6 +1209,11 @@ export default function Inbox() {
           setSearch={setSearch}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
+          {!user ? (
+            <div className="flex w-screen justify-center">
+              <SignIn />
+            </div>
+          ) : null}
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
               {posts.data ? (
@@ -1353,7 +1358,7 @@ export default function Inbox() {
                       </div>
                     ))}
                 </>
-              ) : posts.isLoading || posts.isError ? (
+              ) : user && (posts.isLoading || posts.isError) ? (
                 <>
                   <div className="relative w-full break-inside-avoid-column">
                     <div className="relative h-48 rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
@@ -1445,8 +1450,6 @@ export default function Inbox() {
                     </div>
                   </div>
                 </>
-              ) : !user ? (
-                <SignIn />
               ) : null}
             </div>
           </div>
