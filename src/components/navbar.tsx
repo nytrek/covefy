@@ -9,7 +9,6 @@ import { Popover } from "@headlessui/react";
 import { UserCircleIcon } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
-import clsx from "clsx";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";

@@ -1,7 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import { TicketIcon } from "@heroicons/react/24/outline";
-import Footer from "@src/components/footer";
 import { trpc } from "@src/utils/trpc";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -136,7 +135,6 @@ export default function Marketplace() {
           </div>
         </main>
       ) : null}
-      <Footer />
     </>
   );
 }

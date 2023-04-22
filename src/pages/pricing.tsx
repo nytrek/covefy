@@ -1,7 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import { RadioGroup } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/20/solid";
-import Footer from "@src/components/footer";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
@@ -188,7 +187,6 @@ export default function Pricing() {
           </div>
         </main>
       ) : null}
-      <Footer />
     </>
   );
 }

@@ -1,7 +1,6 @@
 import { SignIn, useUser } from "@clerk/nextjs";
 import { Menu, RadioGroup, Transition } from "@headlessui/react";
 import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
-import Footer from "@src/components/footer";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { useRouter } from "next/router";
@@ -292,7 +291,6 @@ export default function Account() {
           <SignIn />
         </div>
       ) : null}
-      <Footer />
     </>
   );
 }

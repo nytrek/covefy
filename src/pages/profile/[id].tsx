@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Profile } from "@prisma/client";
-import Footer from "@src/components/footer";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
@@ -673,7 +672,6 @@ export default function Account() {
           </div>
         </main>
       ) : null}
-      <Footer />
     </>
   );
 }

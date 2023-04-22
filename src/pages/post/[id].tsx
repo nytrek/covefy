@@ -15,7 +15,6 @@ import {
   TicketIcon,
 } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
-import Footer from "@src/components/footer";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
@@ -671,7 +670,6 @@ export default function Post() {
           </>
         ) : null}
       </div>
-      <Footer />
     </>
   );
 }

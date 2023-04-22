@@ -10,9 +10,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { ClockIcon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile, Status } from "@prisma/client";
-import Footer from "@src/components/footer";
 import Header from "@src/components/header";
-import Navbar from "@src/components/navbar";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
@@ -915,7 +913,6 @@ export default function Friends() {
           </div>
         )}
       </div>
-      <Footer />
     </>
   );
 }

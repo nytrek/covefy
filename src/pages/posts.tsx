@@ -19,7 +19,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
-import Footer from "@src/components/footer";
 import Header from "@src/components/header";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
@@ -1444,7 +1443,6 @@ export default function Posts() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

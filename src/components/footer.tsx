@@ -4,7 +4,7 @@ import {
   InboxStackIcon,
   RectangleStackIcon,
 } from "@heroicons/react/20/solid";
-import clsx from "clsx";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -39,19 +39,15 @@ export default function Footer() {
           <Link
             key={item.href}
             href={item.href}
-            className={clsx(
-              item.current
-                ? "rounded-full border-brand-base bg-brand-800"
-                : "border-transparent",
-              "border p-2"
-            )}
+            className="relative border border-transparent p-2"
           >
-            <item.icon
-              className={clsx(
-                item.current ? "text-brand-50/70" : "text-brand-50/40",
-                "h-8 w-8 rounded-full"
-              )}
-            />
+            {item.current ? (
+              <motion.div
+                layoutId="current"
+                className="absolute inset-0 rounded-full border border-brand-base bg-brand-800"
+              ></motion.div>
+            ) : null}
+            <item.icon className="relative h-8 w-8 rounded-full text-brand-50/70" />
           </Link>
         ))}
       </div>

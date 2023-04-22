@@ -7,7 +7,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { TicketIcon } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
-import Footer from "@src/components/footer";
 import { trpc } from "@src/utils/trpc";
 import { differenceInSeconds } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
@@ -240,7 +239,6 @@ export default function Ranking() {
           </div>
         )}
       </div>
-      <Footer />
     </>
   );
 }
