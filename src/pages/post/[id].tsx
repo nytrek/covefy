@@ -16,7 +16,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
 import Footer from "@src/components/footer";
-import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
