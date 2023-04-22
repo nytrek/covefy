@@ -310,7 +310,7 @@ function Comments({ item }: { item: Post }) {
   });
   return (
     <ul role="list" className="space-y-6">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {item.comments.map((comment) => (
           <motion.li
             key={comment.id}
@@ -596,6 +596,21 @@ export default function Post() {
                                     <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
                                       <div className="py-1">
                                         <>
+                                          <Menu.Item>
+                                            {({ active }) => (
+                                              <button
+                                                type="button"
+                                                className={clsx(
+                                                  active
+                                                    ? "bg-brand-100 text-brand-900"
+                                                    : "text-brand-700",
+                                                  "w-full px-4 py-2 text-left text-sm"
+                                                )}
+                                              >
+                                                Edit
+                                              </button>
+                                            )}
+                                          </Menu.Item>
                                           <Menu.Item>
                                             {({ active }) => (
                                               <button

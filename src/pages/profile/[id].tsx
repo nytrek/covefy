@@ -81,10 +81,6 @@ function FriendDropdown({ friend }: { friend: Profile | null | undefined }) {
                 aria-hidden="true"
               />
             )}
-
-            <span className="ml-2 block truncate text-sm font-bold text-brand-500">
-              {friend.name}
-            </span>
           </div>
         </div>
       ) : null}
@@ -207,7 +203,7 @@ function PostButtons({
     });
   };
   return (
-    <div className="mt-5 space-y-2 sm:mt-6">
+    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
       <button
         type="button"
         onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
@@ -244,6 +240,7 @@ function Modal({
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
+  const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const [label, setLabel] = useState<Label | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -314,6 +311,10 @@ function Modal({
       });
     }
   };
+  const progress = `
+    radial-gradient(closest-side, white 85%, transparent 80% 100%),
+    conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
+  `;
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -362,7 +363,7 @@ function Modal({
                       name="title"
                       id="title"
                       className="block w-full border-0 pr-12 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
-                      placeholder="Title"
+                      placeholder="Title (100 char)"
                       maxLength={100}
                       required
                     />
@@ -377,22 +378,17 @@ function Modal({
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
                       maxLength={MAX_TOKENS}
+                      onChange={(e) => setLength(e.target.value.length)}
                       required
                     />
-                    <div aria-hidden="true">
-                      <div className="py-2">
-                        <div className="h-9" />
-                      </div>
-                      <div className="h-px" />
-                      <div className="py-2">
-                        <div className="py-px">
-                          <div className="h-9" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
-
-                  <div className="absolute inset-x-px bottom-0">
+                  <div className="flex justify-end px-4 pt-4">
+                    <div
+                      className="h-5 w-5 rounded-full"
+                      style={{ background: progress }}
+                    ></div>
+                  </div>
+                  <div>
                     <div className="flex items-center justify-between space-x-3 py-2 pl-2">
                       <div className="flex">
                         <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
@@ -439,8 +435,10 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
   const createFriendRequest = trpc.createFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
+      utils.getFriends.invalidate();
       toast.success("Friend request sent!");
       utils.getSendingFriendStatus.invalidate();
+      utils.getRecievingFriendStatus.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -480,124 +478,120 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
     });
   };
   return (
-    <>
-      {profile.data ? (
-        <div className="md:flex md:items-center md:justify-between md:space-x-5">
-          <div className="flex items-center space-x-5">
-            <div className="flex-shrink-0">
-              <div className="relative">
-                {profile.data.imageUrl ? (
-                  <img
-                    className="h-16 w-16 rounded-full"
-                    src={profile.data.imageUrl}
-                    alt=""
-                  />
-                ) : (
-                  <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
-                )}
-                <span
-                  className="absolute inset-0 rounded-full shadow-inner"
-                  aria-hidden="true"
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold text-brand-50">
-                  {profile.data.name}
-                </h1>
-                {profile.data.premium ? (
-                  <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-                ) : null}
-              </div>
-              <p className="text-sm font-medium text-brand-500">
-                @{profile.data.username}
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-            {sendingFriendStatus.data?.status === "PENDING" ||
-            sendingFriendStatus.data?.status === "REJECTED" ||
-            recievingFriendStatus.data?.status === "PENDING" ? (
-              <button
-                type="button"
-                onClick={() =>
-                  handleOnDeleteFriendRequest(
-                    sendingFriendStatus.data?.senderId,
-                    sendingFriendStatus.data?.receiverId
-                  )
-                }
-                className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-              >
-                Delete friend request
-              </button>
-            ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
-              recievingFriendStatus.data?.status === "ACCEPTED" ? (
-              <button
-                type="button"
-                onClick={() =>
-                  handleOnDeleteFriendRequest(
-                    sendingFriendStatus.data?.senderId,
-                    sendingFriendStatus.data?.receiverId
-                  )
-                }
-                className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-              >
-                Delete friend
-              </button>
+    <div className="md:flex md:items-center md:justify-between md:space-x-5">
+      <div className="flex items-center space-x-5">
+        <div className="flex-shrink-0">
+          <div className="relative">
+            {profile.data?.imageUrl ? (
+              <img
+                className="h-16 w-16 rounded-full"
+                src={profile.data.imageUrl}
+                alt=""
+              />
             ) : (
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-              >
-                Report account
-              </button>
+              <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
             )}
-
-            {sendingFriendStatus.data?.status === "PENDING" ||
-            sendingFriendStatus.data?.status === "REJECTED" ||
-            recievingFriendStatus.data?.status === "PENDING" ? (
-              <Link
-                href="/friends"
-                className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              >
-                View friend request
-              </Link>
-            ) : recievingFriendStatus.data?.status === "REJECTED" ? (
-              <button
-                type="button"
-                onClick={() =>
-                  handleOnDeleteFriendRequest(
-                    recievingFriendStatus.data?.senderId,
-                    recievingFriendStatus.data?.receiverId
-                  )
-                }
-                className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              >
-                Delete friend request
-              </button>
-            ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
-              recievingFriendStatus.data?.status === "ACCEPTED" ? (
-              <button
-                type="button"
-                onClick={() => setOpen(true)}
-                className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              >
-                Send a note
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleOnCreateFriendRequest}
-                className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              >
-                Send friend request
-              </button>
-            )}
+            <span
+              className="absolute inset-0 rounded-full shadow-inner"
+              aria-hidden="true"
+            />
           </div>
         </div>
-      ) : null}
-    </>
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold text-brand-50">
+              {profile.data?.name}
+            </h1>
+            {profile.data?.premium ? (
+              <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+            ) : null}
+          </div>
+          <p className="text-sm font-medium text-brand-500">
+            @{profile.data?.username}
+          </p>
+        </div>
+      </div>
+      <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
+        {sendingFriendStatus.data?.status === "PENDING" ||
+        sendingFriendStatus.data?.status === "REJECTED" ||
+        recievingFriendStatus.data?.status === "PENDING" ? (
+          <button
+            type="button"
+            onClick={() =>
+              handleOnDeleteFriendRequest(
+                sendingFriendStatus.data?.senderId,
+                sendingFriendStatus.data?.receiverId
+              )
+            }
+            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+          >
+            Delete friend request
+          </button>
+        ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
+          recievingFriendStatus.data?.status === "ACCEPTED" ? (
+          <button
+            type="button"
+            onClick={() =>
+              handleOnDeleteFriendRequest(
+                sendingFriendStatus.data?.senderId,
+                sendingFriendStatus.data?.receiverId
+              )
+            }
+            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+          >
+            Delete friend
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+          >
+            Report account
+          </button>
+        )}
+
+        {sendingFriendStatus.data?.status === "PENDING" ||
+        sendingFriendStatus.data?.status === "REJECTED" ||
+        recievingFriendStatus.data?.status === "PENDING" ? (
+          <Link
+            href="/friends"
+            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            View friend request
+          </Link>
+        ) : recievingFriendStatus.data?.status === "REJECTED" ? (
+          <button
+            type="button"
+            onClick={() =>
+              handleOnDeleteFriendRequest(
+                recievingFriendStatus.data?.senderId,
+                recievingFriendStatus.data?.receiverId
+              )
+            }
+            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            Delete friend request
+          </button>
+        ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
+          recievingFriendStatus.data?.status === "ACCEPTED" ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            Send a note
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleOnCreateFriendRequest}
+            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            Send friend request
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 

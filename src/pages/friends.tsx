@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
 import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
   CheckBadgeIcon,
@@ -99,10 +99,6 @@ function FriendDropdown({ friend }: { friend: Profile | null }) {
                 aria-hidden="true"
               />
             )}
-
-            <span className="ml-2 block truncate text-sm font-bold text-brand-500">
-              {friend.name}
-            </span>
           </div>
         </div>
       ) : null}
@@ -225,7 +221,7 @@ function PostButtons({
     });
   };
   return (
-    <div className="mt-5 space-y-2 sm:mt-6">
+    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
       <button
         type="button"
         onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
@@ -262,6 +258,7 @@ function Modal({
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
+  const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const [label, setLabel] = useState<Label | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -332,6 +329,10 @@ function Modal({
       });
     }
   };
+  const progress = `
+    radial-gradient(closest-side, white 85%, transparent 80% 100%),
+    conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
+  `;
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -380,7 +381,7 @@ function Modal({
                       name="title"
                       id="title"
                       className="block w-full border-0 pr-12 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
-                      placeholder="Title"
+                      placeholder="Title (100 char)"
                       maxLength={100}
                       required
                     />
@@ -395,22 +396,17 @@ function Modal({
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
                       maxLength={MAX_TOKENS}
+                      onChange={(e) => setLength(e.target.value.length)}
                       required
                     />
-                    <div aria-hidden="true">
-                      <div className="py-2">
-                        <div className="h-9" />
-                      </div>
-                      <div className="h-px" />
-                      <div className="py-2">
-                        <div className="py-px">
-                          <div className="h-9" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
-
-                  <div className="absolute inset-x-px bottom-0">
+                  <div className="flex justify-end px-4 pt-4">
+                    <div
+                      className="h-5 w-5 rounded-full"
+                      style={{ background: progress }}
+                    ></div>
+                  </div>
+                  <div>
                     <div className="flex items-center justify-between space-x-3 py-2 pl-2">
                       <div className="flex">
                         <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
@@ -461,9 +457,9 @@ function Dropdown({
     onSuccess: () => {
       toast.dismiss();
       utils.getAllFriends.invalidate();
+      toast.success("Friend request updated!");
       utils.getSendingFriendStatus.invalidate();
       utils.getRecievingFriendStatus.invalidate();
-      toast.success("Friend request updated!");
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -914,7 +910,11 @@ export default function Friends() {
               </div>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="mt-16 flex w-screen justify-center">
+            <SignIn />
+          </div>
+        )}
       </div>
       <Footer />
     </>

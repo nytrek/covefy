@@ -207,10 +207,6 @@ function FriendDropdown({
                       className="h-5 w-5 flex-shrink-0 rounded-full"
                     />
                   )}
-
-                  <span className="ml-2 block truncate text-sm font-bold text-brand-500">
-                    {friend === null ? "Send to" : friend.name}
-                  </span>
                 </Listbox.Button>
 
                 <Transition
@@ -237,7 +233,7 @@ function FriendDropdown({
                           aria-hidden="true"
                         />
                         <span className="ml-3 block truncate text-sm font-bold text-brand-500">
-                          Send to
+                          Unassigned
                         </span>
                       </div>
                     </Listbox.Option>
@@ -368,7 +364,7 @@ function LabelDropdown({
   );
 }
 
-function UseAI({
+function PostButtons({
   edit,
   descriptionRef,
 }: {
@@ -404,7 +400,7 @@ function UseAI({
     });
   };
   return (
-    <div className="mt-5 space-y-2 sm:mt-6">
+    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
       <button
         type="button"
         onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
@@ -447,6 +443,7 @@ function Modal({
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
+  const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const [friend, setFriend] = useState<Profile | null>(null);
   const [label, setLabel] = useState(post?.label ?? null);
@@ -563,6 +560,10 @@ function Modal({
       }
     }
   };
+  const progress = `
+    radial-gradient(closest-side, white 85%, transparent 80% 100%),
+    conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
+  `;
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -613,7 +614,7 @@ function Modal({
                       name="title"
                       id="title"
                       className="block w-full border-0 pr-12 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
-                      placeholder="Title"
+                      placeholder="Title (100 char)"
                       defaultValue={post?.title}
                       maxLength={100}
                       required
@@ -630,22 +631,17 @@ function Modal({
                       placeholder="Write a description or a prompt for the AI generation"
                       defaultValue={post?.description}
                       maxLength={MAX_TOKENS}
+                      onChange={(e) => setLength(e.target.value.length)}
                       required
                     />
-                    <div aria-hidden="true">
-                      <div className="py-2">
-                        <div className="h-9" />
-                      </div>
-                      <div className="h-px" />
-                      <div className="py-2">
-                        <div className="py-px">
-                          <div className="h-9" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
-
-                  <div className="absolute inset-x-px bottom-0">
+                  <div className="flex justify-end px-4 pt-4">
+                    <div
+                      className="h-5 w-5 rounded-full"
+                      style={{ background: progress }}
+                    ></div>
+                  </div>
+                  <div>
                     <div
                       className={clsx(
                         post?.attachment ? "justify-end" : "justify-between",
@@ -684,7 +680,10 @@ function Modal({
                         />
                       </div>
                     </div>
-                    <UseAI edit={!!post} descriptionRef={descriptionRef} />
+                    <PostButtons
+                      edit={!!post}
+                      descriptionRef={descriptionRef}
+                    />
                   </div>
                 </form>
               </Dialog.Panel>

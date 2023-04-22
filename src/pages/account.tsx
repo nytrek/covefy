@@ -17,7 +17,49 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
-function Header() {
+function Avatar() {
+  const profile = trpc.getProfile.useQuery();
+  return (
+    <div className="flex-shrink-0">
+      <div className="relative">
+        {profile.data?.imageUrl ? (
+          <img
+            className="h-16 w-16 rounded-full"
+            src={profile.data?.imageUrl}
+            alt=""
+          />
+        ) : (
+          <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
+        )}
+        <span
+          className="absolute inset-0 rounded-full shadow-inner"
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  );
+}
+
+function UserInfo() {
+  const profile = trpc.getProfile.useQuery();
+  return (
+    <div>
+      <div className="flex items-center space-x-2">
+        <h1 className="text-2xl font-bold text-brand-50">
+          {profile.data?.name}
+        </h1>
+        {profile.data?.premium ? (
+          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+        ) : null}
+      </div>
+      <p className="text-sm font-medium text-brand-500">
+        @{profile.data?.username}
+      </p>
+    </div>
+  );
+}
+
+function UserButtons() {
   const { reload } = useRouter();
   const profile = trpc.getProfile.useQuery();
   const deleteProfile = trpc.deleteProfile.useMutation({
@@ -30,64 +72,40 @@ function Header() {
     },
   });
   return (
+    <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
+      <button
+        type="button"
+        onClick={() => deleteProfile.mutate()}
+        className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+      >
+        Delete account
+      </button>
+      <button
+        type="button"
+        className={clsx(
+          !profile.data?.claim
+            ? "cursor-not-allowed bg-brand-800 hover:bg-brand-700"
+            : "bg-brand-600 hover:bg-brand-500",
+          "inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        )}
+        disabled={!profile.data?.claim}
+      >
+        Claim credits
+      </button>
+    </div>
+  );
+}
+
+function Header() {
+  return (
     <>
-      {profile.data ? (
-        <div className="md:flex md:items-center md:justify-between md:space-x-5">
-          <div className="flex items-center space-x-5">
-            <div className="flex-shrink-0">
-              <div className="relative">
-                {profile.data?.imageUrl ? (
-                  <img
-                    className="h-16 w-16 rounded-full"
-                    src={profile.data?.imageUrl}
-                    alt=""
-                  />
-                ) : (
-                  <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
-                )}
-                <span
-                  className="absolute inset-0 rounded-full shadow-inner"
-                  aria-hidden="true"
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold text-brand-50">
-                  {profile.data.name}
-                </h1>
-                {profile.data.premium ? (
-                  <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-                ) : null}
-              </div>
-              <p className="text-sm font-medium text-brand-500">
-                @{profile.data.username}
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-            <button
-              type="button"
-              onClick={() => deleteProfile.mutate()}
-              className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-            >
-              Delete account
-            </button>
-            <button
-              type="button"
-              className={clsx(
-                !profile.data.claim
-                  ? "cursor-not-allowed bg-brand-800 hover:bg-brand-700"
-                  : "bg-brand-600 hover:bg-brand-500",
-                "inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-              )}
-              disabled={!profile.data.claim}
-            >
-              Claim credits
-            </button>
-          </div>
+      <div className="md:flex md:items-center md:justify-between md:space-x-5">
+        <div className="flex items-center space-x-5">
+          <Avatar />
+          <UserInfo />
         </div>
-      ) : null}
+        <UserButtons />
+      </div>
     </>
   );
 }
@@ -141,11 +159,9 @@ function Progress() {
   );
 }
 
-export default function Account() {
-  const { user } = useUser();
+function Dropdown() {
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
-  const [isAuth, setIsAuth] = useState(false);
   const banners = trpc.getProfileBanners.useQuery();
   const updateBanner = trpc.updateProfileBanner.useMutation({
     onSuccess: () => {
@@ -158,6 +174,87 @@ export default function Account() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+  return (
+    <Menu
+      as="div"
+      className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+    >
+      <div>
+        <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
+          <PencilSquareIcon className="h-5 w-5 text-brand-600" />
+        </Menu.Button>
+      </div>
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+          <div className="p-4">
+            <Menu.Item>
+              <RadioGroup
+                value={profile.data?.banner}
+                onChange={(banner: string) => updateBanner.mutate({ banner })}
+              >
+                <RadioGroup.Label className="sr-only">Banners</RadioGroup.Label>
+                <div className="space-y-4">
+                  {banners.data?.map((banner) => (
+                    <RadioGroup.Option
+                      key={banner.id}
+                      value={banner.imageUrl}
+                      className={({ checked, active }) =>
+                        clsx(
+                          checked ? "border-transparent" : "border-brand-300",
+                          active
+                            ? "border-brand-600 ring-2 ring-brand-600"
+                            : "",
+                          "relative block cursor-pointer rounded-lg border bg-brand-50 p-1"
+                        )
+                      }
+                    >
+                      {({ active, checked }) => (
+                        <>
+                          <span className="flex items-center">
+                            <span className="flex flex-col text-sm">
+                              <img
+                                src={banner.imageUrl}
+                                alt="banner"
+                                className="rounded-md"
+                              />
+                            </span>
+                          </span>
+                          <span
+                            className={clsx(
+                              active ? "border" : "border-2",
+                              checked
+                                ? "border-brand-600"
+                                : "border-transparent",
+                              "pointer-events-none absolute -inset-px rounded-lg"
+                            )}
+                            aria-hidden="true"
+                          />
+                        </>
+                      )}
+                    </RadioGroup.Option>
+                  ))}
+                </div>
+              </RadioGroup>
+            </Menu.Item>
+          </div>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  );
+}
+
+export default function Account() {
+  const { user } = useUser();
+  const profile = trpc.getProfile.useQuery();
+  const [isAuth, setIsAuth] = useState(false);
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -186,85 +283,7 @@ export default function Account() {
                 className="rounded-lg object-cover"
               />
               <span className="absolute inset-0" />
-              <Menu
-                as="div"
-                className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-              >
-                <div>
-                  <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
-                    <PencilSquareIcon className="h-5 w-5 text-brand-600" />
-                  </Menu.Button>
-                </div>
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                    <div className="p-4">
-                      <Menu.Item>
-                        <RadioGroup
-                          value={profile.data.banner}
-                          onChange={(banner: string) =>
-                            updateBanner.mutate({ banner })
-                          }
-                        >
-                          <RadioGroup.Label className="sr-only">
-                            Banners
-                          </RadioGroup.Label>
-                          <div className="space-y-4">
-                            {banners.data?.map((banner) => (
-                              <RadioGroup.Option
-                                key={banner.id}
-                                value={banner.imageUrl}
-                                className={({ checked, active }) =>
-                                  clsx(
-                                    checked
-                                      ? "border-transparent"
-                                      : "border-brand-300",
-                                    active
-                                      ? "border-brand-600 ring-2 ring-brand-600"
-                                      : "",
-                                    "relative block cursor-pointer rounded-lg border bg-brand-50 p-1"
-                                  )
-                                }
-                              >
-                                {({ active, checked }) => (
-                                  <>
-                                    <span className="flex items-center">
-                                      <span className="flex flex-col text-sm">
-                                        <img
-                                          src={banner.imageUrl}
-                                          alt="banner"
-                                          className="rounded-md"
-                                        />
-                                      </span>
-                                    </span>
-                                    <span
-                                      className={clsx(
-                                        active ? "border" : "border-2",
-                                        checked
-                                          ? "border-brand-600"
-                                          : "border-transparent",
-                                        "pointer-events-none absolute -inset-px rounded-lg"
-                                      )}
-                                      aria-hidden="true"
-                                    />
-                                  </>
-                                )}
-                              </RadioGroup.Option>
-                            ))}
-                          </div>
-                        </RadioGroup>
-                      </Menu.Item>
-                    </div>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
+              <Dropdown />
             </div>
             <Header />
             <Progress />

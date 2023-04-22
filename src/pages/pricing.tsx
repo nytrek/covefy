@@ -15,8 +15,8 @@ const frequencies = [
 
 const tiers = [
   {
-    name: "Basic",
-    id: "tier-basic",
+    name: "Premium lite",
+    id: "tier-lite",
     href: {
       monthly:
         "https://covefy.lemonsqueezy.com/checkout/buy/a99b6ea8-aa30-4071-bf1e-e03a33fe30d1",
