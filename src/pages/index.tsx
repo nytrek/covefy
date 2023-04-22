@@ -21,7 +21,6 @@ import {
 import { Label, Prisma, Profile } from "@prisma/client";
 import Footer from "@src/components/footer";
 import Header from "@src/components/header";
-import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
@@ -1196,7 +1195,6 @@ export default function Home() {
     <>
       <Modal open={open} post={post} setOpen={setOpen} />
       <div className="pb-36">
-        <Navbar />
         <Header
           header="Discover, learn and connect."
           search={search}

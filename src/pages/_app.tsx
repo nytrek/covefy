@@ -5,6 +5,7 @@ import type { AppType } from "next/app";
 import { Toaster } from "react-hot-toast";
 import { Tokens } from "../../.mirrorful/theme";
 import { trpc } from "../utils/trpc";
+import Navbar from "@src/components/navbar";
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
@@ -18,6 +19,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       />
       <ClerkProvider {...pageProps}>
         <MotionConfig reducedMotion="user">
+          <Navbar />
           <Component {...pageProps} />
         </MotionConfig>
       </ClerkProvider>

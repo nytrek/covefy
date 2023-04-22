@@ -872,7 +872,6 @@ export default function Friends() {
     <>
       <Modal open={open} friend={friend} setOpen={setOpen} />
       <div className="pb-36">
-        <Navbar />
         <Header
           header="Manage your friend requests."
           search={search}

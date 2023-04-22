@@ -2,7 +2,6 @@ import { useUser } from "@clerk/nextjs";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import { TicketIcon } from "@heroicons/react/24/outline";
 import Footer from "@src/components/footer";
-import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -119,7 +118,6 @@ export default function Marketplace() {
   }, [user]);
   return (
     <>
-      <Navbar />
       {isAuth ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">

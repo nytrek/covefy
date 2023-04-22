@@ -539,7 +539,6 @@ export default function Post() {
   return (
     <>
       <div className="pb-36">
-        <Navbar />
         {post.data ? (
           <>
             {post.data.label === "PUBLIC" ? (

@@ -10,6 +10,7 @@ import { UserCircleIcon } from "@heroicons/react/20/solid";
 import { Bars3Icon, TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -51,15 +52,16 @@ export default function Navbar() {
                         <Link
                           key={tab.name}
                           href={tab.href}
-                          className={clsx(
-                            tab.current
-                              ? "bg-brand-700 text-brand-50"
-                              : "text-brand-200 hover:text-gray-50",
-                            "rounded-md px-3 py-2 text-sm font-medium"
-                          )}
+                          className="relative rounded-md px-3 py-2 text-sm font-medium text-brand-50"
                           aria-current={tab.current ? "page" : undefined}
                         >
-                          {tab.name}
+                          {tab.current ? (
+                            <motion.div
+                              layoutId="current"
+                              className="absolute inset-0 rounded-md bg-brand-700"
+                            ></motion.div>
+                          ) : null}
+                          <span className="relative">{tab.name}</span>
                         </Link>
                       ))}
                     </nav>

@@ -8,7 +8,6 @@ import {
 import { TicketIcon } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
 import Footer from "@src/components/footer";
-import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import { differenceInSeconds } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
@@ -218,7 +217,6 @@ export default function Ranking() {
   return (
     <>
       <div className="pb-36">
-        <Navbar />
         <Countdown />
         {user ? (
           <div className="mt-8 px-2 lg:px-8">

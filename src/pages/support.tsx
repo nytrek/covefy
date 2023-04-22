@@ -1,6 +1,5 @@
-import Footer from "@src/components/footer";
-import Navbar from "@src/components/navbar";
 import { TicketIcon } from "@heroicons/react/24/outline";
+import Footer from "@src/components/footer";
 
 const faqs = [
   {
@@ -27,7 +26,6 @@ const faqs = [
 export default function Support() {
   return (
     <>
-      <Navbar />
       <div className="mt-12 pb-36">
         <div className="mx-auto max-w-7xl px-6 sm:py-24 lg:px-8">
           <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">

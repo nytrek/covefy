@@ -2,7 +2,6 @@ import { useUser } from "@clerk/nextjs";
 import { RadioGroup } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import Footer from "@src/components/footer";
-import Navbar from "@src/components/navbar";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
@@ -64,7 +63,6 @@ export default function Pricing() {
   const [frequency, setFrequency] = useState(frequencies[0]);
   return (
     <>
-      <Navbar />
       {user ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">

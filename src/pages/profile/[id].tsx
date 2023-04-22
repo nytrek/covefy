@@ -9,7 +9,6 @@ import {
 import { TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Profile } from "@prisma/client";
 import Footer from "@src/components/footer";
-import Navbar from "@src/components/navbar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
@@ -659,7 +658,6 @@ export default function Account() {
   return (
     <>
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
-      <Navbar />
       {profile.data ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
