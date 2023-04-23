@@ -425,18 +425,21 @@ function PostButtons({
 function Modal({
   open,
   post,
+  label,
   setOpen,
+  setLabel,
 }: {
   open: boolean;
   post: Post | null;
+  label: Label | null;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  setLabel: Dispatch<SetStateAction<Label | null>>;
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
   const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const [friend, setFriend] = useState<Profile | null>(null);
-  const [label, setLabel] = useState(post?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
@@ -1133,6 +1136,7 @@ export default function Inbox() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [post, setPost] = useState<Post | null>(null);
+  const [label, setLabel] = useState(post?.label ?? null);
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -1154,6 +1158,7 @@ export default function Inbox() {
   const handleOnEditPost = (post: Post) => {
     setOpen(true);
     setPost(post);
+    setLabel(post.label ?? null);
   };
   const handleOnDeletePost = (post: Post) => {
     if (!post) return;
@@ -1180,13 +1185,20 @@ export default function Inbox() {
   };
   return (
     <>
-      <Modal open={open} post={post} setOpen={setOpen} />
+      <Modal
+        open={open}
+        post={post}
+        label={label}
+        setOpen={setOpen}
+        setLabel={setLabel}
+      />
       <div className="pb-36">
         <Header
           header="Scour through your digital inbox."
           search={search}
           setOpen={setOpen}
           setPost={setPost}
+          setLabel={setLabel}
           setSearch={setSearch}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">

@@ -3,7 +3,7 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
 } from "@heroicons/react/20/solid";
-import { Prisma } from "@prisma/client";
+import { Label, Prisma } from "@prisma/client";
 import clsx from "clsx";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
@@ -27,12 +27,14 @@ export default function Header({
   search,
   setOpen,
   setPost,
+  setLabel,
   setSearch,
 }: {
   header: string;
   search: string;
-  setPost: Dispatch<SetStateAction<Post | null>>;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  setPost: Dispatch<SetStateAction<Post | null>>;
+  setLabel?: Dispatch<SetStateAction<Label | null>>;
   setSearch: Dispatch<SetStateAction<string>>;
 }) {
   const { user } = useUser();
@@ -67,6 +69,7 @@ export default function Header({
                 onClick={() => {
                   setOpen(true);
                   setPost(null);
+                  setLabel ? setLabel(null) : null;
                 }}
               >
                 <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
