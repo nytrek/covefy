@@ -943,6 +943,10 @@ function Comments({ item }: { item: Post }) {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+  const handleOnDeleteComment = (id: number) => {
+    toast.loading("Loading...");
+    deleteComment.mutate({ id });
+  };
   return (
     <ul role="list" className="space-y-6">
       <AnimatePresence>
@@ -977,9 +981,7 @@ function Comments({ item }: { item: Post }) {
                         {({ active }) => (
                           <button
                             type="button"
-                            onClick={() =>
-                              deleteComment.mutate({ id: comment.id })
-                            }
+                            onClick={() => handleOnDeleteComment(comment.id)}
                             className={clsx(
                               active
                                 ? "bg-brand-100 text-brand-900"
