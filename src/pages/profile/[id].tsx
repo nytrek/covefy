@@ -656,7 +656,10 @@ export default function Account() {
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             <div className="relative">
               <img
-                src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                src={
+                  profile.data.banner ??
+                  "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                }
                 alt="banner"
                 className="rounded-lg object-cover"
               />
