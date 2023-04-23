@@ -127,13 +127,9 @@ function LabelDropdown({
                 className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
                 aria-hidden="true"
               />
-              <input
-                name="label"
-                key={label}
-                defaultValue={label ? label : "Set label"}
-                className="ml-2 w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500"
-                disabled
-              />
+              <span className="mx-1 w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500">
+                {label ?? "Set label"}
+              </span>
             </Listbox.Button>
 
             <Transition
@@ -286,11 +282,9 @@ function Modal({
     if (!user?.fullName || !user?.username || !profile.data) return;
     const target = e.target as typeof e.target & {
       title: { value: string };
-      label: { value: Label };
       description: { value: string };
     };
-    if (target.label.value !== "PUBLIC" && target.label.value !== "PRIVATE")
-      return toast("Please set a label for the post");
+    if (!label) return toast("Please set a label for the post");
     toast.loading("Loading...");
     if (profile.data.credits < 1)
       return toast.error("You don't have enough credits");
@@ -303,7 +297,7 @@ function Modal({
           },
         });
         createPost.mutate({
-          label: target.label.value,
+          label,
           title: target.title.value,
           description: target.description.value,
           attachment: fileUrl,
@@ -318,7 +312,7 @@ function Modal({
       }
     } else {
       createPost.mutate({
-        label: target.label.value,
+        label,
         title: target.title.value,
         description: target.description.value,
         authorId: user?.id,

@@ -19,7 +19,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
-import Footer from "@src/components/footer";
 import Header from "@src/components/header";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
@@ -279,11 +278,9 @@ function FriendDropdown({
 }
 
 function LabelDropdown({
-  post,
   label,
   setLabel,
 }: {
-  post: Post | null;
   label: Label | null;
   setLabel: Dispatch<SetStateAction<Label | null>>;
 }) {
@@ -303,15 +300,9 @@ function LabelDropdown({
                 className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
                 aria-hidden="true"
               />
-              <input
-                name="label"
-                key={label}
-                defaultValue={
-                  label ? label : post?.label ? post?.label : "Set label"
-                }
-                className="ml-2 w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500"
-                disabled
-              />
+              <span className="mx-1 block w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500">
+                {label ?? "Set label"}
+              </span>
             </Listbox.Button>
 
             <Transition
@@ -485,11 +476,9 @@ function Modal({
     if (!user?.fullName || !user?.username || !profile.data) return;
     const target = e.target as typeof e.target & {
       title: { value: string };
-      label: { value: Label };
       description: { value: string };
     };
-    if (target.label.value !== "PUBLIC" && target.label.value !== "PRIVATE")
-      return toast("Please set a label for the post");
+    if (!label) return toast("Please set a label for the post");
     toast.loading("Loading...");
     if (post) {
       if (attachment) {
@@ -502,7 +491,7 @@ function Modal({
           });
           updatePost.mutate({
             id: post.id,
-            label: target.label.value,
+            label,
             title: target.title.value,
             description: target.description.value,
             attachment: fileUrl,
@@ -516,7 +505,7 @@ function Modal({
       } else {
         updatePost.mutate({
           id: post.id,
-          label: target.label.value,
+          label,
           title: target.title.value,
           description: target.description.value,
           friendId: friend?.id,
@@ -534,7 +523,7 @@ function Modal({
             },
           });
           createPost.mutate({
-            label: target.label.value,
+            label,
             title: target.title.value,
             description: target.description.value,
             attachment: fileUrl,
@@ -549,7 +538,7 @@ function Modal({
         }
       } else {
         createPost.mutate({
-          label: target.label.value,
+          label,
           title: target.title.value,
           description: target.description.value,
           authorId: user?.id,
@@ -672,11 +661,7 @@ function Modal({
                           setFriend={setFriend}
                         />
 
-                        <LabelDropdown
-                          post={post}
-                          label={label}
-                          setLabel={setLabel}
-                        />
+                        <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
                     <PostButtons
