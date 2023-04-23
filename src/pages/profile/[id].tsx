@@ -18,6 +18,7 @@ import {
   Fragment,
   MutableRefObject,
   SetStateAction,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -640,18 +641,32 @@ function Progress() {
 }
 
 export default function Account() {
+  const { user } = useUser();
   const { query } = useRouter();
   const id = query.id as string;
   const [open, setOpen] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
   const recievingFriendStatus = trpc.getRecievingFriendStatus.useQuery(id);
+  const initializeAuthSession = async () => {
+    try {
+      await upload.beginAuthSession("/api/auth", async () => ({}));
+      setIsAuth(true);
+    } catch (err: any) {
+      console.log(err.message);
+    }
+  };
+  useEffect(() => {
+    if (user) initializeAuthSession();
+    else upload.endAuthSession();
+  }, [user]);
   if (sendingFriendStatus.isLoading || recievingFriendStatus.isLoading)
     return <></>;
   return (
     <>
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
-      {profile.data ? (
+      {isAuth && profile.data ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             <div className="relative">
