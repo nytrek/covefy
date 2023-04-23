@@ -1059,7 +1059,7 @@ function CommentBox({ item }: { item: Post }) {
       reset: () => void;
       comment: { id: string; value: string };
     };
-    toast.loading("Loading");
+    toast.loading("Loading...");
     createComment.mutate(
       {
         postId: Number(target.comment.id),

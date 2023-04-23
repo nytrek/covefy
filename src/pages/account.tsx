@@ -172,6 +172,10 @@ function Dropdown() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+  const handleOnUpdateBanner = (banner: string) => {
+    toast.loading("Loading...");
+    updateBanner.mutate({ banner });
+  };
   return (
     <Menu
       as="div"
@@ -196,7 +200,7 @@ function Dropdown() {
             <Menu.Item>
               <RadioGroup
                 value={profile.data?.banner}
-                onChange={(banner: string) => updateBanner.mutate({ banner })}
+                onChange={(banner: string) => handleOnUpdateBanner(banner)}
               >
                 <RadioGroup.Label className="sr-only">Banners</RadioGroup.Label>
                 <div className="space-y-4">
