@@ -28,7 +28,7 @@ export default function Support() {
     <>
       <SignedIn>
         <div className="mt-12 pb-36">
-          <div className="mx-auto max-w-7xl px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl p-6 lg:p-8">
             <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">
               Frequently asked questions
             </h2>
