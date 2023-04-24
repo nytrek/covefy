@@ -14,9 +14,7 @@ model Profile {
   username  String
   credits   Int
   banner    String?
-  claim     Boolean    @default(false)
   premium   Boolean    @default(false)
-  plan      Plan       @default(FREE)
   posts     Post[]     @relation("Author")
   likes     Like[]
   bookmarks Bookmark[]
@@ -102,13 +100,6 @@ model Purchase {
   bannerId  Int
 
   @@id([profileId, bannerId])
-}
-
-enum Plan {
-  FREE
-  BASIC
-  PREMIUM
-  ENTERPRISE
 }
 
 enum Status {

@@ -128,7 +128,7 @@ function Attachment({
             <XMarkIcon className="h-5 w-5 text-brand-600" />
           </button>
         </div>
-      ) : post?.attachment && profile.data?.plan === "ENTERPRISE" ? (
+      ) : post?.attachment ? (
         <div className="relative">
           <img
             className="h-full w-full rounded-lg"

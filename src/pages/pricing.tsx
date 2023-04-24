@@ -7,52 +7,57 @@ import Link from "next/link";
 import { useState } from "react";
 
 const frequencies = [
-  { value: "monthly", label: "Monthly", priceSuffix: "/month" },
-  { value: "annually", label: "Annually", priceSuffix: "/year" },
+  { value: "premium", label: "Premium" },
+  { value: "enterprise", label: "Enterprise" },
 ];
 
 const tiers = [
   {
-    name: "Premium lite",
-    id: "tier-lite",
+    name: "Bronze",
+    id: "tier-bronze",
     href: {
-      monthly:
+      premium:
         "https://covefy.lemonsqueezy.com/checkout/buy/a99b6ea8-aa30-4071-bf1e-e03a33fe30d1",
-      annually:
+      enterprise:
         "https://covefy.lemonsqueezy.com/checkout/buy/b530a9b7-fe2a-4be0-a980-3089ad4fdd80",
     },
-    price: { monthly: "$5", annually: "$50" },
-    features: ["125 credits/month"],
+    price: { premium: "$5", enterprise: "$50" },
+    features: {
+      premium: ["25 credits"],
+      enterprise: ["250 credits"],
+    },
     mostPopular: false,
   },
   {
-    name: "Premium",
-    id: "Premium",
+    name: "Silver",
+    id: "tier-silver",
     href: {
-      monthly:
+      premium:
         "https://covefy.lemonsqueezy.com/checkout/buy/1e590965-dd61-44ef-b3be-84ea115640f3",
-      annually:
+      enterprise:
         "https://covefy.lemonsqueezy.com/checkout/buy/28151292-54af-487b-a36f-994b58c1dede",
     },
-    price: { monthly: "$10", annually: "$90" },
-    features: ["250 credits/month", "Premium checkmark"],
+    price: { premium: "$10", enterprise: "$100" },
+    features: {
+      premium: ["50 credits", "Premium checkmark"],
+      enterprise: ["750 credits", "Premium checkmark"],
+    },
     mostPopular: true,
   },
   {
-    name: "Enterprise",
-    id: "tier-enterprise",
+    name: "Gold",
+    id: "tier-gold",
     href: {
-      monthly:
+      premium:
         "https://covefy.lemonsqueezy.com/checkout/buy/c25da43e-8011-4841-9915-0bb67e29d677",
-      annually:
+      enterprise:
         "https://covefy.lemonsqueezy.com/checkout/buy/171e0867-399b-4ddb-b07f-cf068d4c610c",
     },
-    price: { monthly: "$40", annually: "$320" },
-    features: [
-      "1000 credits/month",
-      "Premium checkmark",
-      "Change attachment after posting",
-    ],
+    price: { premium: "$40", enterprise: "$400" },
+    features: {
+      premium: ["100 credits", "Premium checkmark"],
+      enterprise: ["1500 credits", "Premium checkmark"],
+    },
     mostPopular: false,
   },
 ];
@@ -146,15 +151,12 @@ export default function Pricing() {
                     className="mt-6 flex items-baseline gap-x-1"
                   >
                     <span className="text-4xl font-bold tracking-tight text-brand-50">
-                      {tier.price[frequency.value as "monthly" | "annually"]}
-                    </span>
-                    <span className="text-sm font-semibold leading-6 text-brand-300">
-                      {frequency.priceSuffix}
+                      {tier.price[frequency.value as "premium" | "enterprise"]}
                     </span>
                   </motion.p>
                 </AnimatePresence>
                 <Link
-                  href={tier.href[frequency.value as "monthly" | "annually"]}
+                  href={tier.href[frequency.value as "premium" | "enterprise"]}
                   aria-describedby={tier.id}
                   className={clsx(
                     tier.mostPopular
@@ -169,7 +171,9 @@ export default function Pricing() {
                   role="list"
                   className="mt-8 space-y-3 text-sm leading-6 text-brand-300 xl:mt-10"
                 >
-                  {tier.features.map((feature) => (
+                  {tier.features[
+                    frequency.value as "premium" | "enterprise"
+                  ].map((feature) => (
                     <li key={feature} className="flex gap-x-3">
                       <CheckIcon
                         className="h-6 w-5 flex-none text-brand-50"
