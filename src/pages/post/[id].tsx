@@ -656,7 +656,7 @@ export default function Post() {
                             <BookmarkCheck item={post.data} />
                             <Comments item={post.data} />
 
-                            <CommentBox item={post.data} />
+                            {user ? <CommentBox item={post.data} /> : null}
                           </div>
                         </div>
                       </div>

@@ -45,26 +45,28 @@ export default function Navbar() {
                   />
                 </Link>
                 <div>
-                  <div className="hidden lg:block">
-                    <nav className="flex space-x-4" aria-label="Tabs">
-                      {tabs.map((tab) => (
-                        <Link
-                          key={tab.name}
-                          href={tab.href}
-                          className="relative rounded-md px-3 py-2 text-sm font-medium text-brand-50"
-                          aria-current={tab.current ? "page" : undefined}
-                        >
-                          {tab.current ? (
-                            <motion.div
-                              layoutId="current"
-                              className="absolute inset-0 rounded-md bg-brand-700"
-                            ></motion.div>
-                          ) : null}
-                          <span className="relative">{tab.name}</span>
-                        </Link>
-                      ))}
-                    </nav>
-                  </div>
+                  {user ? (
+                    <div className="hidden lg:block">
+                      <nav className="flex space-x-4" aria-label="Tabs">
+                        {tabs.map((tab) => (
+                          <Link
+                            key={tab.name}
+                            href={tab.href}
+                            className="relative rounded-md px-3 py-2 text-sm font-medium text-brand-50"
+                            aria-current={tab.current ? "page" : undefined}
+                          >
+                            {tab.current ? (
+                              <motion.div
+                                layoutId="current"
+                                className="absolute inset-0 rounded-md bg-brand-700"
+                              ></motion.div>
+                            ) : null}
+                            <span className="relative">{tab.name}</span>
+                          </Link>
+                        ))}
+                      </nav>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="flex items-center md:absolute md:inset-y-0 md:right-0 lg:hidden">
@@ -74,29 +76,50 @@ export default function Navbar() {
                   className="-mx-2 inline-flex items-center justify-center rounded-md p-2 text-brand-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-50"
                 >
                   <span className="sr-only">Open menu</span>
-                  {open ? (
-                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                  {user ? (
+                    <>
+                      {open ? (
+                        <XMarkIcon
+                          className="block h-6 w-6"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <Bars3Icon
+                          className="block h-6 w-6"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </>
                   ) : (
-                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                    <SignInButton mode="modal">
+                      <button
+                        type="button"
+                        className="flex items-center justify-center rounded-full bg-brand-600"
+                      >
+                        <UserCircleIcon className="h-8 w-8 text-brand-50" />
+                      </button>
+                    </SignInButton>
                   )}
                 </Popover.Button>
               </div>
               <div className="hidden space-x-5 lg:flex lg:items-center lg:justify-end xl:col-span-4">
-                <Link
-                  href="/pricing"
-                  className="text-sm font-medium text-brand-50 hover:underline"
-                >
-                  Go Premium
-                </Link>
                 {user ? (
-                  <Link
-                    href="/pricing"
-                    className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
-                  >
-                    <span className="sr-only">View notifications</span>
-                    <p>{profile.data?.credits}</p>
-                    <TicketIcon className="h-6 w-6" aria-hidden="true" />
-                  </Link>
+                  <>
+                    <Link
+                      href="/pricing"
+                      className="text-sm font-medium text-brand-50 hover:underline"
+                    >
+                      Go Premium
+                    </Link>
+                    <Link
+                      href="/pricing"
+                      className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
+                    >
+                      <span className="sr-only">View notifications</span>
+                      <p>{profile.data?.credits}</p>
+                      <TicketIcon className="h-6 w-6" aria-hidden="true" />
+                    </Link>
+                  </>
                 ) : null}
 
                 <div className="relative flex-shrink-0">
@@ -119,7 +142,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {openPanel && (
+          {user && openPanel && (
             <Popover.Panel
               static
               as="nav"
@@ -163,33 +186,37 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                 </div>
-                <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
-                  {tabs.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="relative block rounded-md px-3 py-2 text-base font-medium text-brand-50"
-                    >
-                      {item.current ? (
-                        <motion.div
-                          layoutId="current"
-                          className="absolute inset-0 bg-brand-800"
-                        ></motion.div>
-                      ) : null}
-                      <span className="relative">{item.name}</span>
-                    </Link>
-                  ))}
-                </div>
+                {user ? (
+                  <div className="mx-auto mt-3 space-y-1 px-2 sm:px-4">
+                    {tabs.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="relative block rounded-md px-3 py-2 text-base font-medium text-brand-50"
+                      >
+                        {item.current ? (
+                          <motion.div
+                            layoutId="current"
+                            className="absolute inset-0 bg-brand-800"
+                          ></motion.div>
+                        ) : null}
+                        <span className="relative">{item.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
-              <div className="mx-auto mt-6 px-4 sm:px-6">
-                <Link
-                  href="/pricing"
-                  className="flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-brand-50 shadow-sm hover:bg-brand-700"
-                >
-                  Go premium
-                </Link>
-              </div>
+              {user ? (
+                <div className="mx-auto mt-6 px-4 sm:px-6">
+                  <Link
+                    href="/pricing"
+                    className="flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-brand-50 shadow-sm hover:bg-brand-700"
+                  >
+                    Go premium
+                  </Link>
+                </div>
+              ) : null}
             </Popover.Panel>
           )}
         </>

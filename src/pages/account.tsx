@@ -1,4 +1,4 @@
-import { SignIn, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { Menu, RadioGroup, Transition } from "@headlessui/react";
 import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import { trpc } from "@src/utils/trpc";
@@ -290,10 +290,6 @@ export default function Account() {
             <Progress />
           </div>
         </main>
-      ) : !user ? (
-        <div className="mt-16 flex w-screen justify-center">
-          <SignIn />
-        </div>
       ) : null}
     </>
   );

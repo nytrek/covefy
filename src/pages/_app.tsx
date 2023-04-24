@@ -1,4 +1,4 @@
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn } from "@clerk/nextjs";
 import "@src/styles/globals.css";
 import { MotionConfig } from "framer-motion";
 import type { AppType } from "next/app";
@@ -22,7 +22,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <MotionConfig reducedMotion="user">
           <Navbar />
           <Component {...pageProps} />
-          <Footer />
+          <SignedIn>
+            <Footer />
+          </SignedIn>
         </MotionConfig>
       </ClerkProvider>
     </>

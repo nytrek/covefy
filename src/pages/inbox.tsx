@@ -1339,7 +1339,7 @@ export default function Inbox() {
                               <BookmarkCheck item={item} />
                               <Comments item={item} />
 
-                              <CommentBox item={item} />
+                              {user ? <CommentBox item={item} /> : null}
                             </div>
                           </div>
                         </div>

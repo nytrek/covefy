@@ -1,4 +1,4 @@
-import { SignIn, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import {
   ChartBarIcon,
   CheckBadgeIcon,
@@ -217,27 +217,21 @@ export default function Ranking() {
     <>
       <div className="pb-36">
         <Countdown />
-        {user ? (
-          <div className="mt-8 px-2 lg:px-8">
-            <div className="flex items-center justify-center">
-              <div className="grid w-full grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {ranking.data?.map((item, index) => (
-                  <div key={item.id} className="px-4">
-                    <h2 className="sr-only">Summary</h2>
-                    <div className="rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
-                      <DescriptionList item={item} index={index} />
-                      <Cta item={item} />
-                    </div>
+        <div className="mt-8 px-2 lg:px-8">
+          <div className="flex items-center justify-center">
+            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {ranking.data?.map((item, index) => (
+                <div key={item.id} className="px-4">
+                  <h2 className="sr-only">Summary</h2>
+                  <div className="rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                    <DescriptionList item={item} index={index} />
+                    <Cta item={item} />
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="mt-16 flex w-screen justify-center">
-            <SignIn />
-          </div>
-        )}
+        </div>
       </div>
     </>
   );
