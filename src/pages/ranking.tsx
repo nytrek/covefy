@@ -1,7 +1,7 @@
 import { SignedIn } from "@clerk/nextjs";
 import {
-  ChartBarIcon,
   CheckBadgeIcon,
+  HandThumbUpIcon,
   PencilSquareIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
@@ -17,8 +17,6 @@ type Post = Prisma.PostGetPayload<{
   include: {
     author: true;
     likes: true;
-    comments: true;
-    bookmarks: true;
   };
 }>;
 
@@ -184,13 +182,14 @@ function DescriptionList({ item, index }: { item: Post; index: number }) {
       </div>
       <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
         <dt className="flex-none">
-          <span className="sr-only">Stats</span>
-          <ChartBarIcon className="h-6 w-5 text-brand-50" aria-hidden="true" />
+          <span className="sr-only">Likes</span>
+          <HandThumbUpIcon
+            className="h-6 w-5 text-brand-50"
+            aria-hidden="true"
+          />
         </dt>
         <dd className="text-sm leading-6 text-brand-50">
-          <p>
-            {item.likes.length + item.comments.length + item.bookmarks.length}
-          </p>
+          <p>{item.likes.length}</p>
         </dd>
       </div>
     </dl>

@@ -119,26 +119,12 @@ export const appRouter = router({
       include: {
         author: true,
         likes: true,
-        comments: true,
-        bookmarks: true,
       },
-      orderBy: [
-        {
-          likes: {
-            _count: "desc",
-          },
+      orderBy: {
+        likes: {
+          _count: "desc",
         },
-        {
-          comments: {
-            _count: "desc",
-          },
-        },
-        {
-          bookmarks: {
-            _count: "desc",
-          },
-        },
-      ],
+      },
       take: 8,
     });
   }),
