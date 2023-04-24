@@ -543,18 +543,6 @@ export default function Post() {
           <>
             {post.data.label === "PUBLIC" ? (
               <>
-                <div className="mx-auto mt-12 max-w-7xl px-4 text-center">
-                  <img
-                    src="/post.png"
-                    alt="post"
-                    className="mx-auto mt-2 w-24"
-                  />
-                  <div className="mt-8 flex flex-1 justify-center">
-                    <div className="flex w-full items-center justify-center space-x-6 px-2 text-2xl font-bold text-brand-50 sm:text-4xl lg:px-6">
-                      <p>#{post.data.id}</p>
-                    </div>
-                  </div>
-                </div>
                 <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
                   <div className="flex items-center justify-center">
                     <div className="relative w-full px-4 py-6">
