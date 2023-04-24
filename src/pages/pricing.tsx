@@ -53,7 +53,7 @@ const tiers = [
       enterprise:
         "https://covefy.lemonsqueezy.com/checkout/buy/171e0867-399b-4ddb-b07f-cf068d4c610c",
     },
-    price: { premium: "$40", enterprise: "$400" },
+    price: { premium: "$20", enterprise: "$200" },
     features: {
       premium: ["100 credits", "Premium checkmark"],
       enterprise: ["1500 credits", "Premium checkmark"],
