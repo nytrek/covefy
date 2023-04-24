@@ -27,6 +27,7 @@ export default function Navbar() {
       href: "/marketplace",
       current: route === "/marketplace",
     },
+    { name: "Bounties", href: "/bounties", current: route === "/bounties" },
     { name: "Support", href: "/support", current: route === "/support" },
   ];
   return (
