@@ -27,7 +27,6 @@ export default function Navbar() {
       href: "/marketplace",
       current: route === "/marketplace",
     },
-    { name: "Ranking", href: "/ranking", current: route === "/ranking" },
     { name: "Support", href: "/support", current: route === "/support" },
   ];
   return (

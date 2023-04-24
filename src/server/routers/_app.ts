@@ -103,31 +103,6 @@ export const appRouter = router({
       return 0;
     });
   }),
-  getRanking: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
-    return await prisma.post.findMany({
-      where: {
-        label: "PUBLIC",
-        createdAt: {
-          gte: firstDay,
-          lte: lastDay,
-        },
-      },
-      include: {
-        author: true,
-        likes: true,
-      },
-      orderBy: {
-        likes: {
-          _count: "desc",
-        },
-      },
-      take: 8,
-    });
-  }),
   getBanners: protectedProcedure.query(async ({ ctx }) => {
     const { success } = await ratelimiter.limit(ctx.auth.userId);
     if (!success) {
