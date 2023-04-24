@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/nextjs";
+import { SignedIn } from "@clerk/nextjs";
 import {
   ChartBarIcon,
   CheckBadgeIcon,
@@ -211,10 +211,9 @@ function Cta({ item }: { item: Post }) {
 }
 
 export default function Ranking() {
-  const { user } = useUser();
   const ranking = trpc.getRanking.useQuery();
   return (
-    <>
+    <SignedIn>
       <div className="pb-36">
         <Countdown />
         <div className="mt-8 px-2 lg:px-8">
@@ -233,6 +232,6 @@ export default function Ranking() {
           </div>
         </div>
       </div>
-    </>
+    </SignedIn>
   );
 }
