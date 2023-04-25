@@ -165,8 +165,10 @@ function LabelDropdown({
 }
 
 function PostButtons({
+  setLength,
   descriptionRef,
 }: {
+  setLength: Dispatch<SetStateAction<number>>;
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
 }) {
   const utils = trpc.useContext();
@@ -175,6 +177,7 @@ function PostButtons({
     onSuccess: (data) => {
       toast.dismiss();
       utils.getProfile.invalidate();
+      setLength((length) => data?.length ?? length);
       toast.success("Updated your post with AI generated text!");
       descriptionRef.current
         ? (descriptionRef.current.value = (data ?? "").trim())
@@ -405,7 +408,10 @@ function Modal({
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
-                    <PostButtons descriptionRef={descriptionRef} />
+                    <PostButtons
+                      setLength={setLength}
+                      descriptionRef={descriptionRef}
+                    />
                   </div>
                 </form>
               </Dialog.Panel>

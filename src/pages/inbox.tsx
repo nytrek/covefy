@@ -355,9 +355,11 @@ function LabelDropdown({
 
 function PostButtons({
   edit,
+  setLength,
   descriptionRef,
 }: {
   edit: boolean;
+  setLength: Dispatch<SetStateAction<number>>;
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
 }) {
   const utils = trpc.useContext();
@@ -366,6 +368,7 @@ function PostButtons({
     onSuccess: (data) => {
       toast.dismiss();
       utils.getProfile.invalidate();
+      setLength((length) => data?.length ?? length);
       toast.success("Updated your post with AI generated text!");
       descriptionRef.current
         ? (descriptionRef.current.value = (data ?? "").trim())
@@ -425,18 +428,21 @@ function Modal({
   open,
   post,
   label,
+  length,
   setOpen,
   setLabel,
+  setLength,
 }: {
   open: boolean;
   post: Post | null;
   label: Label | undefined;
+  length: number;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setLabel: Dispatch<SetStateAction<Label | undefined>>;
+  setLength: Dispatch<SetStateAction<number>>;
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
-  const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const [friend, setFriend] = useState<Profile | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -668,6 +674,7 @@ function Modal({
                     </div>
                     <PostButtons
                       edit={!!post}
+                      setLength={setLength}
                       descriptionRef={descriptionRef}
                     />
                   </div>
@@ -1133,6 +1140,7 @@ export default function Inbox() {
   const utils = trpc.useContext();
   const posts = trpc.getInbox.useQuery();
   const [open, setOpen] = useState(false);
+  const [length, setLength] = useState(0);
   const [search, setSearch] = useState("");
   const [post, setPost] = useState<Post | null>(null);
   const [label, setLabel] = useState(post?.label);
@@ -1155,6 +1163,7 @@ export default function Inbox() {
     },
   });
   const handleOnClick = () => {
+    setLength(0);
     setOpen(true);
     setPost(null);
     setLabel(undefined);
@@ -1163,6 +1172,7 @@ export default function Inbox() {
     setOpen(true);
     setPost(post);
     setLabel(post.label ?? null);
+    setLength(post.description.length);
   };
   const handleOnDeletePost = (post: Post) => {
     if (!post) return;
@@ -1193,8 +1203,10 @@ export default function Inbox() {
         open={open}
         post={post}
         label={label}
+        length={length}
         setOpen={setOpen}
         setLabel={setLabel}
+        setLength={setLength}
       />
       <div className="pb-36">
         <Header
