@@ -96,155 +96,187 @@ export default function Friends() {
                           {item.status === "ACCEPTED" ? (
                             <>
                               {item.senderId === user?.id ? (
-                                <ul
-                                  role="list"
-                                  className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
-                                >
-                                  {item.receiver.posts.map((post) => (
-                                    <li
-                                      key={post.id}
-                                      className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
+                                <>
+                                  {item.receiver.posts.length > 0 ? (
+                                    <ul
+                                      role="list"
+                                      className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                                     >
-                                      <div className="lg:col-start-3 lg:row-end-1">
-                                        <h2 className="sr-only">Summary</h2>
-                                        <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
-                                          <dl className="flex flex-wrap space-y-4">
-                                            <div className="flex-auto pl-6 pt-6">
-                                              <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
-                                                {post.title}
-                                              </dd>
-                                            </div>
-                                            <div className="flex w-full flex-none gap-x-4 px-6">
-                                              <dt className="flex-none">
-                                                <span className="sr-only">
-                                                  Stats
-                                                </span>
-                                                <ChartBarIcon
-                                                  className="h-6 w-5 text-brand-50"
-                                                  aria-hidden="true"
-                                                />
-                                              </dt>
-                                              <dd className="text-sm font-medium leading-6 text-brand-50">
-                                                {post.likes.length +
-                                                  post.comments.length +
-                                                  post.bookmarks.length}
-                                              </dd>
-                                            </div>
-                                            <div className="flex w-full flex-none gap-x-4 px-6">
-                                              <dt className="flex-none">
-                                                <span className="sr-only">
-                                                  Created
-                                                </span>
-                                                <CalendarDaysIcon
-                                                  className="h-6 w-5 text-brand-50"
-                                                  aria-hidden="true"
-                                                />
-                                              </dt>
-                                              <dd className="text-sm leading-6 text-brand-50">
-                                                <time
-                                                  dateTime={post.createdAt.toString()}
+                                      {item.receiver.posts.map((post) => (
+                                        <li
+                                          key={post.id}
+                                          className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
+                                        >
+                                          <div className="lg:col-start-3 lg:row-end-1">
+                                            <h2 className="sr-only">Summary</h2>
+                                            <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
+                                              <dl className="flex flex-wrap space-y-4">
+                                                <div className="flex-auto pl-6 pt-6">
+                                                  <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
+                                                    {post.title}
+                                                  </dd>
+                                                </div>
+                                                <div className="flex w-full flex-none gap-x-4 px-6">
+                                                  <dt className="flex-none">
+                                                    <span className="sr-only">
+                                                      Stats
+                                                    </span>
+                                                    <ChartBarIcon
+                                                      className="h-6 w-5 text-brand-50"
+                                                      aria-hidden="true"
+                                                    />
+                                                  </dt>
+                                                  <dd className="text-sm font-medium leading-6 text-brand-50">
+                                                    {post.likes.length +
+                                                      post.comments.length +
+                                                      post.bookmarks.length}
+                                                  </dd>
+                                                </div>
+                                                <div className="flex w-full flex-none gap-x-4 px-6">
+                                                  <dt className="flex-none">
+                                                    <span className="sr-only">
+                                                      Created
+                                                    </span>
+                                                    <CalendarDaysIcon
+                                                      className="h-6 w-5 text-brand-50"
+                                                      aria-hidden="true"
+                                                    />
+                                                  </dt>
+                                                  <dd className="text-sm leading-6 text-brand-50">
+                                                    <time
+                                                      dateTime={post.createdAt.toString()}
+                                                    >
+                                                      {formatDistanceToNow(
+                                                        post.createdAt,
+                                                        {
+                                                          addSuffix: true,
+                                                        }
+                                                      )}
+                                                    </time>
+                                                  </dd>
+                                                </div>
+                                              </dl>
+                                              <div className="px-6 py-6">
+                                                <Link
+                                                  href={"/post/" + post.id}
+                                                  className="text-sm font-semibold leading-6 text-brand-50"
                                                 >
-                                                  {formatDistanceToNow(
-                                                    post.createdAt,
-                                                    {
-                                                      addSuffix: true,
-                                                    }
-                                                  )}
-                                                </time>
-                                              </dd>
+                                                  View post{" "}
+                                                  <span aria-hidden="true">
+                                                    &rarr;
+                                                  </span>
+                                                </Link>
+                                              </div>
                                             </div>
-                                          </dl>
-                                          <div className="px-6 py-6">
-                                            <Link
-                                              href={"/post/" + post.id}
-                                              className="text-sm font-semibold leading-6 text-brand-50"
-                                            >
-                                              View post{" "}
-                                              <span aria-hidden="true">
-                                                &rarr;
-                                              </span>
-                                            </Link>
                                           </div>
-                                        </div>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
+                                      <img
+                                        src={item.receiver.imageUrl}
+                                        alt="receiver"
+                                        className="h-14 w-14 rounded-full"
+                                      />
+                                      <p className="text-center text-sm font-semibold text-brand-50">
+                                        {item.receiver.name} has not created any
+                                        posts
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
                               ) : (
-                                <ul
-                                  role="list"
-                                  className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
-                                >
-                                  {item.sender.posts.map((post) => (
-                                    <li
-                                      key={post.id}
-                                      className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
+                                <>
+                                  {item.sender.posts.length > 0 ? (
+                                    <ul
+                                      role="list"
+                                      className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                                     >
-                                      <div className="lg:col-start-3 lg:row-end-1">
-                                        <h2 className="sr-only">Summary</h2>
-                                        <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
-                                          <dl className="flex flex-wrap space-y-4">
-                                            <div className="flex-auto pl-6 pt-6">
-                                              <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
-                                                {post.title}
-                                              </dd>
-                                            </div>
-                                            <div className="flex w-full flex-none gap-x-4 px-6">
-                                              <dt className="flex-none">
-                                                <span className="sr-only">
-                                                  Stats
-                                                </span>
-                                                <ChartBarIcon
-                                                  className="h-6 w-5 text-brand-50"
-                                                  aria-hidden="true"
-                                                />
-                                              </dt>
-                                              <dd className="text-sm font-medium leading-6 text-brand-50">
-                                                {post.likes.length +
-                                                  post.comments.length +
-                                                  post.bookmarks.length}
-                                              </dd>
-                                            </div>
-                                            <div className="flex w-full flex-none gap-x-4 px-6">
-                                              <dt className="flex-none">
-                                                <span className="sr-only">
-                                                  Created
-                                                </span>
-                                                <CalendarDaysIcon
-                                                  className="h-6 w-5 text-brand-50"
-                                                  aria-hidden="true"
-                                                />
-                                              </dt>
-                                              <dd className="text-sm leading-6 text-brand-50">
-                                                <time
-                                                  dateTime={post.createdAt.toString()}
+                                      {item.sender.posts.map((post) => (
+                                        <li
+                                          key={post.id}
+                                          className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
+                                        >
+                                          <div className="lg:col-start-3 lg:row-end-1">
+                                            <h2 className="sr-only">Summary</h2>
+                                            <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
+                                              <dl className="flex flex-wrap space-y-4">
+                                                <div className="flex-auto pl-6 pt-6">
+                                                  <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
+                                                    {post.title}
+                                                  </dd>
+                                                </div>
+                                                <div className="flex w-full flex-none gap-x-4 px-6">
+                                                  <dt className="flex-none">
+                                                    <span className="sr-only">
+                                                      Stats
+                                                    </span>
+                                                    <ChartBarIcon
+                                                      className="h-6 w-5 text-brand-50"
+                                                      aria-hidden="true"
+                                                    />
+                                                  </dt>
+                                                  <dd className="text-sm font-medium leading-6 text-brand-50">
+                                                    {post.likes.length +
+                                                      post.comments.length +
+                                                      post.bookmarks.length}
+                                                  </dd>
+                                                </div>
+                                                <div className="flex w-full flex-none gap-x-4 px-6">
+                                                  <dt className="flex-none">
+                                                    <span className="sr-only">
+                                                      Created
+                                                    </span>
+                                                    <CalendarDaysIcon
+                                                      className="h-6 w-5 text-brand-50"
+                                                      aria-hidden="true"
+                                                    />
+                                                  </dt>
+                                                  <dd className="text-sm leading-6 text-brand-50">
+                                                    <time
+                                                      dateTime={post.createdAt.toString()}
+                                                    >
+                                                      {formatDistanceToNow(
+                                                        post.createdAt,
+                                                        {
+                                                          addSuffix: true,
+                                                        }
+                                                      )}
+                                                    </time>
+                                                  </dd>
+                                                </div>
+                                              </dl>
+                                              <div className="px-6 py-6">
+                                                <Link
+                                                  href={"/post/" + post.id}
+                                                  className="text-sm font-semibold leading-6 text-brand-50"
                                                 >
-                                                  {formatDistanceToNow(
-                                                    post.createdAt,
-                                                    {
-                                                      addSuffix: true,
-                                                    }
-                                                  )}
-                                                </time>
-                                              </dd>
+                                                  View post{" "}
+                                                  <span aria-hidden="true">
+                                                    &rarr;
+                                                  </span>
+                                                </Link>
+                                              </div>
                                             </div>
-                                          </dl>
-                                          <div className="px-6 py-6">
-                                            <Link
-                                              href={"/post/" + post.id}
-                                              className="text-sm font-semibold leading-6 text-brand-50"
-                                            >
-                                              View post{" "}
-                                              <span aria-hidden="true">
-                                                &rarr;
-                                              </span>
-                                            </Link>
                                           </div>
-                                        </div>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
+                                      <img
+                                        src={item.sender.imageUrl}
+                                        alt="sender"
+                                        className="h-14 w-14 rounded-full"
+                                      />
+                                      <p className="text-center text-sm font-semibold text-brand-50">
+                                        {item.sender.name} has not created any
+                                        posts
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </>
                           ) : item.status === "PENDING" ? (
