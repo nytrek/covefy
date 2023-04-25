@@ -21,7 +21,7 @@ export default function Navbar() {
   const [openPanel, setOpenPanel] = useState(false);
   const tabs = [
     { name: "My Account", href: "/account", current: route === "/account" },
-    { name: "Friend list", href: "/friends", current: route === "/friends" },
+    { name: "Friends", href: "/friends", current: route === "/friends" },
     {
       name: "Marketplace",
       href: "/marketplace",
