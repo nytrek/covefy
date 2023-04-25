@@ -832,7 +832,11 @@ export const appRouter = router({
         credits: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.$transaction([
         prisma.purchase.delete({
           where: {
@@ -855,7 +859,7 @@ export const appRouter = router({
   updateProfileBanner: protectedProcedure
     .input(
       z.object({
-        banner: z.string(),
+        banner: z.string().nullish(),
       })
     )
     .mutation(async ({ input, ctx }) => {

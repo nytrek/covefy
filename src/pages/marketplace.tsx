@@ -122,6 +122,7 @@ function Banner({
 
 export default function Marketplace() {
   const { user } = useUser();
+  const profile = trpc.getProfile.useQuery();
   const banners = trpc.getBanners.useQuery();
   const [isAuth, setIsAuth] = useState(false);
   const initializeAuthSession = async () => {
@@ -141,18 +142,20 @@ export default function Marketplace() {
       {isAuth ? (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            {banners.data?.map((banner) => (
-              <Banner
-                key={banner.id}
-                id={banner.id}
-                src={banner.imageUrl}
-                title={banner.title}
-                description={banner.description}
-                price={banner.price}
-                verified={banner.verified}
-                purchased={!!banner.purchases.length}
-              />
-            ))}
+            {banners.data
+              ?.filter((item) => item.imageUrl !== profile.data?.banner)
+              .map((banner) => (
+                <Banner
+                  key={banner.id}
+                  id={banner.id}
+                  src={banner.imageUrl}
+                  title={banner.title}
+                  description={banner.description}
+                  price={banner.price}
+                  verified={banner.verified}
+                  purchased={!!banner.purchases.length}
+                />
+              ))}
           </div>
         </main>
       ) : null}

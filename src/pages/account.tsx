@@ -59,7 +59,6 @@ function UserInfo() {
 
 function UserButtons() {
   const { reload } = useRouter();
-  const profile = trpc.getProfile.useQuery();
   const deleteProfile = trpc.deleteProfile.useMutation({
     onSuccess: () => {
       reload();
@@ -204,6 +203,38 @@ function Dropdown() {
               >
                 <RadioGroup.Label className="sr-only">Banners</RadioGroup.Label>
                 <div className="space-y-4">
+                  <RadioGroup.Option
+                    value={null}
+                    className={({ checked, active }) =>
+                      clsx(
+                        checked ? "border-transparent" : "border-brand-300",
+                        active ? "border-brand-600 ring-2 ring-brand-600" : "",
+                        "relative block cursor-pointer rounded-lg border bg-brand-50 p-1"
+                      )
+                    }
+                  >
+                    {({ active, checked }) => (
+                      <>
+                        <span className="flex items-center">
+                          <span className="flex flex-col text-sm">
+                            <img
+                              src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                              alt="banner"
+                              className="rounded-md"
+                            />
+                          </span>
+                        </span>
+                        <span
+                          className={clsx(
+                            active ? "border" : "border-2",
+                            checked ? "border-brand-600" : "border-transparent",
+                            "pointer-events-none absolute -inset-px rounded-lg"
+                          )}
+                          aria-hidden="true"
+                        />
+                      </>
+                    )}
+                  </RadioGroup.Option>
                   {banners.data?.map((banner) => (
                     <RadioGroup.Option
                       key={banner.id}
