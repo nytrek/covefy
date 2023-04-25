@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/nextjs";
-import { Menu, Transition } from "@headlessui/react";
+import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
   BookmarkIcon as BookmarkIconSolid,
   ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
@@ -7,26 +7,43 @@ import {
   CheckIcon,
   EllipsisVerticalIcon,
   HandThumbUpIcon as HandThumbUpIconSolid,
+  PaperClipIcon,
+  TagIcon,
+  UserCircleIcon,
 } from "@heroicons/react/20/solid";
 import {
   BookmarkIcon as BookmarkIconOutline,
   ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconOutline,
   HandThumbUpIcon as HandThumbUpIconOutline,
   TicketIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Prisma } from "@prisma/client";
+import { Label, Prisma, Profile } from "@prisma/client";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, Fragment, useState } from "react";
+import {
+  Dispatch,
+  FormEvent,
+  Fragment,
+  MutableRefObject,
+  SetStateAction,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "react-hot-toast";
+import { Upload } from "upload-js";
 
 const MAX_TOKENS = 720;
 const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
+
+const upload = Upload({
+  apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
+});
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -41,6 +58,591 @@ type Post = Prisma.PostGetPayload<{
     };
   };
 }>;
+
+function Attachment({
+  post,
+  attachment,
+  setOpen,
+  setAttachment,
+}: {
+  post: Post | null | undefined;
+  attachment: File | null;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  setAttachment: Dispatch<SetStateAction<File | null>>;
+}) {
+  const utils = trpc.useContext();
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      toast.success("Post updated!");
+      utils.getPublicPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnDeleteAttachment = () => {
+    if (!post?.attachmentPath) return;
+    toast.loading("Loading...");
+    deleteAttachment.mutate(
+      {
+        attachmentPath: post.attachmentPath,
+      },
+      {
+        onSuccess: () => {
+          updatePost.mutate({
+            id: post.id,
+            label: post.label,
+            title: post.title,
+            description: post.description,
+            attachment: null,
+            attachmentPath: null,
+          });
+        },
+      }
+    );
+  };
+  return (
+    <>
+      {attachment ? (
+        <div className="relative">
+          <img
+            className="h-full w-full rounded-lg"
+            src={URL.createObjectURL(attachment)}
+            alt="attachment"
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+            onClick={() => setAttachment(null)}
+          >
+            <XMarkIcon className="h-5 w-5 text-brand-600" />
+          </button>
+        </div>
+      ) : post?.attachment ? (
+        <div className="relative">
+          <img
+            className="h-full w-full rounded-lg"
+            src={post.attachment}
+            alt="attachment"
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+            onClick={handleOnDeleteAttachment}
+          >
+            <XMarkIcon className="h-5 w-5 text-brand-600" />
+          </button>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function FriendDropdown({
+  post,
+  friend,
+  setFriend,
+}: {
+  post: Post | null | undefined;
+  friend: Profile | null;
+  setFriend: Dispatch<SetStateAction<Profile | null>>;
+}) {
+  const friends = trpc.getFriends.useQuery();
+  return (
+    <>
+      {post?.friend ? (
+        <div className="flex-shrink-0">
+          <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+            {post.friend.imageUrl ? (
+              <img
+                src={post.friend.imageUrl}
+                alt=""
+                className="h-5 w-5 flex-shrink-0 rounded-full"
+              />
+            ) : (
+              <UserCircleIcon
+                className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                aria-hidden="true"
+              />
+            )}
+
+            <span className="ml-2 block truncate text-sm font-bold text-brand-500">
+              {post.friend.name}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <Listbox
+          as="div"
+          value={friend}
+          onChange={setFriend}
+          className="flex-shrink-0"
+        >
+          {({ open }) => (
+            <>
+              <Listbox.Label className="sr-only"> Send to </Listbox.Label>
+              <div className="relative">
+                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                  {friend === null ? (
+                    <UserCircleIcon
+                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <img
+                      src={friend.imageUrl}
+                      alt=""
+                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                    />
+                  )}
+                </Listbox.Button>
+
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                    <Listbox.Option
+                      key={null}
+                      className={({ active }) =>
+                        clsx(
+                          active ? "bg-brand-100" : "bg-brand-50",
+                          "relative cursor-default select-none px-3 py-2"
+                        )
+                      }
+                      value={null}
+                    >
+                      <div className="flex items-center">
+                        <UserCircleIcon
+                          className="h-5 w-5 flex-shrink-0 text-brand-400"
+                          aria-hidden="true"
+                        />
+                        <span className="ml-3 block truncate text-sm font-bold text-brand-500">
+                          Unassigned
+                        </span>
+                      </div>
+                    </Listbox.Option>
+                    {friends.data?.map((friend) => (
+                      <Listbox.Option
+                        key={friend.friend.id}
+                        className={({ active }) =>
+                          clsx(
+                            active ? "bg-brand-100" : "bg-brand-50",
+                            "relative cursor-default select-none px-3 py-2"
+                          )
+                        }
+                        value={friend.friend}
+                      >
+                        <div className="flex items-center">
+                          {friend.friend.imageUrl ? (
+                            <img
+                              src={friend.friend.imageUrl}
+                              alt=""
+                              className="h-5 w-5 flex-shrink-0 rounded-full"
+                            />
+                          ) : (
+                            <UserCircleIcon
+                              className="h-5 w-5 flex-shrink-0 text-brand-400"
+                              aria-hidden="true"
+                            />
+                          )}
+
+                          <span className="ml-3 block truncate text-sm font-bold text-brand-500">
+                            {friend.friend.name}
+                          </span>
+                        </div>
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </>
+          )}
+        </Listbox>
+      )}
+    </>
+  );
+}
+
+function LabelDropdown({
+  label,
+  setLabel,
+}: {
+  label: Label | undefined;
+  setLabel: Dispatch<SetStateAction<Label | undefined>>;
+}) {
+  return (
+    <Listbox
+      as="div"
+      value={label}
+      onChange={setLabel}
+      className="flex-shrink-0"
+    >
+      {({ open }) => (
+        <>
+          <Listbox.Label className="sr-only"> Add a label </Listbox.Label>
+          <div className="relative">
+            <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+              <TagIcon
+                className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
+                aria-hidden="true"
+              />
+              <span className="mx-1 block w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500">
+                {label ?? "Set label"}
+              </span>
+            </Listbox.Button>
+
+            <Transition
+              show={open}
+              as={Fragment}
+              leave="transition ease-in duration-100"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
+                <Listbox.Option
+                  key="PUBLIC"
+                  className={({ active }) =>
+                    clsx(
+                      active ? "bg-brand-100" : "bg-brand-50",
+                      "relative cursor-default select-none px-3 py-2"
+                    )
+                  }
+                  value="PUBLIC"
+                >
+                  <div className="flex items-center">
+                    <span className="block truncate text-sm font-bold text-brand-500">
+                      PUBLIC
+                    </span>
+                  </div>
+                </Listbox.Option>
+                <Listbox.Option
+                  key="PRIVATE"
+                  className={({ active }) =>
+                    clsx(
+                      active ? "bg-brand-100" : "bg-brand-50",
+                      "relative cursor-default select-none px-3 py-2"
+                    )
+                  }
+                  value="PRIVATE"
+                >
+                  <div className="flex items-center">
+                    <span className="block truncate text-sm font-bold text-brand-500">
+                      PRIVATE
+                    </span>
+                  </div>
+                </Listbox.Option>
+              </Listbox.Options>
+            </Transition>
+          </div>
+        </>
+      )}
+    </Listbox>
+  );
+}
+
+function PostButtons({
+  edit,
+  descriptionRef,
+}: {
+  edit: boolean;
+  descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
+}) {
+  const utils = trpc.useContext();
+  const profile = trpc.getProfile.useQuery();
+  const generateAI = trpc.generateAIResponse.useMutation({
+    onSuccess: (data) => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Updated your post with AI generated text!");
+      descriptionRef.current
+        ? (descriptionRef.current.value = (data ?? "").trim())
+        : null;
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnGenerateAI = (prompt: string | undefined) => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 5) {
+      toast.dismiss();
+      return toast.error("You don't have enough credits");
+    }
+    toast.loading("Loading...");
+    generateAI.mutate({
+      prompt,
+      credits: profile.data.credits - 5,
+    });
+  };
+  return (
+    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
+      <button
+        type="button"
+        onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
+        className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        <span>Use AI</span>
+        <span className="flex items-center space-x-1">
+          <span>(5</span>
+          <TicketIcon className="h-5 w-5" />)
+        </span>
+      </button>
+      <button
+        type="submit"
+        className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        {edit ? (
+          <span>Save</span>
+        ) : (
+          <>
+            <span>Create</span>
+            <span className="flex items-center space-x-1">
+              <span>(1</span>
+              <TicketIcon className="h-5 w-5" />)
+            </span>
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function Modal({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { user } = useUser();
+  const { query } = useRouter();
+  const utils = trpc.useContext();
+  const [length, setLength] = useState(0);
+  const profile = trpc.getProfile.useQuery();
+  const post = trpc.getPost.useQuery(Number(query.id));
+  const [label, setLabel] = useState(post.data?.label);
+  const [friend, setFriend] = useState<Profile | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
+  const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
+    const target = event.target as typeof event.target & {
+      files: FileList;
+    };
+    const file = target.files[0];
+    setAttachment(file);
+  };
+  const createPost = trpc.createPost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Post created!");
+      utils.getPublicPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      toast.success("Post updated!");
+      utils.getPublicPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+  const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!user?.fullName || !user?.username || !profile.data || !post.data)
+      return;
+    const target = e.target as typeof e.target & {
+      title: { value: string };
+      description: { value: string };
+    };
+    if (!label) return toast("Please set a label for the post");
+    toast.loading("Loading...");
+    if (attachment) {
+      try {
+        const { fileUrl, filePath } = await upload.uploadFile(attachment, {
+          path: {
+            folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
+            fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
+          },
+        });
+        updatePost.mutate({
+          id: post.data.id,
+          label,
+          title: target.title.value,
+          description: target.description.value,
+          attachment: fileUrl,
+          attachmentPath: filePath,
+          friendId: friend?.id,
+        });
+      } catch (e: any) {
+        toast.dismiss();
+        toast.error(e.message ?? API_ERROR_MESSAGE);
+      }
+    } else {
+      updatePost.mutate({
+        id: post.data.id,
+        label,
+        title: target.title.value,
+        description: target.description.value,
+        friendId: friend?.id,
+      });
+    }
+  };
+  const progress = `
+    radial-gradient(closest-side, white 85%, transparent 80% 100%),
+    conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
+  `;
+  return (
+    <Transition.Root show={open} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={setOpen}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-brand-900 bg-opacity-75 backdrop-blur-sm transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
+                <Attachment
+                  post={post.data}
+                  attachment={attachment}
+                  setOpen={setOpen}
+                  setAttachment={setAttachment}
+                />
+                <form className="relative" onSubmit={handleOnSubmit}>
+                  <button
+                    type="button"
+                    className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+                    onClick={() => setOpen(false)}
+                  >
+                    <XMarkIcon className="h-5 w-5 text-brand-600" />
+                  </button>
+                  <div className="overflow-hidden rounded-lg">
+                    <label htmlFor="title" className="sr-only">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      id="title"
+                      className="block w-full border-0 pr-12 pt-2.5 text-lg font-medium placeholder:text-brand-400 focus:ring-0"
+                      placeholder="Title (100 char)"
+                      defaultValue={post.data?.title}
+                      maxLength={100}
+                      required
+                    />
+                    <label htmlFor="description" className="sr-only">
+                      Description
+                    </label>
+                    <textarea
+                      rows={10}
+                      ref={descriptionRef}
+                      name="description"
+                      id="description"
+                      className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      placeholder="Write a description or a prompt for the AI generation"
+                      defaultValue={post.data?.description}
+                      maxLength={MAX_TOKENS}
+                      onChange={(e) => setLength(e.target.value.length)}
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end px-4 pt-4">
+                    <div
+                      className="h-5 w-5 rounded-full"
+                      style={{ background: progress }}
+                    ></div>
+                  </div>
+                  <div>
+                    <div
+                      className={clsx(
+                        post.data?.attachment
+                          ? "justify-end"
+                          : "justify-between",
+                        "flex items-center space-x-3 py-2 pl-2"
+                      )}
+                    >
+                      {!post.data?.attachment ? (
+                        <div className="flex">
+                          <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
+                            <input
+                              type="file"
+                              className="absolute inset-0 opacity-0"
+                              onChange={(event) => onFileSelected(event)}
+                            />
+                            <PaperClipIcon
+                              className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
+                              aria-hidden="true"
+                            />
+                            <span className="text-sm italic text-brand-500 group-hover:text-brand-600">
+                              Attach a file
+                            </span>
+                          </div>
+                        </div>
+                      ) : null}
+                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
+                        <FriendDropdown
+                          post={post.data}
+                          friend={friend}
+                          setFriend={setFriend}
+                        />
+
+                        <LabelDropdown label={label} setLabel={setLabel} />
+                      </div>
+                    </div>
+                    <PostButtons
+                      edit={!!post}
+                      descriptionRef={descriptionRef}
+                    />
+                  </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
+  );
+}
 
 function Dropdown({ item }: { item: Post }) {
   return (
@@ -491,8 +1093,9 @@ function CommentBox({ item }: { item: Post }) {
 
 export default function Post() {
   const { user } = useUser();
-  const { back, query } = useRouter();
   const utils = trpc.useContext();
+  const { back, query } = useRouter();
+  const [open, setOpen] = useState(false);
   const post = trpc.getPost.useQuery(Number(query.id));
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
@@ -538,6 +1141,7 @@ export default function Post() {
   };
   return (
     <>
+      <Modal open={open} setOpen={setOpen} />
       <div className="pb-36">
         {post.data ? (
           <>
@@ -587,6 +1191,7 @@ export default function Post() {
                                             {({ active }) => (
                                               <button
                                                 type="button"
+                                                onClick={() => setOpen(true)}
                                                 className={clsx(
                                                   active
                                                     ? "bg-brand-100 text-brand-900"

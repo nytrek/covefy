@@ -34,7 +34,7 @@ export default function Header({
   search: string;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setPost: Dispatch<SetStateAction<Post | null>>;
-  setLabel?: Dispatch<SetStateAction<Label | null>>;
+  setLabel?: Dispatch<SetStateAction<Label | undefined>>;
   setSearch: Dispatch<SetStateAction<string>>;
 }) {
   const { user } = useUser();
@@ -69,7 +69,7 @@ export default function Header({
                 onClick={() => {
                   setOpen(true);
                   setPost(null);
-                  setLabel ? setLabel(null) : null;
+                  setLabel ? setLabel(undefined) : null;
                 }}
               >
                 <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />

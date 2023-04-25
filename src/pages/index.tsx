@@ -71,7 +71,6 @@ function Attachment({
   setAttachment: Dispatch<SetStateAction<File | null>>;
 }) {
   const utils = trpc.useContext();
-  const profile = trpc.getProfile.useQuery();
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
       setOpen(false);
@@ -281,8 +280,8 @@ function LabelDropdown({
   label,
   setLabel,
 }: {
-  label: Label | null;
-  setLabel: Dispatch<SetStateAction<Label | null>>;
+  label: Label | undefined;
+  setLabel: Dispatch<SetStateAction<Label | undefined>>;
 }) {
   return (
     <Listbox
@@ -431,9 +430,9 @@ function Modal({
 }: {
   open: boolean;
   post: Post | null;
-  label: Label | null;
+  label: Label | undefined;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  setLabel: Dispatch<SetStateAction<Label | null>>;
+  setLabel: Dispatch<SetStateAction<Label | undefined>>;
 }) {
   const { user } = useUser();
   const utils = trpc.useContext();
@@ -1136,7 +1135,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const posts = trpc.getPublicPosts.useQuery();
   const [post, setPost] = useState<Post | null>(null);
-  const [label, setLabel] = useState(post?.label ?? null);
+  const [label, setLabel] = useState(post?.label);
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
       toast.dismiss();
