@@ -25,6 +25,10 @@ const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
 export const appRouter = router({
   getPost: publicProcedure.input(Number).query(async ({ input }) => {
+    // const { success } = await ratelimiter.limit(String(input));
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await prisma.post.findUnique({
       where: {
         id: input,
@@ -45,10 +49,10 @@ export const appRouter = router({
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.profile.findUnique({
         where: {
           id: input ?? ctx.auth.userId,
@@ -56,10 +60,10 @@ export const appRouter = router({
       });
     }),
   getInbox: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     const [sending, recieving] = await prisma.$transaction([
       prisma.post.findMany({
         where: {
@@ -104,10 +108,10 @@ export const appRouter = router({
     });
   }),
   getBanners: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await prisma.banner.findMany({
       orderBy: {
         id: "asc",
@@ -122,10 +126,10 @@ export const appRouter = router({
     });
   }),
   getProfileBanners: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await prisma.banner.findMany({
       where: {
         purchases: {
@@ -140,6 +144,10 @@ export const appRouter = router({
     });
   }),
   getPublicPosts: publicProcedure.query(async () => {
+    // const { success } = await ratelimiter.limit("public");
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await prisma.post.findMany({
       where: {
         label: "PUBLIC",
@@ -161,10 +169,10 @@ export const appRouter = router({
     });
   }),
   getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await prisma.post.findMany({
       where: {
         authorId: ctx.auth.userId,
@@ -186,10 +194,10 @@ export const appRouter = router({
     });
   }),
   getBookmarkedPosts: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await prisma.post.findMany({
       where: {
         bookmarks: {
@@ -215,10 +223,10 @@ export const appRouter = router({
     });
   }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     const [sending, recieving] = await prisma.$transaction([
       prisma.friend.findMany({
         where: {
@@ -255,10 +263,10 @@ export const appRouter = router({
     });
   }),
   getAllFriends: protectedProcedure.query(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     const [sending, recieving] = await prisma.$transaction([
       prisma.friend.findMany({
         where: {
@@ -356,10 +364,10 @@ export const appRouter = router({
   getSendingFriendStatus: protectedProcedure
     .input(String)
     .query(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.friend.findUnique({
         where: {
           receiverId_senderId: {
@@ -372,10 +380,10 @@ export const appRouter = router({
   getRecievingFriendStatus: protectedProcedure
     .input(String)
     .query(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.friend.findUnique({
         where: {
           receiverId_senderId: {
@@ -393,10 +401,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.friend.create({
         data: {
           senderId: input.senderId,
@@ -413,10 +421,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.friend.update({
         data: {
           status: input.status,
@@ -438,10 +446,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.friend.delete({
         where: {
           receiverId_senderId: {
@@ -465,10 +473,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return input.friendId
         ? await prisma.$transaction([
             prisma.post.create({
@@ -537,10 +545,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return input.friendId
         ? await prisma.post.update({
             data: {
@@ -579,10 +587,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.post.delete({
         where: {
           id: input.id,
@@ -592,10 +600,10 @@ export const appRouter = router({
   getLikes: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.post.findMany({
         where: {
           authorId: input ?? ctx.auth.userId,
@@ -617,10 +625,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.like.create({
         data: {
           postId: input.postId,
@@ -636,10 +644,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.like.delete({
         where: {
           postId_profileId: {
@@ -652,10 +660,10 @@ export const appRouter = router({
   getBookmarks: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.post.findMany({
         where: {
           authorId: input ?? ctx.auth.userId,
@@ -677,10 +685,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.bookmark.create({
         data: {
           postId: input.postId,
@@ -696,10 +704,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.bookmark.delete({
         where: {
           postId_profileId: {
@@ -712,10 +720,10 @@ export const appRouter = router({
   getComments: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.post.findMany({
         where: {
           authorId: input ?? ctx.auth.userId,
@@ -747,10 +755,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.$transaction([
         prisma.comment.create({
           data: {
@@ -776,10 +784,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.comment.delete({
         where: {
           id: input.id,
@@ -795,10 +803,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.$transaction([
         prisma.purchase.create({
           data: {
@@ -823,10 +831,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await prisma.profile.update({
         data: {
           banner: input.banner,
@@ -843,10 +851,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       return await deleteFile({
         accountId: process.env.UPLOAD_ACCOUNTID,
         apiKey: process.env.UPLOAD_SECRETKEY,
@@ -856,10 +864,10 @@ export const appRouter = router({
       });
     }),
   deleteProfile: protectedProcedure.mutation(async ({ ctx }) => {
-    const { success } = await ratelimiter.limit(ctx.auth.userId);
-    if (!success) {
-      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-    }
+    // const { success } = await ratelimiter.limit(ctx.auth.userId);
+    // if (!success) {
+    //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    // }
     return await fetch("https://api.clerk.com/v1/users/" + ctx.auth.userId, {
       method: "DELETE",
       headers: {
@@ -875,10 +883,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { success } = await ratelimiter.limit(ctx.auth.userId);
-      if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-      }
+      // const { success } = await ratelimiter.limit(ctx.auth.userId);
+      // if (!success) {
+      //   throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      // }
       const completion = await openai.createCompletion({
         model: "text-davinci-003",
         prompt:
