@@ -4,21 +4,21 @@ import { TicketIcon } from "@heroicons/react/24/outline";
 const faqs = [
   {
     id: 1,
-    question: "What are credits used for?",
+    question: "What are bounties used for?",
     answer:
-      "Credits can be used to create notes, interact with AI and purchase banners in the marketplace. The use of credits will expand as new features come in.",
+      "Bounties are questions that has a set amount of credits attached to it. If a community member is able to answer the question in a satisfying manner. That member will receive the credits accordingly.",
   },
   {
     id: 2,
-    question: "How do I earn a spot in the top 8?",
+    question: "How can I earn more credits?",
     answer:
-      "The top 8 consists of the top most engaging notes. To earn a spot in the top 8, create valueable notes for the community.",
+      "You can work on bounties set by other community members. If you like Covefy and would like to support the development process, you're also able to make single-payment purchases.",
   },
   {
     id: 3,
-    question: "When can I claim my credits?",
+    question: "Where can I change my banner?",
     answer:
-      "You can claim your credits at the end of each month if you've subscribed to a plan or won a spot in the top 8.",
+      "You can change your banner in your account page if you have purchased a banner in the marketplace. Those banner costs between 1-2K credits. Your account comes with a single banner by default.",
   },
   // More questions...
 ];
@@ -27,8 +27,8 @@ export default function Support() {
   return (
     <>
       <SignedIn>
-        <div className="mt-12 pb-36">
-          <div className="mx-auto max-w-7xl p-6 lg:p-8">
+        <div className="mt-8 pb-36">
+          <div className="mx-auto max-w-7xl p-6">
             <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">
               Frequently asked questions
             </h2>
