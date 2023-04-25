@@ -4,39 +4,41 @@ import { TicketIcon } from "@heroicons/react/24/outline";
 const faqs = [
   {
     id: 1,
-    question: "What are bounties used for?",
+    question: "What are credits used for?",
     answer:
-      "Bounties are questions that has a set amount of credits attached to it. If a community member is able to answer the question in a satisfying manner. That member will receive the credits accordingly.",
+      "Credits can be used to create notes, interact with AI and purchase banners in the marketplace. The use of credits will expand as new features come in.",
   },
   {
     id: 2,
-    question: "How can I earn more credits?",
+    question: "How do I send notes to friends?",
     answer:
-      "You can work on bounties set by other community members. If you like Covefy and would like to support the development process, you're also able to make single-payment purchases.",
+      "You can send notes to your friends by visiting their profile page. You can choose to send it publicly or privately like any other note.",
   },
   {
     id: 3,
     question: "Where can I change my banner?",
     answer:
-      "You can change your banner in your account page if you have purchased a banner in the marketplace. Those banner costs between 1-2K credits. Your account comes with a single banner by default.",
+      "You can change your banner in your account page if you have purchased a banner in the marketplace. Those banner costs between 1-2K credits.",
   },
   // More questions...
 ];
 
-export default function Support() {
+export default function Feedback() {
   return (
     <>
       <SignedIn>
         <div className="mt-8 pb-36">
           <div className="mx-auto max-w-7xl p-6">
             <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">
-              Frequently asked questions
+              Send feedback
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-center text-xl text-gray-300 sm:text-2xl">
-              Have a different question? Contact us at kennytran.dev@outlook.com
+              Any feedback is welcome. Please address your feedback directly to
+              kennytran.dev@outlook.com
             </p>
             <div className="mt-20">
-              <dl className="space-y-16 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 sm:space-y-0 lg:grid-cols-3 lg:gap-x-10">
+              <h2 className="text-2xl font-medium text-brand-50">FAQ</h2>
+              <dl className="mt-6 space-y-16 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 sm:space-y-0 lg:grid-cols-3 lg:gap-x-10">
                 {faqs.map((faq) => (
                   <div key={faq.id}>
                     <dt className="text-2xl font-semibold text-white">

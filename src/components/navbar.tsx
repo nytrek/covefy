@@ -27,8 +27,11 @@ export default function Navbar() {
       href: "/marketplace",
       current: route === "/marketplace",
     },
-    { name: "Bounties", href: "/bounties", current: route === "/bounties" },
-    { name: "Support", href: "/support", current: route === "/support" },
+    {
+      name: "Send feedback",
+      href: "/feedback",
+      current: route === "/feedback",
+    },
   ];
   return (
     <Popover as="header">
