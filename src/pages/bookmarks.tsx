@@ -1154,6 +1154,11 @@ export default function Bookmarks() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+  const handleOnClick = () => {
+    setOpen(true);
+    setPost(null);
+    setLabel(undefined);
+  };
   const handleOnEditPost = (post: Post) => {
     setOpen(true);
     setPost(post);
@@ -1195,10 +1200,8 @@ export default function Bookmarks() {
         <Header
           header="Bookmark your favorite notes."
           search={search}
-          setOpen={setOpen}
-          setPost={setPost}
-          setLabel={setLabel}
           setSearch={setSearch}
+          handleOnClick={handleOnClick}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">

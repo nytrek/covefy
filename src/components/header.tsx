@@ -3,39 +3,20 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
 } from "@heroicons/react/20/solid";
-import { Label, Prisma } from "@prisma/client";
 import clsx from "clsx";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
-type Post = Prisma.PostGetPayload<{
-  include: {
-    likes: true;
-    bookmarks: true;
-    author: true;
-    friend: true;
-    comments: {
-      include: {
-        author: true;
-      };
-    };
-  };
-}>;
-
 export default function Header({
   header,
   search,
-  setOpen,
-  setPost,
-  setLabel,
   setSearch,
+  handleOnClick,
 }: {
   header: string;
   search: string;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  setPost: Dispatch<SetStateAction<Post | null>>;
-  setLabel?: Dispatch<SetStateAction<Label | undefined>>;
   setSearch: Dispatch<SetStateAction<string>>;
+  handleOnClick: () => void;
 }) {
   const { user } = useUser();
   const { route } = useRouter();
@@ -64,14 +45,7 @@ export default function Header({
               onChange={(e) => setSearch(e.target.value)}
             />
             {user && route !== "/friends" ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(true);
-                  setPost(null);
-                  setLabel ? setLabel(undefined) : null;
-                }}
-              >
+              <button type="button" onClick={handleOnClick}>
                 <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
               </button>
             ) : null}

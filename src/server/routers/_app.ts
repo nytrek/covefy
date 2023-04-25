@@ -222,6 +222,7 @@ export const appRouter = router({
     const [sending, recieving] = await prisma.$transaction([
       prisma.friend.findMany({
         where: {
+          status: "ACCEPTED",
           senderId: ctx.auth.userId,
         },
         include: {
@@ -230,6 +231,7 @@ export const appRouter = router({
       }),
       prisma.friend.findMany({
         where: {
+          status: "ACCEPTED",
           receiverId: ctx.auth.userId,
         },
         include: {
@@ -265,12 +267,38 @@ export const appRouter = router({
         include: {
           sender: {
             include: {
-              posts: true,
+              posts: {
+                where: {
+                  label: "PUBLIC",
+                },
+                include: {
+                  likes: true,
+                  comments: true,
+                  bookmarks: true,
+                },
+                orderBy: {
+                  createdAt: "desc",
+                },
+                take: 4,
+              },
             },
           },
           receiver: {
             include: {
-              posts: true,
+              posts: {
+                where: {
+                  label: "PUBLIC",
+                },
+                include: {
+                  likes: true,
+                  comments: true,
+                  bookmarks: true,
+                },
+                orderBy: {
+                  createdAt: "desc",
+                },
+                take: 4,
+              },
             },
           },
         },
@@ -282,12 +310,38 @@ export const appRouter = router({
         include: {
           sender: {
             include: {
-              posts: true,
+              posts: {
+                where: {
+                  label: "PUBLIC",
+                },
+                include: {
+                  likes: true,
+                  comments: true,
+                  bookmarks: true,
+                },
+                orderBy: {
+                  createdAt: "desc",
+                },
+                take: 4,
+              },
             },
           },
           receiver: {
             include: {
-              posts: true,
+              posts: {
+                where: {
+                  label: "PUBLIC",
+                },
+                include: {
+                  likes: true,
+                  comments: true,
+                  bookmarks: true,
+                },
+                orderBy: {
+                  createdAt: "desc",
+                },
+                take: 4,
+              },
             },
           },
         },
