@@ -824,6 +824,34 @@ export const appRouter = router({
         }),
       ]);
     }),
+  deletePurchase: protectedProcedure
+    .input(
+      z.object({
+        bannerId: z.number(),
+        profileId: z.string(),
+        credits: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.$transaction([
+        prisma.purchase.delete({
+          where: {
+            profileId_bannerId: {
+              bannerId: input.bannerId,
+              profileId: input.profileId,
+            },
+          },
+        }),
+        prisma.profile.update({
+          data: {
+            credits: input.credits,
+          },
+          where: {
+            id: input.profileId,
+          },
+        }),
+      ]);
+    }),
   updateProfileBanner: protectedProcedure
     .input(
       z.object({

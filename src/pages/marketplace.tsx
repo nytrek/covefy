@@ -44,6 +44,18 @@ function Banner({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+  const deletePurchase = trpc.deletePurchase.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getBanners.invalidate();
+      utils.getProfile.invalidate();
+      toast.success("Banner sold!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
   const handleOnPurchase = () => {
     if (!profile.data) return;
     toast.loading("Loading...");
@@ -51,6 +63,15 @@ function Banner({
       bannerId: id,
       profileId: profile.data.id,
       credits: profile.data.credits - price,
+    });
+  };
+  const handleOnSell = () => {
+    if (!profile.data) return;
+    toast.loading("Loading...");
+    deletePurchase.mutate({
+      bannerId: id,
+      profileId: profile.data.id,
+      credits: profile.data.credits + price,
     });
   };
   return (
@@ -79,10 +100,10 @@ function Banner({
           {purchased ? (
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md bg-brand-800 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800"
-              disabled
+              onClick={handleOnSell}
+              className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             >
-              Owned
+              Sell
             </button>
           ) : (
             <button
