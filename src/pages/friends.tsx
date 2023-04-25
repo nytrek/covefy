@@ -323,7 +323,7 @@ export default function Friends() {
                                     className="h-14 w-14 rounded-full"
                                   />
                                   <p className="text-center text-sm font-semibold text-brand-50">
-                                    You have rejected {item.sender.name}'s
+                                    You have rejected {item.sender.name}&apos;s
                                     friend request
                                   </p>
                                 </div>
