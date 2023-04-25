@@ -280,8 +280,8 @@ function LabelDropdown({
   label,
   setLabel,
 }: {
-  label: Label | undefined;
-  setLabel: Dispatch<SetStateAction<Label | undefined>>;
+  label: Label | null;
+  setLabel: Dispatch<SetStateAction<Label | null>>;
 }) {
   return (
     <Listbox
@@ -437,8 +437,8 @@ function Modal({
   const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
   const post = trpc.getPost.useQuery(Number(query.id));
-  const [label, setLabel] = useState(post.data?.label);
   const [friend, setFriend] = useState<Profile | null>(null);
+  const [label, setLabel] = useState(post.data?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {

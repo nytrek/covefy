@@ -280,8 +280,8 @@ function LabelDropdown({
   label,
   setLabel,
 }: {
-  label: Label | undefined;
-  setLabel: Dispatch<SetStateAction<Label | undefined>>;
+  label: Label | null;
+  setLabel: Dispatch<SetStateAction<Label | null>>;
 }) {
   return (
     <Listbox
@@ -435,10 +435,10 @@ function Modal({
 }: {
   open: boolean;
   post: Post | null;
-  label: Label | undefined;
+  label: Label | null;
   length: number;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  setLabel: Dispatch<SetStateAction<Label | undefined>>;
+  setLabel: Dispatch<SetStateAction<Label | null>>;
   setLength: Dispatch<SetStateAction<number>>;
 }) {
   const { user } = useUser();
@@ -1143,7 +1143,7 @@ export default function Inbox() {
   const [length, setLength] = useState(0);
   const [search, setSearch] = useState("");
   const [post, setPost] = useState<Post | null>(null);
-  const [label, setLabel] = useState(post?.label);
+  const [label, setLabel] = useState(post?.label ?? null);
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -1166,7 +1166,7 @@ export default function Inbox() {
     setLength(0);
     setOpen(true);
     setPost(null);
-    setLabel(undefined);
+    setLabel(null);
   };
   const handleOnEditPost = (post: Post) => {
     setOpen(true);
