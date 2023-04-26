@@ -703,22 +703,30 @@ export default function Account() {
     <>
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
       {isAuth && profile.data ? (
-        <main className="pb-36 pt-12">
-          <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            <div className="relative">
-              <img
-                src={
-                  profile.data.banner ??
-                  "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                }
-                alt="banner"
-                className="rounded-lg object-cover"
-              />
-            </div>
-            <Header setOpen={setOpen} />
-            <Stats />
-          </div>
-        </main>
+        <>
+          {profile.data.label === "PUBLIC" ? (
+            <main className="pb-36 pt-12">
+              <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                <div className="relative">
+                  <img
+                    src={
+                      profile.data.banner ??
+                      "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                    }
+                    alt="banner"
+                    className="rounded-lg object-cover"
+                  />
+                </div>
+                <Header setOpen={setOpen} />
+                <Stats />
+              </div>
+            </main>
+          ) : (
+            <span className="flex h-[30rem] w-screen items-center justify-center text-white">
+              This profile is not publicly accessible
+            </span>
+          )}
+        </>
       ) : null}
     </>
   );

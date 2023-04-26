@@ -15,6 +15,7 @@ model Profile {
   credits   Int
   banner    String?
   premium   Boolean    @default(false)
+  label     Label      @default(PUBLIC)
   posts     Post[]     @relation("Author")
   likes     Like[]
   bookmarks Bookmark[]

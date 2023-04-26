@@ -59,6 +59,18 @@ export const appRouter = router({
         },
       });
     }),
+  updateProfile: protectedProcedure
+    .input(z.object({ label: z.nativeEnum(Label) }))
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.profile.update({
+        data: {
+          label: input.label,
+        },
+        where: {
+          id: ctx.auth.userId,
+        },
+      });
+    }),
   getInbox: protectedProcedure.query(async ({ ctx }) => {
     // const { success } = await ratelimiter.limit(ctx.auth.userId);
     // if (!success) {

@@ -60,6 +60,19 @@ function UserInfo() {
 
 function UserButtons() {
   const { reload } = useRouter();
+  const utils = trpc.useContext();
+  const profile = trpc.getProfile.useQuery();
+  const updateProfile = trpc.updateProfile.useMutation({
+    onSuccess: (data) => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Your profile has been set to " + data.label.toLowerCase());
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
   const deleteProfile = trpc.deleteProfile.useMutation({
     onSuccess: () => {
       reload();
@@ -71,13 +84,63 @@ function UserButtons() {
   });
   return (
     <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-      <button
-        type="button"
-        onClick={() => deleteProfile.mutate()}
-        className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-      >
-        Delete account
-      </button>
+      <Menu as="div" className="relative inline-block text-left">
+        <div>
+          <Menu.Button className="inline-flex w-full items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50">
+            Manage account
+          </Menu.Button>
+        </div>
+        <Transition
+          as={Fragment}
+          enter="transition ease-out duration-100"
+          enterFrom="transform opacity-0 scale-95"
+          enterTo="transform opacity-100 scale-100"
+          leave="transition ease-in duration-75"
+          leaveFrom="transform opacity-100 scale-100"
+          leaveTo="transform opacity-0 scale-95"
+        >
+          <Menu.Items className="absolute right-0 z-10 mt-2 w-full origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:w-56">
+            <div className="py-1">
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    type="button"
+                    onClick={() => deleteProfile.mutate()}
+                    className={clsx(
+                      active ? "bg-brand-100 text-brand-900" : "text-brand-700",
+                      "block w-full px-4 py-2 text-left text-sm"
+                    )}
+                  >
+                    Delete profile
+                  </button>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateProfile.mutate({
+                        label:
+                          profile.data?.label === "PUBLIC"
+                            ? "PRIVATE"
+                            : "PUBLIC",
+                      })
+                    }
+                    className={clsx(
+                      active ? "bg-brand-100 text-brand-900" : "text-brand-700",
+                      "block w-full px-4 py-2 text-left text-sm"
+                    )}
+                  >
+                    Set profile to{" "}
+                    {profile.data?.label === "PUBLIC" ? "private" : "public"}
+                  </button>
+                )}
+              </Menu.Item>
+            </div>
+          </Menu.Items>
+        </Transition>
+      </Menu>
       <Link
         href="/feedback"
         className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
@@ -173,7 +236,7 @@ function Dropdown() {
   return (
     <Menu
       as="div"
-      className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+      className="absolute right-2 top-2 z-10 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
     >
       <div>
         <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
