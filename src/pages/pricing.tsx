@@ -23,8 +23,8 @@ const tiers = [
     },
     price: { premium: "$5", enterprise: "$50" },
     features: {
-      premium: ["25 credits"],
-      enterprise: ["250 credits"],
+      premium: ["100 credits"],
+      enterprise: ["1000 credits"],
     },
     mostPopular: false,
   },
@@ -39,8 +39,8 @@ const tiers = [
     },
     price: { premium: "$10", enterprise: "$100" },
     features: {
-      premium: ["50 credits", "Premium checkmark"],
-      enterprise: ["750 credits", "Premium checkmark"],
+      premium: ["250 credits", "Premium checkmark"],
+      enterprise: ["2500 credits", "Premium checkmark"],
     },
     mostPopular: true,
   },
@@ -55,8 +55,8 @@ const tiers = [
     },
     price: { premium: "$20", enterprise: "$200" },
     features: {
-      premium: ["100 credits", "Premium checkmark"],
-      enterprise: ["1500 credits", "Premium checkmark"],
+      premium: ["600 credits", "Premium checkmark"],
+      enterprise: ["6000 credits", "Premium checkmark"],
     },
     mostPopular: false,
   },
