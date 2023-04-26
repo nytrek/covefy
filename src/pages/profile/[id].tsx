@@ -624,7 +624,7 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
   );
 }
 
-function Progress() {
+function Stats() {
   const { query } = useRouter();
   const id = query.id as string;
   const likes = trpc.getLikes.useQuery(id);
@@ -655,7 +655,7 @@ function Progress() {
   return (
     <div>
       <h3 className="text-base font-semibold leading-6 text-brand-50">
-        {profile.data?.name}&apos;s progress
+        {profile.data?.name}&apos;s stats
       </h3>
       <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
         {stats.map((item) => (
@@ -716,7 +716,7 @@ export default function Account() {
               />
             </div>
             <Header setOpen={setOpen} />
-            <Progress />
+            <Stats />
           </div>
         </main>
       ) : null}
