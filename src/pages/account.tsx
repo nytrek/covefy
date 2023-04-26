@@ -82,6 +82,16 @@ function UserButtons() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+  const handleOnUpdate = () => {
+    toast.loading("Loading...");
+    updateProfile.mutate({
+      label: profile.data?.label === "PUBLIC" ? "PRIVATE" : "PUBLIC",
+    });
+  };
+  const handleOnDelete = () => {
+    toast.loading("Loading...");
+    deleteProfile.mutate();
+  };
   return (
     <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
       <Menu as="div" className="relative inline-block text-left">
@@ -105,7 +115,7 @@ function UserButtons() {
                 {({ active }) => (
                   <button
                     type="button"
-                    onClick={() => deleteProfile.mutate()}
+                    onClick={handleOnDelete}
                     className={clsx(
                       active ? "bg-brand-100 text-brand-900" : "text-brand-700",
                       "block w-full px-4 py-2 text-left text-sm"
@@ -119,14 +129,7 @@ function UserButtons() {
                 {({ active }) => (
                   <button
                     type="button"
-                    onClick={() =>
-                      updateProfile.mutate({
-                        label:
-                          profile.data?.label === "PUBLIC"
-                            ? "PRIVATE"
-                            : "PUBLIC",
-                      })
-                    }
+                    onClick={handleOnUpdate}
                     className={clsx(
                       active ? "bg-brand-100 text-brand-900" : "text-brand-700",
                       "block w-full px-4 py-2 text-left text-sm"
