@@ -5,6 +5,7 @@ import {
   PaperClipIcon,
   TagIcon,
   UserCircleIcon,
+  ArrowLongLeftIcon,
 } from "@heroicons/react/20/solid";
 import { TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Profile } from "@prisma/client";
@@ -678,7 +679,7 @@ function Stats() {
 
 export default function Account() {
   const { user } = useUser();
-  const { query } = useRouter();
+  const { back, query } = useRouter();
   const id = query.id as string;
   const [open, setOpen] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
@@ -722,9 +723,17 @@ export default function Account() {
               </div>
             </main>
           ) : (
-            <span className="flex h-[30rem] w-screen items-center justify-center text-white">
-              This profile is not publicly accessible
-            </span>
+            <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
+              <button
+                type="button"
+                onClick={() => back()}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLongLeftIcon className="h-5 w-5" />
+                <span>Go back</span>
+              </button>
+              <p>This profile is not publicly accessible</p>
+            </div>
           )}
         </>
       ) : null}

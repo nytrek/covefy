@@ -1,6 +1,7 @@
 import { useUser } from "@clerk/nextjs";
 import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
 import {
+  ArrowLongLeftIcon,
   BookmarkIcon as BookmarkIconSolid,
   ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
   CheckBadgeIcon,
@@ -1171,7 +1172,15 @@ export default function Post() {
               <>
                 <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
                   <div className="flex items-center justify-center">
-                    <div className="relative w-full px-4 py-6">
+                    <div className="relative w-full space-y-6 px-4 py-6">
+                      <button
+                        type="button"
+                        onClick={() => back()}
+                        className="flex items-center space-x-2 text-brand-50"
+                      >
+                        <ArrowLongLeftIcon className="h-5 w-5" />
+                        <span>Go back</span>
+                      </button>
                       <div
                         onMouseMove={handleMouseMove}
                         className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
@@ -1287,9 +1296,17 @@ export default function Post() {
                 </div>
               </>
             ) : (
-              <span className="flex h-[30rem] w-screen items-center justify-center text-white">
-                This post is not publicly accessible
-              </span>
+              <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
+                <button
+                  type="button"
+                  onClick={() => back()}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLongLeftIcon className="h-5 w-5" />
+                  <span>Go back</span>
+                </button>
+                <p>This post is not publicly accessible</p>
+              </div>
             )}
           </>
         ) : null}
