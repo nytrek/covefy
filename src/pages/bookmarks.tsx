@@ -1228,6 +1228,12 @@ export default function Bookmarks() {
                           .includes(search.toLowerCase()) ||
                         post.description
                           .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        post.author.name
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        post.author.username
+                          .toLowerCase()
                           .includes(search.toLowerCase())
                     )
                     .map((item, index) => (
