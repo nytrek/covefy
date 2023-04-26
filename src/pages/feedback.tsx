@@ -33,8 +33,10 @@ export default function Feedback() {
               Send feedback
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-center text-xl text-gray-300 sm:text-2xl">
-              Any feedback is welcome. Please address your feedback directly to
-              kennytran.dev@outlook.com
+              Any feedback is welcome. Please address your feedback directly to{" "}
+              <a href="mailto:kennytran.dev@outlook.com" className="underline">
+                kennytran.dev@outlook.com
+              </a>
             </p>
             <div className="mt-20">
               <h2 className="text-2xl font-medium text-brand-50">FAQ</h2>

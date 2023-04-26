@@ -36,6 +36,8 @@ import {
 } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
+import { useMotionTemplate, useMotionValue } from "framer-motion";
+import { MouseEvent } from "react";
 
 const MAX_TOKENS = 720;
 const API_ERROR_MESSAGE =
@@ -436,7 +438,8 @@ function Modal({
   const utils = trpc.useContext();
   const [length, setLength] = useState(0);
   const profile = trpc.getProfile.useQuery();
-  const post = trpc.getPost.useQuery(Number(query.id));
+  const id = query.id ?? 0;
+  const post = trpc.getPost.useQuery(Number(id));
   const [friend, setFriend] = useState<Profile | null>(null);
   const [label, setLabel] = useState(post.data?.label ?? null);
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -1096,11 +1099,14 @@ function CommentBox({ item }: { item: Post }) {
 }
 
 export default function Post() {
+  let mouseX = useMotionValue(0);
+  let mouseY = useMotionValue(0);
   const { user } = useUser();
   const utils = trpc.useContext();
   const { back, query } = useRouter();
   const [open, setOpen] = useState(false);
-  const post = trpc.getPost.useQuery(Number(query.id));
+  const id = query.id ?? 0;
+  const post = trpc.getPost.useQuery(Number(id));
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
       back();
@@ -1143,6 +1149,18 @@ export default function Post() {
       });
     }
   };
+  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+    let { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+  const flash = useMotionTemplate`
+  radial-gradient(
+    650px circle at ${mouseX}px ${mouseY}px,
+    rgba(255, 255, 255, 0.05),
+    transparent 80%
+  )
+`;
   return (
     <>
       <Modal open={open} setOpen={setOpen} />
@@ -1154,7 +1172,14 @@ export default function Post() {
                 <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
                   <div className="flex items-center justify-center">
                     <div className="relative w-full px-4 py-6">
-                      <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div
+                        onMouseMove={handleMouseMove}
+                        className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
+                      >
+                        <motion.div
+                          className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
+                          style={{ background: flash }}
+                        ></motion.div>
                         <div className="space-y-6 text-brand-50">
                           {post.data.attachment ? (
                             <img
