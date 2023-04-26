@@ -708,6 +708,14 @@ export default function Account() {
           {profile.data.label === "PUBLIC" ? (
             <main className="pb-36 pt-12">
               <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                <button
+                  type="button"
+                  onClick={() => back()}
+                  className="flex items-center space-x-2 text-brand-50"
+                >
+                  <ArrowLongLeftIcon className="h-5 w-5" />
+                  <span>Go back</span>
+                </button>
                 <div className="relative">
                   <img
                     src={
