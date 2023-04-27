@@ -147,6 +147,7 @@ export const appRouter = router({
   getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {
+        friendId: null,
         authorId: ctx.auth.userId,
       },
       include: {
