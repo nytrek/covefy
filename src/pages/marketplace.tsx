@@ -13,6 +13,16 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
+interface Props {
+  id: number;
+  src: string;
+  title: string;
+  price: number;
+  verified: boolean;
+  description: string;
+  purchased: boolean;
+}
+
 function Banner({
   id,
   src,
@@ -21,17 +31,20 @@ function Banner({
   verified,
   description,
   purchased,
-}: {
-  id: number;
-  src: string;
-  title: string;
-  price: number;
-  verified: boolean;
-  description: string;
-  purchased: boolean;
-}) {
+}: Props) {
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
+
+  /**
+   * trpc queries
+   */
   const profile = trpc.getProfile.useQuery();
+
+  /**
+   * create purchase mutation that links to corresponding procedure in the backend
+   */
   const createPurchase = trpc.createPurchase.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -44,6 +57,10 @@ function Banner({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * delete purchase mutation that links to corresponding procedure in the backend
+   */
   const deletePurchase = trpc.deletePurchase.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -56,7 +73,11 @@ function Banner({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const handleOnPurchase = () => {
+
+  /**
+   * event handler for creating purchase
+   */
+  const handleOnCreatePurchase = () => {
     if (!profile.data) return;
     toast.loading("Loading...");
     createPurchase.mutate({
@@ -65,7 +86,11 @@ function Banner({
       credits: profile.data.credits - price,
     });
   };
-  const handleOnSell = () => {
+
+  /**
+   * event handler for deleting purchase
+   */
+  const handleOnDeletePurchase = () => {
     if (!profile.data) return;
     toast.loading("Loading...");
     deletePurchase.mutate({
@@ -76,22 +101,32 @@ function Banner({
   };
   return (
     <>
+      {/**
+       * Render banner image
+       */}
       <div className="relative">
         <img src={src} alt="banner" className="rounded-lg object-cover" />
         <span className="absolute inset-0" />
       </div>
       <div className="md:flex md:items-center md:justify-between md:space-x-5">
+        {/**
+         * Render banner details
+         */}
         <div className="flex items-center space-x-5">
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-bold text-brand-50">{title}</h1>
-              {verified ? (
+              {verified && (
                 <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-              ) : null}
+              )}
             </div>
             <p className="text-sm font-medium text-brand-500">{description}</p>
           </div>
         </div>
+
+        {/**
+         * Render banner buttons
+         */}
         <div className="mt-6 flex flex-col justify-stretch space-y-4 sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
           <span className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50">
             <span>{price}</span>
@@ -100,7 +135,7 @@ function Banner({
           {purchased ? (
             <button
               type="button"
-              onClick={handleOnSell}
+              onClick={handleOnDeletePurchase}
               className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             >
               Sell
@@ -108,7 +143,7 @@ function Banner({
           ) : (
             <button
               type="button"
-              onClick={handleOnPurchase}
+              onClick={handleOnCreatePurchase}
               className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             >
               Purchase
@@ -121,10 +156,25 @@ function Banner({
 }
 
 export default function Marketplace() {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * trpc queries
+   */
   const profile = trpc.getProfile.useQuery();
   const banners = trpc.getBanners.useQuery();
+
+  /**
+   * useState that might be replaced with a state management library
+   */
   const [isAuth, setIsAuth] = useState(false);
+
+  /**
+   * initialize auth session if user is authenticated to render private images from upload.io
+   */
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -133,6 +183,10 @@ export default function Marketplace() {
       console.log(err.message);
     }
   };
+
+  /**
+   * useEffect hook for checking the state of the user
+   */
   useEffect(() => {
     if (user) initializeAuthSession();
     else upload.endAuthSession();

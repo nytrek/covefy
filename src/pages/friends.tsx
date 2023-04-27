@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, useUser } from "@clerk/nextjs";
 import { CalendarDaysIcon, ChartBarIcon } from "@heroicons/react/20/solid";
 import { Status } from "@prisma/client";
 import Header from "@src/components/header";
@@ -12,10 +12,29 @@ const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
 
 export default function Friends() {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
+
+  /**
+   * useState that might be replaced with a state management library
+   */
   const [search, setSearch] = useState("");
+
+  /**
+   * trpc queries
+   */
   const friends = trpc.getAllFriends.useQuery();
+
+  /**
+   * update friend status mutation that links to corresponding procedure in the backend
+   */
   const updateFriendStatus = trpc.updateFriendStatus.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -29,12 +48,16 @@ export default function Friends() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * event handler for updating friend status
+   */
   const handleOnUpdate = (id: string, status: Status) => {
-    if (!user?.id) return;
+    if (!user?.id) return; //we have values that depend on the data being not undefined
     toast.loading("Loading...");
     updateFriendStatus.mutate({
       senderId: id,
-      recieverId: user?.id,
+      recieverId: user.id, // 1.
       status,
     });
   };
@@ -47,7 +70,7 @@ export default function Friends() {
           setSearch={setSearch}
           handleOnClick={() => null}
         />
-        {user ? (
+        <SignedIn>
           <div className="mt-8 px-2 lg:px-8">
             <div className="flex flex-col items-center justify-center space-y-8">
               {friends.data
@@ -383,7 +406,7 @@ export default function Friends() {
                 ))}
             </div>
           </div>
-        ) : null}
+        </SignedIn>
       </div>
     </>
   );

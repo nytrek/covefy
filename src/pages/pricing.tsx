@@ -161,7 +161,7 @@ export default function Pricing() {
                   className={clsx(
                     tier.mostPopular
                       ? "bg-brand-500 text-brand-50 shadow-sm hover:bg-brand-300 focus-visible:outline-brand-500"
-                      : "bg-brand-600 text-brand-50 hover:bg-brand-500 focus-visible:outline-white",
+                      : "bg-brand-600 text-brand-50 hover:bg-brand-500 focus-visible:outline-brand-50",
                     "mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   )}
                 >

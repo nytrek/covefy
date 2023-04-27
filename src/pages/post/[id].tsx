@@ -1,44 +1,39 @@
 import { useUser } from "@clerk/nextjs";
-import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import {
   ArrowLongLeftIcon,
-  BookmarkIcon as BookmarkIconSolid,
-  ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconSolid,
   CheckBadgeIcon,
-  CheckIcon,
   EllipsisVerticalIcon,
-  HandThumbUpIcon as HandThumbUpIconSolid,
   PaperClipIcon,
-  TagIcon,
-  UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import {
-  BookmarkIcon as BookmarkIconOutline,
-  ChatBubbleOvalLeftIcon as ChatBubbleOvalLeftIconOutline,
-  HandThumbUpIcon as HandThumbUpIconOutline,
-  TicketIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
+import Bookmark from "@src/components/Bookmark";
+import Attachment from "@src/components/attachment";
+import BookmarkCheck from "@src/components/bookmarkcheck";
+import Comment from "@src/components/comment";
+import CommentBox from "@src/components/commentbox";
+import Comments from "@src/components/comments";
+import FriendDropdown from "@src/components/frienddropdown";
+import LabelDropdown from "@src/components/labeldropdown";
+import Like from "@src/components/like";
+import PostButtons from "@src/components/postbuttons";
+import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
-import { formatDistanceToNow } from "date-fns";
-import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
+import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import { useRouter } from "next/router";
 import {
   Dispatch,
   FormEvent,
   Fragment,
-  MutableRefObject,
+  MouseEvent,
   SetStateAction,
   useRef,
   useState,
 } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
-import { useMotionTemplate, useMotionValue } from "framer-motion";
-import { MouseEvent } from "react";
 
 const MAX_TOKENS = 720;
 const API_ERROR_MESSAGE =
@@ -62,409 +57,61 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-function Attachment({
-  post,
-  attachment,
-  setOpen,
-  setAttachment,
-}: {
-  post: Post | null | undefined;
-  attachment: File | null;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  setAttachment: Dispatch<SetStateAction<File | null>>;
-}) {
-  const utils = trpc.useContext();
-  const updatePost = trpc.updatePost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      toast.success("Post updated!");
-      utils.getPublicPosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const deleteAttachment = trpc.deleteAttachment.useMutation({
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnDeleteAttachment = () => {
-    if (!post?.attachmentPath) return;
-    toast.loading("Loading...");
-    deleteAttachment.mutate(
-      {
-        attachmentPath: post.attachmentPath,
-      },
-      {
-        onSuccess: () => {
-          updatePost.mutate({
-            id: post.id,
-            label: post.label,
-            title: post.title,
-            description: post.description,
-            attachment: null,
-            attachmentPath: null,
-          });
-        },
-      }
-    );
-  };
-  return (
-    <>
-      {attachment ? (
-        <div className="relative">
-          <img
-            className="h-full w-full rounded-lg"
-            src={URL.createObjectURL(attachment)}
-            alt="attachment"
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-            onClick={() => setAttachment(null)}
-          >
-            <XMarkIcon className="h-5 w-5 text-brand-600" />
-          </button>
-        </div>
-      ) : post?.attachment ? (
-        <div className="relative">
-          <img
-            className="h-full w-full rounded-lg"
-            src={post.attachment}
-            alt="attachment"
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-            onClick={handleOnDeleteAttachment}
-          >
-            <XMarkIcon className="h-5 w-5 text-brand-600" />
-          </button>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-function FriendDropdown({
-  post,
-  friend,
-  setFriend,
-}: {
-  post: Post | null | undefined;
-  friend: Profile | null;
-  setFriend: Dispatch<SetStateAction<Profile | null>>;
-}) {
-  const friends = trpc.getFriends.useQuery();
-  return (
-    <>
-      {post?.friend ? (
-        <div className="flex-shrink-0">
-          <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-            {post.friend.imageUrl ? (
-              <img
-                src={post.friend.imageUrl}
-                alt=""
-                className="h-5 w-5 flex-shrink-0 rounded-full"
-              />
-            ) : (
-              <UserCircleIcon
-                className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                aria-hidden="true"
-              />
-            )}
-
-            <span className="ml-2 block truncate text-sm font-bold text-brand-500">
-              {post.friend.name}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <Listbox
-          as="div"
-          value={friend}
-          onChange={setFriend}
-          className="flex-shrink-0"
-        >
-          {({ open }) => (
-            <>
-              <Listbox.Label className="sr-only"> Send to </Listbox.Label>
-              <div className="relative">
-                <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-                  {friend === null ? (
-                    <UserCircleIcon
-                      className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <img
-                      src={friend.imageUrl}
-                      alt=""
-                      className="h-5 w-5 flex-shrink-0 rounded-full"
-                    />
-                  )}
-                </Listbox.Button>
-
-                <Transition
-                  show={open}
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                    <Listbox.Option
-                      key={null}
-                      className={({ active }) =>
-                        clsx(
-                          active ? "bg-brand-100" : "bg-brand-50",
-                          "relative cursor-default select-none px-3 py-2"
-                        )
-                      }
-                      value={null}
-                    >
-                      <div className="flex items-center">
-                        <UserCircleIcon
-                          className="h-5 w-5 flex-shrink-0 text-brand-400"
-                          aria-hidden="true"
-                        />
-                        <span className="ml-3 block truncate text-sm font-bold text-brand-500">
-                          Unassigned
-                        </span>
-                      </div>
-                    </Listbox.Option>
-                    {friends.data?.map((friend) => (
-                      <Listbox.Option
-                        key={friend.friend.id}
-                        className={({ active }) =>
-                          clsx(
-                            active ? "bg-brand-100" : "bg-brand-50",
-                            "relative cursor-default select-none px-3 py-2"
-                          )
-                        }
-                        value={friend.friend}
-                      >
-                        <div className="flex items-center">
-                          {friend.friend.imageUrl ? (
-                            <img
-                              src={friend.friend.imageUrl}
-                              alt=""
-                              className="h-5 w-5 flex-shrink-0 rounded-full"
-                            />
-                          ) : (
-                            <UserCircleIcon
-                              className="h-5 w-5 flex-shrink-0 text-brand-400"
-                              aria-hidden="true"
-                            />
-                          )}
-
-                          <span className="ml-3 block truncate text-sm font-bold text-brand-500">
-                            {friend.friend.name}
-                          </span>
-                        </div>
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </Transition>
-              </div>
-            </>
-          )}
-        </Listbox>
-      )}
-    </>
-  );
-}
-
-function LabelDropdown({
-  label,
-  setLabel,
-}: {
+interface Props {
+  open: boolean;
   label: Label | null;
+  friend: Profile | null;
+  length: number;
+  setOpen: Dispatch<SetStateAction<boolean>>;
   setLabel: Dispatch<SetStateAction<Label | null>>;
-}) {
-  return (
-    <Listbox
-      as="div"
-      value={label}
-      onChange={setLabel}
-      className="flex-shrink-0"
-    >
-      {({ open }) => (
-        <>
-          <Listbox.Label className="sr-only"> Add a label </Listbox.Label>
-          <div className="relative">
-            <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-              <TagIcon
-                className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
-                aria-hidden="true"
-              />
-              <span className="mx-1 block w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500">
-                {label ?? "Set label"}
-              </span>
-            </Listbox.Button>
-
-            <Transition
-              show={open}
-              as={Fragment}
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                <Listbox.Option
-                  key="PUBLIC"
-                  className={({ active }) =>
-                    clsx(
-                      active ? "bg-brand-100" : "bg-brand-50",
-                      "relative cursor-default select-none px-3 py-2"
-                    )
-                  }
-                  value="PUBLIC"
-                >
-                  <div className="flex items-center">
-                    <span className="block truncate text-sm font-bold text-brand-500">
-                      PUBLIC
-                    </span>
-                  </div>
-                </Listbox.Option>
-                <Listbox.Option
-                  key="PRIVATE"
-                  className={({ active }) =>
-                    clsx(
-                      active ? "bg-brand-100" : "bg-brand-50",
-                      "relative cursor-default select-none px-3 py-2"
-                    )
-                  }
-                  value="PRIVATE"
-                >
-                  <div className="flex items-center">
-                    <span className="block truncate text-sm font-bold text-brand-500">
-                      PRIVATE
-                    </span>
-                  </div>
-                </Listbox.Option>
-              </Listbox.Options>
-            </Transition>
-          </div>
-        </>
-      )}
-    </Listbox>
-  );
-}
-
-function PostButtons({
-  edit,
-  setLength,
-  descriptionRef,
-}: {
-  edit: boolean;
+  setFriend: Dispatch<SetStateAction<Profile | null>>;
   setLength: Dispatch<SetStateAction<number>>;
-  descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
-}) {
-  const utils = trpc.useContext();
-  const profile = trpc.getProfile.useQuery();
-  const generateAI = trpc.generateAIResponse.useMutation({
-    onSuccess: (data) => {
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      setLength((length) => data?.length ?? length);
-      toast.success("Updated your post with AI generated text!");
-      descriptionRef.current
-        ? (descriptionRef.current.value = (data ?? "").trim())
-        : null;
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnGenerateAI = (prompt: string | undefined) => {
-    if (!prompt || !profile.data) return;
-    if (profile.data.credits < 5) {
-      toast.dismiss();
-      return toast.error("You don't have enough credits");
-    }
-    toast.loading("Loading...");
-    generateAI.mutate({
-      prompt,
-      credits: profile.data.credits - 5,
-    });
-  };
-  return (
-    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
-      <button
-        type="button"
-        onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
-        className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-      >
-        <span>Use AI</span>
-        <span className="flex items-center space-x-1">
-          <span>(5</span>
-          <TicketIcon className="h-5 w-5" />)
-        </span>
-      </button>
-      <button
-        type="submit"
-        className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-      >
-        {edit ? (
-          <span>Save</span>
-        ) : (
-          <>
-            <span>Create</span>
-            <span className="flex items-center space-x-1">
-              <span>(1</span>
-              <TicketIcon className="h-5 w-5" />)
-            </span>
-          </>
-        )}
-      </button>
-    </div>
-  );
 }
 
 function Modal({
   open,
+  label,
+  friend,
+  length,
   setOpen,
-}: {
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-}) {
+  setLabel,
+  setFriend,
+  setLength,
+}: Props) {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * router hook by next
+   */
   const { query } = useRouter();
+
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
-  const [length, setLength] = useState(0);
-  const profile = trpc.getProfile.useQuery();
+
+  /**
+   * useState that might be replaced with a state management library
+   */
+  const [attachment, setAttachment] = useState<File | null>(null);
+
+  /**
+   * useRef hook
+   */
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
+
+  /**
+   * trpc queries
+   */
   const id = query.id ?? 0;
   const post = trpc.getPost.useQuery(Number(id));
-  const [friend, setFriend] = useState<Profile | null>(null);
-  const [label, setLabel] = useState(post.data?.label ?? null);
-  const [attachment, setAttachment] = useState<File | null>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
-  const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
-    const target = event.target as typeof event.target & {
-      files: FileList;
-    };
-    const file = target.files[0];
-    setAttachment(file);
-  };
-  const createPost = trpc.createPost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      toast.success("Post created!");
-      utils.getPublicPosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
+
+  /**
+   * update post mutation that links to corresponding procedure in the backend
+   */
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
       setOpen(false);
@@ -477,10 +124,29 @@ function Modal({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * event handler for updating post
+   */
+  const handleUpdate = () => {
+    if (!post.data) return; //we have values that depend on the data being not undefined
+    updatePost.mutate({
+      id: post.data.id, // 1.
+      label: post.data.label, // 2.
+      title: post.data.title, // 3.
+      description: post.data.description, // 4.
+      attachment: null,
+      attachmentPath: null,
+    });
+  };
+
+  /**
+   * event handler for form submission
+   */
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user?.fullName || !user?.username || !profile.data || !post.data)
-      return;
+    //we have values that depend on the data being not undefined
+    if (!post.data) return;
     const target = e.target as typeof e.target & {
       title: { value: string };
       description: { value: string };
@@ -496,7 +162,7 @@ function Modal({
           },
         });
         updatePost.mutate({
-          id: post.data.id,
+          id: post.data.id, // 1.
           label,
           title: target.title.value,
           description: target.description.value,
@@ -510,7 +176,7 @@ function Modal({
       }
     } else {
       updatePost.mutate({
-        id: post.data.id,
+        id: post.data.id, // 1.
         label,
         title: target.title.value,
         description: target.description.value,
@@ -518,10 +184,34 @@ function Modal({
       });
     }
   };
+
+  /**
+   * event handler for selecting attachment file
+   */
+  const handleFileSelect = async (event: FormEvent<HTMLInputElement>) => {
+    const target = event.target as typeof event.target & {
+      files: FileList;
+    };
+    const file = target.files[0];
+    setAttachment(file);
+  };
+
+  /**
+   * character length indicator effect
+   */
   const progress = `
     radial-gradient(closest-side, white 85%, transparent 80% 100%),
     conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
   `;
+
+  /**
+   * render empty UI if the post data has not loaded in
+   */
+  if (!post.data) return <></>;
+
+  /**
+   * render UI
+   */
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -549,13 +239,26 @@ function Modal({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
+                {/**
+                 * Render any attachment connected to this post
+                 */}
                 <Attachment
-                  post={post.data}
                   attachment={attachment}
-                  setOpen={setOpen}
                   setAttachment={setAttachment}
+                  postAttachment={{
+                    attachment: post.data.attachment,
+                    attachmentPath: post.data.attachmentPath,
+                  }}
+                  handleUpdate={handleUpdate}
                 />
+
+                {/**
+                 * Render post form
+                 */}
                 <form className="relative" onSubmit={handleOnSubmit}>
+                  {/**
+                   * Render close button
+                   */}
                   <button
                     type="button"
                     className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
@@ -563,7 +266,11 @@ function Modal({
                   >
                     <XMarkIcon className="h-5 w-5 text-brand-600" />
                   </button>
+
                   <div className="overflow-hidden rounded-lg">
+                    {/**
+                     * Render title field
+                     */}
                     <label htmlFor="title" className="sr-only">
                       Title
                     </label>
@@ -577,6 +284,10 @@ function Modal({
                       maxLength={100}
                       required
                     />
+
+                    {/**
+                     * Render description field
+                     */}
                     <label htmlFor="description" className="sr-only">
                       Description
                     </label>
@@ -593,12 +304,20 @@ function Modal({
                       required
                     />
                   </div>
+
+                  {/**
+                   * Render max character indicator
+                   */}
                   <div className="flex justify-end px-4 pt-4">
                     <div
                       className="h-5 w-5 rounded-full"
                       style={{ background: progress }}
                     ></div>
                   </div>
+
+                  {/**
+                   * Render post toolkit
+                   */}
                   <div>
                     <div
                       className={clsx(
@@ -608,13 +327,16 @@ function Modal({
                         "flex items-center space-x-3 py-2 pl-2"
                       )}
                     >
-                      {!post.data?.attachment ? (
+                      {/**
+                       * Only render the attachment button if the post has no prior attachment
+                       */}
+                      {!post.data?.attachment && (
                         <div className="flex">
                           <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                             <input
                               type="file"
                               className="absolute inset-0 opacity-0"
-                              onChange={(event) => onFileSelected(event)}
+                              onChange={(event) => handleFileSelect(event)}
                             />
                             <PaperClipIcon
                               className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
@@ -625,17 +347,23 @@ function Modal({
                             </span>
                           </div>
                         </div>
-                      ) : null}
-                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
-                        <FriendDropdown
-                          post={post.data}
-                          friend={friend}
-                          setFriend={setFriend}
-                        />
+                      )}
 
+                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
+                        {/**
+                         * Render friend dropdown
+                         */}
+                        <FriendDropdown friend={friend} setFriend={setFriend} />
+
+                        {/**
+                         * Render label dropdown
+                         */}
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
+                    {/**
+                     * Render post buttons
+                     */}
                     <PostButtons
                       edit={!!post}
                       setLength={setLength}
@@ -652,56 +380,46 @@ function Modal({
   );
 }
 
-function Dropdown({ item }: { item: Post }) {
-  return (
-    <Menu as="div" className="relative inline-block text-left">
-      <div>
-        <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
-          {item.author?.imageUrl ? (
-            <img
-              className="h-10 w-10 rounded-full"
-              src={item.author?.imageUrl}
-              alt=""
-            />
-          ) : (
-            <span className="block h-10 w-10 rounded-full bg-brand-700"></span>
-          )}
-        </Menu.Button>
-      </div>
-      <Transition
-        as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <Menu.Items className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-          <div className="py-1">
-            <Menu.Item>
-              {({ active }) => (
-                <Link
-                  href={"/profile/" + item.authorId}
-                  className={clsx(
-                    active ? "bg-brand-100 text-brand-900" : "text-brand-700",
-                    "block px-4 py-2 text-sm"
-                  )}
-                >
-                  View profile
-                </Link>
-              )}
-            </Menu.Item>
-          </div>
-        </Menu.Items>
-      </Transition>
-    </Menu>
-  );
-}
+export default function Post() {
+  /**
+   * Mouse position
+   */
+  let mouseX = useMotionValue(0);
+  let mouseY = useMotionValue(0);
 
-function Like({ item }: { item: Post }) {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
+
+  /**
+   * router hook by next
+   */
+  const { back, query } = useRouter();
+
+  /**
+   * useState that might be replaced with a state management library
+   */
+  const [open, setOpen] = useState(false);
+  const [length, setLength] = useState(0);
+  const [label, setLabel] = useState<Label | null>(null);
+  const [friend, setFriend] = useState<Profile | null>(null);
+
+  /**
+   * trpc queries
+   */
+  const profile = trpc.getProfile.useQuery();
+  const id = query.id ?? 0;
+  const post = trpc.getPost.useQuery(Number(id));
+
+  /**
+   * create like mutation that links to corresponding procedure in the backend
+   */
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -713,6 +431,10 @@ function Like({ item }: { item: Post }) {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * delete like mutation that links to corresponding procedure in the backend
+   */
   const deleteLike = trpc.deleteLike.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -724,295 +446,10 @@ function Like({ item }: { item: Post }) {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const handleOnCreateLike = (id: number) => {
-    if (!user?.id) return;
-    toast.loading("Loading...");
-    createLike.mutate({
-      postId: id,
-      profileId: user.id,
-    });
-  };
-  const handleOnDeleteLike = (id: number) => {
-    if (!user?.id) return;
-    toast.loading("Loading...");
-    deleteLike.mutate({
-      postId: id,
-      profileId: user.id,
-    });
-  };
-  return (
-    <div className="inline-flex items-center text-sm">
-      <button
-        type="button"
-        onClick={() => {
-          !!item.likes.find((post) => post.profileId === user?.id)
-            ? handleOnDeleteLike(item.id)
-            : handleOnCreateLike(item.id);
-        }}
-        className="inline-flex space-x-2"
-      >
-        {item.likes.find((like) => like.profileId === user?.id) ? (
-          <HandThumbUpIconSolid className="h-5 w-5" aria-hidden="true" />
-        ) : (
-          <HandThumbUpIconOutline className="h-5 w-5" aria-hidden="true" />
-        )}
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={item.likes.length}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="font-medium"
-          >
-            {item.likes.length}
-          </motion.span>
-        </AnimatePresence>
-        <span className="sr-only">likes</span>
-      </button>
-    </div>
-  );
-}
 
-function Comment({ item }: { item: Post }) {
-  const { user } = useUser();
-  return (
-    <span className="inline-flex items-center text-sm">
-      <button type="button" className="inline-flex space-x-2">
-        {item.comments.find((comment) => comment.authorId === user?.id) ? (
-          <ChatBubbleOvalLeftIconSolid className="h-5 w-5" aria-hidden="true" />
-        ) : (
-          <ChatBubbleOvalLeftIconOutline
-            className="h-5 w-5"
-            aria-hidden="true"
-          />
-        )}
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={item.comments.length}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="font-medium"
-          >
-            {item.comments.length}
-          </motion.span>
-        </AnimatePresence>
-        <span className="sr-only">comments</span>
-      </button>
-    </span>
-  );
-}
-
-function Bookmark({ item }: { item: Post }) {
-  const { user } = useUser();
-  const utils = trpc.useContext();
-  const createBookmark = trpc.createBookmark.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getPost.invalidate();
-      toast.success("Post bookmarked!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const deleteBookmark = trpc.deleteBookmark.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getPost.invalidate();
-      toast.success("Post unbookmarked!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnCreateBookmark = (id: number) => {
-    if (!user?.id) return;
-    toast.loading("Loading...");
-    createBookmark.mutate({
-      postId: id,
-      profileId: user.id,
-    });
-  };
-  const handleOnDeleteBookmark = (id: number) => {
-    if (!user?.id) return;
-    toast.loading("Loading...");
-    deleteBookmark.mutate({
-      postId: id,
-      profileId: user.id,
-    });
-  };
-  return (
-    <span className="inline-flex items-center text-sm">
-      <button
-        type="button"
-        onClick={() => {
-          !!item.bookmarks.find((post) => post.profileId === user?.id)
-            ? handleOnDeleteBookmark(item.id)
-            : handleOnCreateBookmark(item.id);
-        }}
-        className="inline-flex space-x-2"
-      >
-        {item.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
-          <BookmarkIconSolid className="h-5 w-5" aria-hidden="true" />
-        ) : (
-          <BookmarkIconOutline className="h-5 w-5" aria-hidden="true" />
-        )}
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={item.bookmarks.length}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="font-medium"
-          >
-            {item.bookmarks.length}
-          </motion.span>
-        </AnimatePresence>
-        <span className="sr-only">bookmarks</span>
-      </button>
-    </span>
-  );
-}
-
-function BookmarkCheck({ item }: { item: Post }) {
-  const { user } = useUser();
-  return (
-    <div>
-      <AnimatePresence mode="wait">
-        {item.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex text-sm"
-          >
-            <span className="inline-flex items-center text-sm">
-              <button type="button" className="inline-flex space-x-2">
-                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                <span className="font-medium">Bookmarked</span>
-              </button>
-            </span>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function Comments({ item }: { item: Post }) {
-  const { user } = useUser();
-  const utils = trpc.useContext();
-  const deleteComment = trpc.deleteComment.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getPost.invalidate();
-      toast.success("Comment deleted!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnDeleteComment = (id: number) => {
-    toast.loading("Loading...");
-    deleteComment.mutate({ id });
-  };
-  return (
-    <ul role="list" className="space-y-6">
-      <AnimatePresence>
-        {item.comments.map((comment) => (
-          <motion.li
-            key={comment.id}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="relative flex gap-x-4"
-          >
-            {item.authorId === user?.id || comment.authorId === user?.id ? (
-              <Menu
-                as="div"
-                className="absolute inset-0 inline-block text-left"
-              >
-                <div>
-                  <Menu.Button className="absolute inset-0"></Menu.Button>
-                </div>
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                    <div className="py-1">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            type="button"
-                            onClick={() => handleOnDeleteComment(comment.id)}
-                            className={clsx(
-                              active
-                                ? "bg-brand-100 text-brand-900"
-                                : "text-brand-700",
-                              "block w-full px-4 py-2 text-left text-sm"
-                            )}
-                          >
-                            Delete comment
-                          </button>
-                        )}
-                      </Menu.Item>
-                    </div>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
-            ) : null}
-            {comment.author.imageUrl ? (
-              <img
-                src={comment.author.imageUrl}
-                alt=""
-                className="relative h-6 w-6 flex-none rounded-full bg-brand-700"
-              />
-            ) : (
-              <span className="relative mt-3 h-6 w-6 flex-none rounded-full bg-brand-700"></span>
-            )}
-            <div className="flex-auto rounded-md">
-              <div className="flex justify-between gap-x-4">
-                <div className="py-0.5 text-xs leading-5 text-brand-50">
-                  <span className="font-medium text-brand-50">
-                    {comment.author.name}
-                  </span>{" "}
-                  commented
-                </div>
-                <time
-                  dateTime={comment.createdAt.toString()}
-                  className="flex-none py-0.5 text-xs leading-5 text-brand-50"
-                >
-                  {formatDistanceToNow(comment.createdAt, {
-                    addSuffix: true,
-                  })}
-                </time>
-              </div>
-              <p className="text-sm leading-6 text-brand-50">
-                {comment.comment}
-              </p>
-            </div>
-          </motion.li>
-        ))}
-      </AnimatePresence>
-    </ul>
-  );
-}
-
-function CommentBox({ item }: { item: Post }) {
-  const { user } = useUser();
-  const utils = trpc.useContext();
-  const [length, setLength] = useState(0);
-  const profile = trpc.getProfile.useQuery();
+  /**
+   * create comment mutation that links to corresponding procedure in the backend
+   */
   const createComment = trpc.createComment.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -1025,89 +462,55 @@ function CommentBox({ item }: { item: Post }) {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 1)
-      return toast.error("You don't have enough credits");
-    const target = e.target as typeof e.target & {
-      reset: () => void;
-      comment: { id: string; value: string };
-    };
-    toast.loading("Loading");
-    createComment.mutate(
-      {
-        postId: Number(target.comment.id),
-        comment: target.comment.value,
-        credits: profile.data.credits - 1,
-      },
-      {
-        onSuccess: () => {
-          setLength(0);
-          target.reset();
-        },
-      }
-    );
-  };
-  const progress = `
-    radial-gradient(closest-side, #242427 85%, transparent 80% 100%),
-    conic-gradient(white ${Math.round((length / MAX_TOKENS) * 100)}%, #242427 0)
-  `;
-  return (
-    <div className="mt-6 flex gap-x-3">
-      {user ? (
-        <img
-          src={user.profileImageUrl}
-          alt=""
-          className="h-6 w-6 flex-none rounded-full bg-brand-700"
-        />
-      ) : (
-        <span className="block h-6 w-6 flex-none rounded-full bg-brand-700"></span>
-      )}
-      <form className="relative flex-auto" onSubmit={handleOnCreateComment}>
-        <div className="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-inset ring-brand-300 focus-within:ring-2">
-          <label htmlFor="comment" className="sr-only">
-            Add your comment
-          </label>
-          <textarea
-            id={String(item.id)}
-            rows={2}
-            name="comment"
-            className="block w-full resize-none border-0 bg-transparent py-1.5 text-sm leading-6 text-brand-50 placeholder:text-brand-50 focus:ring-0"
-            placeholder="Add your comment..."
-            maxLength={MAX_TOKENS}
-            onChange={(e) => setLength(e.target.value.length)}
-            required
-          />
-        </div>
 
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-end py-2 pl-3 pr-2">
-          <div
-            className="h-4 w-4 rounded-full"
-            style={{ background: progress }}
-          ></div>
-          <button
-            type="submit"
-            className="flex items-center space-x-1 rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm"
-          >
-            <span>Comment (1</span>
-            <TicketIcon className="h-5 w-5" />)
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
+  /**
+   * delete comment mutation that links to corresponding procedure in the backend
+   */
+  const deleteComment = trpc.deleteComment.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getPost.invalidate();
+      toast.success("Comment deleted!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
 
-export default function Post() {
-  let mouseX = useMotionValue(0);
-  let mouseY = useMotionValue(0);
-  const { user } = useUser();
-  const utils = trpc.useContext();
-  const { back, query } = useRouter();
-  const [open, setOpen] = useState(false);
-  const id = query.id ?? 0;
-  const post = trpc.getPost.useQuery(Number(id));
+  /**
+   * create bookmark mutation that links to corresponding procedure in the backend
+   */
+  const createBookmark = trpc.createBookmark.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getPost.invalidate();
+      toast.success("Post bookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * delete bookmark mutation that links to corresponding procedure in the backend
+   */
+  const deleteBookmark = trpc.deleteBookmark.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getPost.invalidate();
+      toast.success("Post unbookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * delete post mutation that links to corresponding procedure in the backend
+   */
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
       back();
@@ -1121,40 +524,153 @@ export default function Post() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * delete attachment mutation that links to corresponding procedure in the backend
+   */
   const deleteAttachment = trpc.deleteAttachment.useMutation({
     onError: (err: any) => {
       toast.dismiss();
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
-  const handleOnDeletePost = () => {
-    if (!post.data) return;
+
+  /**
+   * event handler for editing post
+   */
+  const handleEditPost = () => {
+    if (!post.data) return; //we have values that depend on the data being not undefined
+    setOpen(true);
+    setLabel(post.data.label); // 1.
+    setLength(post.data.description.length); // 2.
+    if (post.data.friend) setFriend(post.data.friend); // 3.
+  };
+
+  /**
+   * event handler for deleting post
+   */
+  const handleDeletePost = () => {
+    if (!post.data) return; //we have values that depend on the data being not undefined
     toast.loading("Loading...");
+    // 1.
     if (post.data.attachmentPath) {
       deleteAttachment.mutate(
         {
-          attachmentPath: post.data.attachmentPath,
+          attachmentPath: post.data.attachmentPath, // 2.
         },
         {
           onSuccess: () => {
             if (!post.data) return;
             deletePost.mutate({
-              id: post.data.id,
+              id: post.data.id, // 3.
             });
           },
         }
       );
     } else {
       deletePost.mutate({
-        id: post.data.id,
+        id: post.data.id, // 4.
       });
     }
   };
+
+  /**
+   * event handler for liking post
+   */
+  const handleOnCreateLike = (id: number) => {
+    if (!user?.id) return; //we have values that depend on the data being not undefined
+    toast.loading("Loading...");
+    createLike.mutate({
+      postId: id,
+      profileId: user.id, // 1.
+    });
+  };
+
+  /**
+   * event handler for disliking post
+   */
+  const handleOnDeleteLike = (id: number) => {
+    if (!user?.id) return; //we have values that depend on the data being not undefined
+    toast.loading("Loading...");
+    deleteLike.mutate({
+      postId: id,
+      profileId: user.id, // 1.
+    });
+  };
+
+  /**
+   * event handler for creating comment
+   */
+  const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!user?.id || !profile.data) return; //we have values that depend on the data being not undefined
+    // 1. - the cost of creating a comment is 1 credit
+    if (profile.data.credits < 1)
+      return toast.error("You don't have enough credits");
+    const target = e.target as typeof e.target & {
+      reset: () => void;
+      comment: { id: string; value: string };
+    };
+    toast.loading("Loading");
+    createComment.mutate(
+      {
+        postId: Number(target.comment.id),
+        comment: target.comment.value,
+        credits: profile.data.credits - 1, // 2.
+      },
+      {
+        onSuccess: () => {
+          setLength(0);
+          target.reset(); //reset the comment field on success
+        },
+      }
+    );
+  };
+
+  /**
+   * event handler for deleting comment
+   */
+  const handleOnDeleteComment = (id: number) => {
+    toast.loading("Loading...");
+    deleteComment.mutate({ id });
+  };
+
+  /**
+   * event handler for creating bookmark
+   */
+  const handleOnCreateBookmark = (id: number) => {
+    if (!user?.id) return; //we have values that depend on the data being not undefined
+    toast.loading("Loading...");
+    createBookmark.mutate({
+      postId: id,
+      profileId: user.id, // 1.
+    });
+  };
+
+  /**
+   * event handler for deleting bookmark
+   */
+  const handleOnDeleteBookmark = (id: number) => {
+    if (!user?.id) return; //we have values that depend on the data being not undefined
+    toast.loading("Loading...");
+    deleteBookmark.mutate({
+      postId: id,
+      profileId: user.id, // 1.
+    });
+  };
+
+  /**
+   * event handler for mouse movement
+   */
   function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
     let { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
   }
+
+  /**
+   * flash effect
+   */
   const flash = useMotionTemplate`
   radial-gradient(
     650px circle at ${mouseX}px ${mouseY}px,
@@ -1164,137 +680,199 @@ export default function Post() {
 `;
   return (
     <>
-      <Modal open={open} setOpen={setOpen} />
+      <Modal
+        open={open}
+        label={label}
+        friend={friend}
+        length={length}
+        setOpen={setOpen}
+        setLabel={setLabel}
+        setFriend={setFriend}
+        setLength={setLength}
+      />
       <div className="pb-36">
-        {post.data ? (
+        {!!post.data && (
           <>
-            {post.data.label === "PUBLIC" ? (
-              <>
-                <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
-                  <div className="flex items-center justify-center">
-                    <div className="relative w-full space-y-6 px-4 py-6">
-                      <button
-                        type="button"
-                        onClick={() => back()}
-                        className="flex items-center space-x-2 text-brand-50"
-                      >
-                        <ArrowLongLeftIcon className="h-5 w-5" />
-                        <span>Go back</span>
-                      </button>
-                      <div
-                        onMouseMove={handleMouseMove}
-                        className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
-                      >
-                        <motion.div
-                          className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
-                          style={{ background: flash }}
-                        ></motion.div>
-                        <div className="space-y-6 text-brand-50">
-                          {post.data.attachment ? (
-                            <img
-                              className="h-full w-full rounded-lg"
-                              src={post.data.attachment}
-                              alt="attachment"
-                            />
-                          ) : null}
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-lg">{post.data.title}</h4>
-                              {post.data.authorId === user?.id ? (
-                                <Menu
-                                  as="div"
-                                  className="relative inline-block text-left"
-                                >
-                                  <div>
-                                    <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
-                                      <EllipsisVerticalIcon
-                                        className="h-5 w-5"
-                                        aria-hidden="true"
-                                      />
-                                    </Menu.Button>
-                                  </div>
-                                  <Transition
-                                    as={Fragment}
-                                    enter="transition ease-out duration-100"
-                                    enterFrom="transform opacity-0 scale-95"
-                                    enterTo="transform opacity-100 scale-100"
-                                    leave="transition ease-in duration-75"
-                                    leaveFrom="transform opacity-100 scale-100"
-                                    leaveTo="transform opacity-0 scale-95"
-                                  >
-                                    <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                                      <div className="py-1">
-                                        <>
-                                          <Menu.Item>
-                                            {({ active }) => (
-                                              <button
-                                                type="button"
-                                                onClick={() => setOpen(true)}
-                                                className={clsx(
-                                                  active
-                                                    ? "bg-brand-100 text-brand-900"
-                                                    : "text-brand-700",
-                                                  "w-full px-4 py-2 text-left text-sm"
-                                                )}
-                                              >
-                                                Edit
-                                              </button>
-                                            )}
-                                          </Menu.Item>
-                                          <Menu.Item>
-                                            {({ active }) => (
-                                              <button
-                                                type="button"
-                                                onClick={handleOnDeletePost}
-                                                className={clsx(
-                                                  active
-                                                    ? "bg-brand-100 text-brand-900"
-                                                    : "text-brand-700",
-                                                  "w-full px-4 py-2 text-left text-sm"
-                                                )}
-                                              >
-                                                Delete
-                                              </button>
-                                            )}
-                                          </Menu.Item>
-                                        </>
-                                      </div>
-                                    </Menu.Items>
-                                  </Transition>
-                                </Menu>
-                              ) : null}
-                            </div>
-                            <p>{post.data.description}</p>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <Dropdown item={post.data} />
-                            <div className="flex flex-col">
-                              <div className="flex items-center space-x-1 font-semibold">
-                                <span>{post.data.author?.name}</span>
-                                {post.data.author?.premium ? (
-                                  <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
-                                ) : null}
-                              </div>
-                              <div>{`@${post.data.author?.username}`}</div>
-                            </div>
-                          </div>
-                          <div className="relative flex flex-col space-y-6">
-                            <div className="flex space-x-6">
-                              <Like item={post.data} />
-                              <Comment item={post.data} />
-                              <Bookmark item={post.data} />
-                            </div>
-                            <BookmarkCheck item={post.data} />
-                            <Comments item={post.data} />
+            {post.data.label === "PUBLIC" ||
+            post.data.authorId === user?.id ||
+            post.data.friendId === user?.id ? (
+              <div className="mx-auto mt-8 max-w-3xl px-2 lg:px-8">
+                <div className="flex items-center justify-center">
+                  <div className="relative w-full space-y-6 px-4 py-6">
+                    {/**
+                     * Render go back button
+                     */}
+                    <button
+                      type="button"
+                      onClick={() => back()}
+                      className="flex items-center space-x-2 text-brand-50"
+                    >
+                      <ArrowLongLeftIcon className="h-5 w-5" />
+                      <span>Go back</span>
+                    </button>
 
-                            {user ? <CommentBox item={post.data} /> : null}
+                    <div
+                      onMouseMove={handleMouseMove}
+                      className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
+                    >
+                      {/**
+                       * Render flash effect for the post container
+                       */}
+                      <motion.div
+                        className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
+                        style={{ background: flash }}
+                      ></motion.div>
+
+                      <div className="space-y-6 text-brand-50">
+                        {/**
+                         * Render any attachment connected to this post
+                         */}
+                        {!!post.data.attachment && (
+                          <img
+                            className="h-full w-full rounded-lg"
+                            src={post.data.attachment}
+                            alt="attachment"
+                          />
+                        )}
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-lg">{post.data.title}</h4>
+                            {/**
+                             * Render dropdown menu for the post
+                             */}
+                            {post.data.authorId === user?.id && (
+                              <Menu
+                                as="div"
+                                className="relative inline-block text-left"
+                              >
+                                <div>
+                                  <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
+                                    <EllipsisVerticalIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  </Menu.Button>
+                                </div>
+                                <Transition
+                                  as={Fragment}
+                                  enter="transition ease-out duration-100"
+                                  enterFrom="transform opacity-0 scale-95"
+                                  enterTo="transform opacity-100 scale-100"
+                                  leave="transition ease-in duration-75"
+                                  leaveFrom="transform opacity-100 scale-100"
+                                  leaveTo="transform opacity-0 scale-95"
+                                >
+                                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
+                                    <div className="py-1">
+                                      {/**
+                                       * Render edit button for the post
+                                       */}
+                                      <Menu.Item>
+                                        {({ active }) => (
+                                          <button
+                                            type="button"
+                                            onClick={handleEditPost}
+                                            className={clsx(
+                                              active
+                                                ? "bg-brand-100 text-brand-900"
+                                                : "text-brand-700",
+                                              "w-full px-4 py-2 text-left text-sm"
+                                            )}
+                                          >
+                                            Edit
+                                          </button>
+                                        )}
+                                      </Menu.Item>
+
+                                      {/**
+                                       * Render delete button for the post
+                                       */}
+                                      <Menu.Item>
+                                        {({ active }) => (
+                                          <button
+                                            type="button"
+                                            onClick={handleDeletePost}
+                                            className={clsx(
+                                              active
+                                                ? "bg-brand-100 text-brand-900"
+                                                : "text-brand-700",
+                                              "w-full px-4 py-2 text-left text-sm"
+                                            )}
+                                          >
+                                            Delete
+                                          </button>
+                                        )}
+                                      </Menu.Item>
+                                    </div>
+                                  </Menu.Items>
+                                </Transition>
+                              </Menu>
+                            )}
                           </div>
+                          <p>{post.data.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <ProfileDropdown item={post.data} />
+                          {/**
+                           * Render user details
+                           */}
+                          <div className="flex flex-col">
+                            <div className="flex items-center space-x-1 font-semibold">
+                              <span>{post.data.author?.name}</span>
+                              {post.data.author?.premium && (
+                                <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                              )}
+                            </div>
+                            <div>{`@${post.data.author?.username}`}</div>
+                          </div>
+                        </div>
+                        <div className="relative flex flex-col space-y-6">
+                          {/**
+                           * Render the stats for this post
+                           */}
+                          <div className="flex space-x-6">
+                            <Like
+                              item={post.data}
+                              handleOnCreateLike={handleOnCreateLike}
+                              handleOnDeleteLike={handleOnDeleteLike}
+                            />
+                            <Comment item={post.data} />
+                            <Bookmark
+                              item={post.data}
+                              handleOnCreateBookmark={handleOnCreateBookmark}
+                              handleOnDeleteBookmark={handleOnDeleteBookmark}
+                            />
+                          </div>
+
+                          {/**
+                           * Render a bookmark check if the user has bookmarked this post
+                           */}
+                          <BookmarkCheck item={post.data} />
+
+                          {/**
+                           * Render all the comments attached to this post
+                           */}
+                          <Comments
+                            item={post.data}
+                            handleOnDeleteComment={handleOnDeleteComment}
+                          />
+
+                          {/**
+                           * Render comment box only if user is authenticated
+                           */}
+                          {!!user && (
+                            <CommentBox
+                              item={post.data}
+                              handleOnCreateComment={handleOnCreateComment}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
               <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
                 <button
@@ -1309,7 +887,7 @@ export default function Post() {
               </div>
             )}
           </>
-        ) : null}
+        )}
       </div>
     </>
   );
