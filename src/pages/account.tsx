@@ -1,6 +1,7 @@
 import { useUser } from "@clerk/nextjs";
 import { Menu, RadioGroup, Transition } from "@headlessui/react";
 import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
+import Avatar from "@src/components/avatar";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
@@ -16,52 +17,25 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
-function Avatar() {
-  const profile = trpc.getProfile.useQuery();
-  return (
-    <div className="flex-shrink-0">
-      <div className="relative">
-        {profile.data?.imageUrl ? (
-          <img
-            className="h-16 w-16 rounded-full"
-            src={profile.data?.imageUrl}
-            alt=""
-          />
-        ) : (
-          <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
-        )}
-        <span
-          className="absolute inset-0 rounded-full shadow-inner"
-          aria-hidden="true"
-        />
-      </div>
-    </div>
-  );
-}
-
-function UserInfo() {
-  const profile = trpc.getProfile.useQuery();
-  return (
-    <div>
-      <div className="flex items-center space-x-2">
-        <h1 className="text-2xl font-bold text-brand-50">
-          {profile.data?.name}
-        </h1>
-        {profile.data?.premium ? (
-          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-        ) : null}
-      </div>
-      <p className="text-sm font-medium text-brand-500">
-        @{profile.data?.username}
-      </p>
-    </div>
-  );
-}
-
-function UserButtons() {
+function ProfileButtons() {
+  /**
+   * router hook by next
+   */
   const { reload } = useRouter();
+
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
+
+  /**
+   * trpc queries
+   */
   const profile = trpc.getProfile.useQuery();
+
+  /**
+   * update profile mutation that links to corresponding procedure in the backend
+   */
   const updateProfile = trpc.updateProfile.useMutation({
     onSuccess: (data) => {
       toast.dismiss();
@@ -73,6 +47,10 @@ function UserButtons() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * delete profile mutation that links to corresponding procedure in the backend
+   */
   const deleteProfile = trpc.deleteProfile.useMutation({
     onSuccess: () => {
       reload();
@@ -82,12 +60,20 @@ function UserButtons() {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * event handler for updating profile
+   */
   const handleOnUpdate = () => {
     toast.loading("Loading...");
     updateProfile.mutate({
       label: profile.data?.label === "PUBLIC" ? "PRIVATE" : "PUBLIC",
     });
   };
+
+  /**
+   * event handler for deleting profile
+   */
   const handleOnDelete = () => {
     toast.loading("Loading...");
     deleteProfile.mutate();
@@ -154,24 +140,65 @@ function UserButtons() {
   );
 }
 
+function ProfileDetails() {
+  const profile = trpc.getProfile.useQuery();
+  return (
+    <div>
+      <div className="flex items-center space-x-2">
+        <h1 className="text-2xl font-bold text-brand-50">
+          {profile.data?.name}
+        </h1>
+        {profile.data?.premium ? (
+          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+        ) : null}
+      </div>
+      <p className="text-sm font-medium text-brand-500">
+        @{profile.data?.username}
+      </p>
+    </div>
+  );
+}
+
 function Header() {
+  /**
+   * trpc queries
+   */
+  const profile = trpc.getProfile.useQuery();
   return (
     <>
       <div className="md:flex md:items-center md:justify-between md:space-x-5">
         <div className="flex items-center space-x-5">
-          <Avatar />
-          <UserInfo />
+          {/**
+           * Render profile image
+           */}
+          <Avatar imageUrl={profile.data?.imageUrl} />
+
+          {/**
+           * Render profile details
+           */}
+          <ProfileDetails />
         </div>
-        <UserButtons />
+
+        {/**
+         * Render profile buttons
+         */}
+        <ProfileButtons />
       </div>
     </>
   );
 }
 
 function Stats() {
+  /**
+   * trpc queries
+   */
   const likes = trpc.getLikes.useQuery();
   const comments = trpc.getComments.useQuery();
   const bookmarks = trpc.getBookmarks.useQuery();
+
+  /**
+   * profile stats
+   */
   const stats = [
     {
       name: "Total Likes",
@@ -346,9 +373,24 @@ function Dropdown() {
 }
 
 export default function Account() {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * trpc queries
+   */
   const profile = trpc.getProfile.useQuery();
+
+  /**
+   * useState that might be replaced with a state management library
+   */
   const [isAuth, setIsAuth] = useState(false);
+
+  /**
+   * initialize auth session if user is authenticated to render private images from upload.io
+   */
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -357,15 +399,26 @@ export default function Account() {
       console.log(err.message);
     }
   };
+
+  /**
+   * useEffect hook for checking the state of the user
+   */
   useEffect(() => {
     if (user) initializeAuthSession();
     else upload.endAuthSession();
   }, [user]);
+
+  /**
+   * render UI
+   */
   return (
     <>
-      {isAuth && profile.data ? (
+      {isAuth && !!profile.data && (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+            {/**
+             * Render banner image
+             */}
             <div className="relative">
               <img
                 src={
@@ -378,11 +431,19 @@ export default function Account() {
               <span className="absolute inset-0" />
               <Dropdown />
             </div>
+
+            {/**
+             * Render profile header
+             */}
             <Header />
+
+            {/**
+             * Render profile stats
+             */}
             <Stats />
           </div>
         </main>
-      ) : null}
+      )}
     </>
   );
 }

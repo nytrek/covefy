@@ -9,7 +9,7 @@ const API_ERROR_MESSAGE =
 interface Props {
   attachment: File | null;
   setAttachment: Dispatch<SetStateAction<File | null>>;
-  postAttachment: {
+  postAttachment?: {
     attachment: string | null | undefined;
     attachmentPath: string | null | undefined;
   };
@@ -29,7 +29,7 @@ export default function Attachment({
     },
   });
   const handleOnDeleteAttachment = () => {
-    if (!postAttachment.attachmentPath) return;
+    if (!postAttachment?.attachmentPath) return;
     toast.loading("Loading...");
     deleteAttachment.mutate(
       {
@@ -59,7 +59,7 @@ export default function Attachment({
             <XMarkIcon className="h-5 w-5 text-brand-600" />
           </button>
         </div>
-      ) : postAttachment.attachment ? (
+      ) : postAttachment?.attachment ? (
         <div className="relative">
           <img
             className="h-full w-full rounded-lg"

@@ -1,23 +1,24 @@
 import { useUser } from "@clerk/nextjs";
-import { Dialog, Listbox, Transition } from "@headlessui/react";
+import { Dialog, Transition } from "@headlessui/react";
 import {
+  ArrowLongLeftIcon,
   CheckBadgeIcon,
   PaperClipIcon,
-  TagIcon,
   UserCircleIcon,
-  ArrowLongLeftIcon,
 } from "@heroicons/react/20/solid";
-import { TicketIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Profile } from "@prisma/client";
+import Attachment from "@src/components/attachment";
+import Avatar from "@src/components/avatar";
+import LabelDropdown from "@src/components/labeldropdown";
+import PostButtons from "@src/components/postbuttons";
 import { trpc } from "@src/utils/trpc";
-import clsx from "clsx";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Dispatch,
   FormEvent,
   Fragment,
-  MutableRefObject,
   SetStateAction,
   useEffect,
   useRef,
@@ -34,223 +35,43 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
-function Attachment({
-  attachment,
-  setAttachment,
-}: {
-  attachment: File | null;
-  setAttachment: Dispatch<SetStateAction<File | null>>;
-}) {
-  return (
-    <>
-      {attachment ? (
-        <div className="relative">
-          <img
-            className="h-full w-full rounded-lg"
-            src={URL.createObjectURL(attachment)}
-            alt="attachment"
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-            onClick={() => setAttachment(null)}
-          >
-            <XMarkIcon className="h-5 w-5 text-brand-600" />
-          </button>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-function FriendDropdown({ friend }: { friend: Profile | null | undefined }) {
-  return (
-    <>
-      {friend ? (
-        <div className="flex-shrink-0">
-          <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-            {friend.imageUrl ? (
-              <img
-                src={friend.imageUrl}
-                alt=""
-                className="h-5 w-5 flex-shrink-0 rounded-full"
-              />
-            ) : (
-              <UserCircleIcon
-                className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
-                aria-hidden="true"
-              />
-            )}
-          </div>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-function LabelDropdown({
-  label,
-  setLabel,
-}: {
-  label: Label | null;
-  setLabel: Dispatch<SetStateAction<Label | null>>;
-}) {
-  return (
-    <Listbox
-      as="div"
-      value={label}
-      onChange={setLabel}
-      className="flex-shrink-0"
-    >
-      {({ open }) => (
-        <>
-          <Listbox.Label className="sr-only"> Add a label </Listbox.Label>
-          <div className="relative">
-            <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
-              <TagIcon
-                className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
-                aria-hidden="true"
-              />
-              <span className="ml-2 w-16 cursor-pointer truncate bg-transparent text-sm font-bold text-brand-500">
-                {label ?? "Set label"}
-              </span>
-            </Listbox.Button>
-
-            <Transition
-              show={open}
-              as={Fragment}
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-brand-50 py-3 text-base shadow ring-1 ring-brand-900 ring-opacity-5 focus:outline-none sm:text-sm">
-                <Listbox.Option
-                  key="PUBLIC"
-                  className={({ active }) =>
-                    clsx(
-                      active ? "bg-brand-100" : "bg-brand-50",
-                      "relative cursor-default select-none px-3 py-2"
-                    )
-                  }
-                  value="PUBLIC"
-                >
-                  <div className="flex items-center">
-                    <span className="block truncate text-sm font-bold text-brand-500">
-                      PUBLIC
-                    </span>
-                  </div>
-                </Listbox.Option>
-                <Listbox.Option
-                  key="PRIVATE"
-                  className={({ active }) =>
-                    clsx(
-                      active ? "bg-brand-100" : "bg-brand-50",
-                      "relative cursor-default select-none px-3 py-2"
-                    )
-                  }
-                  value="PRIVATE"
-                >
-                  <div className="flex items-center">
-                    <span className="block truncate text-sm font-bold text-brand-500">
-                      PRIVATE
-                    </span>
-                  </div>
-                </Listbox.Option>
-              </Listbox.Options>
-            </Transition>
-          </div>
-        </>
-      )}
-    </Listbox>
-  );
-}
-
-function PostButtons({
-  setLength,
-  descriptionRef,
-}: {
-  setLength: Dispatch<SetStateAction<number>>;
-  descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
-}) {
-  const utils = trpc.useContext();
-  const profile = trpc.getProfile.useQuery();
-  const generateAI = trpc.generateAIResponse.useMutation({
-    onSuccess: (data) => {
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      setLength((length) => data?.length ?? length);
-      toast.success("Updated your post with AI generated text!");
-      descriptionRef.current
-        ? (descriptionRef.current.value = (data ?? "").trim())
-        : null;
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnGenerateAI = (prompt: string | undefined) => {
-    if (!prompt || !profile.data) return;
-    if (profile.data.credits < 5) {
-      toast.dismiss();
-      return toast.error("You don't have enough credits");
-    }
-    toast.loading("Loading...");
-    generateAI.mutate({
-      prompt,
-      credits: profile.data.credits - 5,
-    });
-  };
-  return (
-    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
-      <button
-        type="button"
-        onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
-        className="inline-flex w-full justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-      >
-        <span>Use AI</span>
-        <span className="flex items-center space-x-1">
-          <span>(5</span>
-          <TicketIcon className="h-5 w-5" />)
-        </span>
-      </button>
-      <button
-        type="submit"
-        className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-      >
-        <span>Create</span>
-        <span className="flex items-center space-x-1">
-          <span>(1</span>
-          <TicketIcon className="h-5 w-5" />)
-        </span>
-      </button>
-    </div>
-  );
-}
-
-function Modal({
-  open,
-  friend,
-  setOpen,
-}: {
+interface Props {
   open: boolean;
   friend: Profile | null | undefined;
   setOpen: Dispatch<SetStateAction<boolean>>;
-}) {
+}
+
+function Modal({ open, friend, setOpen }: Props) {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
+
+  /**
+   * useState that might be replaced with a state management library
+   */
   const [length, setLength] = useState(0);
-  const profile = trpc.getProfile.useQuery();
   const [label, setLabel] = useState<Label | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
+
+  /**
+   * useRef hook
+   */
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
-  const onFileSelected = async (event: FormEvent<HTMLInputElement>) => {
-    const target = event.target as typeof event.target & {
-      files: FileList;
-    };
-    const file = target.files[0];
-    setAttachment(file);
-  };
+
+  /**
+   * trpc queries
+   */
+  const profile = trpc.getProfile.useQuery();
+
+  /**
+   * create post mutation that links to corresponding procedure in the backend
+   */
   const createPost = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
@@ -264,15 +85,21 @@ function Modal({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * event handler for form submission
+   */
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user?.fullName || !user?.username || !profile.data) return;
+    //we have values that depend on the data being not undefined
+    if (!user?.id || !profile.data) return;
     const target = e.target as typeof e.target & {
       title: { value: string };
       description: { value: string };
     };
     if (!label) return toast("Please set a label for the post");
     toast.loading("Loading...");
+    // 1. - the cost of creating a post is 1 credit
     if (profile.data.credits < 1)
       return toast.error("You don't have enough credits");
     else if (attachment) {
@@ -289,9 +116,9 @@ function Modal({
           description: target.description.value,
           attachment: fileUrl,
           attachmentPath: filePath,
-          authorId: user?.id,
+          authorId: user.id, // 2.
           friendId: friend?.id,
-          credits: profile.data.credits - 1,
+          credits: profile.data.credits - 1, // 3.
         });
       } catch (e: any) {
         toast.dismiss();
@@ -302,16 +129,35 @@ function Modal({
         label,
         title: target.title.value,
         description: target.description.value,
-        authorId: user?.id,
+        authorId: user.id, // 4.
         friendId: friend?.id,
-        credits: profile.data.credits - 1,
+        credits: profile.data.credits - 1, // 5.
       });
     }
   };
+
+  /**
+   * event handler for selecting attachment file
+   */
+  const handleFileSelect = async (event: FormEvent<HTMLInputElement>) => {
+    const target = event.target as typeof event.target & {
+      files: FileList;
+    };
+    const file = target.files[0];
+    setAttachment(file);
+  };
+
+  /**
+   * character length indicator effect
+   */
   const progress = `
     radial-gradient(closest-side, white 85%, transparent 80% 100%),
     conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
   `;
+
+  /**
+   * render UI
+   */
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -339,11 +185,22 @@ function Modal({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
+                {/**
+                 * Render any attachment connected to this post
+                 */}
                 <Attachment
                   attachment={attachment}
                   setAttachment={setAttachment}
+                  handleUpdate={() => null}
                 />
+
+                {/**
+                 * Render post form
+                 */}
                 <form className="relative" onSubmit={handleOnSubmit}>
+                  {/**
+                   * Render close button
+                   */}
                   <button
                     type="button"
                     className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
@@ -351,7 +208,11 @@ function Modal({
                   >
                     <XMarkIcon className="h-5 w-5 text-brand-600" />
                   </button>
+
                   <div className="overflow-hidden rounded-lg">
+                    {/**
+                     * Render title field
+                     */}
                     <label htmlFor="title" className="sr-only">
                       Title
                     </label>
@@ -364,6 +225,10 @@ function Modal({
                       maxLength={100}
                       required
                     />
+
+                    {/**
+                     * Render description field
+                     */}
                     <label htmlFor="description" className="sr-only">
                       Description
                     </label>
@@ -379,20 +244,31 @@ function Modal({
                       required
                     />
                   </div>
+
+                  {/**
+                   * Render max character indicator
+                   */}
                   <div className="flex justify-end px-4 pt-4">
                     <div
                       className="h-5 w-5 rounded-full"
                       style={{ background: progress }}
                     ></div>
                   </div>
+
+                  {/**
+                   * Render post toolkit
+                   */}
                   <div>
                     <div className="flex items-center justify-between space-x-3 py-2 pl-2">
+                      {/**
+                       * Render attachment button
+                       */}
                       <div className="flex">
                         <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                           <input
                             type="file"
                             className="absolute inset-0 opacity-0"
-                            onChange={(event) => onFileSelected(event)}
+                            onChange={(event) => handleFileSelect(event)}
                           />
                           <PaperClipIcon
                             className="-ml-1 mr-2 h-5 w-5 group-hover:text-brand-500"
@@ -403,13 +279,40 @@ function Modal({
                           </span>
                         </div>
                       </div>
-                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
-                        <FriendDropdown friend={friend} />
 
+                      {/**
+                       * Render friend tag
+                       */}
+                      <div className="flex flex-nowrap justify-end space-x-2 py-2">
+                        <div className="flex-shrink-0">
+                          <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+                            {friend?.imageUrl ? (
+                              <img
+                                src={friend.imageUrl}
+                                alt=""
+                                className="h-5 w-5 flex-shrink-0 rounded-full"
+                              />
+                            ) : (
+                              <UserCircleIcon
+                                className="h-5 w-5 flex-shrink-0 text-brand-300 sm:-ml-1"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        {/**
+                         * Render label dropdown
+                         */}
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
+
+                    {/**
+                     * Render post buttons
+                     */}
                     <PostButtons
+                      edit={false}
                       setLength={setLength}
                       descriptionRef={descriptionRef}
                     />
@@ -424,14 +327,37 @@ function Modal({
   );
 }
 
-function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
+function ProfileButtons({
+  setOpen,
+}: {
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
+
+  /**
+   * trpc context
+   */
   const utils = trpc.useContext();
-  const { query } = useRouter();
+
+  /**
+   * router hook by next
+   */
+  const { push, query } = useRouter();
   const id = query.id as string;
+
+  /**
+   * trpc queries
+   */
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
   const recievingFriendStatus = trpc.getRecievingFriendStatus.useQuery(id);
+
+  /**
+   * create friend request mutation that links to corresponding procedure in the backend
+   */
   const createFriendRequest = trpc.createFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -445,6 +371,10 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * delete friend request mutation that links to corresponding procedure in the backend
+   */
   const deleteFriendRequest = trpc.deleteFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -458,6 +388,10 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  /**
+   * event handler for creating friend request
+   */
   const handleOnCreateFriendRequest = () => {
     if (!user?.id || !profile.data?.id) return;
     toast.loading("Loading...");
@@ -466,6 +400,10 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
       recieverId: profile.data.id,
     });
   };
+
+  /**
+   * event handler for deleting friend request
+   */
   const handleOnDeleteFriendRequest = (
     senderId?: string,
     recieverId?: string
@@ -478,160 +416,199 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
     });
   };
   return (
+    <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
+      {sendingFriendStatus.data?.status === "PENDING" ||
+      sendingFriendStatus.data?.status === "REJECTED" ? (
+        <button
+          type="button"
+          onClick={() =>
+            handleOnDeleteFriendRequest(
+              sendingFriendStatus.data?.senderId,
+              sendingFriendStatus.data?.receiverId
+            )
+          }
+          className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+        >
+          Delete friend request
+        </button>
+      ) : recievingFriendStatus.data?.status === "PENDING" ? (
+        <button
+          type="button"
+          onClick={() =>
+            handleOnDeleteFriendRequest(
+              recievingFriendStatus.data?.senderId,
+              recievingFriendStatus.data?.receiverId
+            )
+          }
+          className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+        >
+          Delete friend request
+        </button>
+      ) : sendingFriendStatus.data?.status === "ACCEPTED" ? (
+        <button
+          type="button"
+          onClick={() =>
+            handleOnDeleteFriendRequest(
+              sendingFriendStatus.data?.senderId,
+              sendingFriendStatus.data?.receiverId
+            )
+          }
+          className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+        >
+          Delete friend
+        </button>
+      ) : recievingFriendStatus.data?.status === "ACCEPTED" ? (
+        <button
+          type="button"
+          onClick={() =>
+            handleOnDeleteFriendRequest(
+              recievingFriendStatus.data?.senderId,
+              recievingFriendStatus.data?.receiverId
+            )
+          }
+          className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+        >
+          Delete friend
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => push("/feedback")}
+          className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+        >
+          Report account
+        </button>
+      )}
+
+      {sendingFriendStatus.data?.status === "PENDING" ||
+      sendingFriendStatus.data?.status === "REJECTED" ? (
+        <Link
+          href="/friends"
+          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          View friend request
+        </Link>
+      ) : recievingFriendStatus.data?.status === "PENDING" ? (
+        <Link
+          href="/friends"
+          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          View friend request
+        </Link>
+      ) : recievingFriendStatus.data?.status === "REJECTED" ? (
+        <button
+          type="button"
+          onClick={() =>
+            handleOnDeleteFriendRequest(
+              recievingFriendStatus.data?.senderId,
+              recievingFriendStatus.data?.receiverId
+            )
+          }
+          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          Delete friend request
+        </button>
+      ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
+        recievingFriendStatus.data?.status === "ACCEPTED" ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          Send a note
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleOnCreateFriendRequest}
+          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          Send friend request
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ProfileDetails() {
+  /**
+   * router hook by next
+   */
+  const { query } = useRouter();
+  const id = query.id as string;
+
+  /**
+   * trpc queries
+   */
+  const profile = trpc.getProfile.useQuery(id);
+  return (
+    <div>
+      <div className="flex items-center space-x-2">
+        <h1 className="text-2xl font-bold text-brand-50">
+          {profile.data?.name}
+        </h1>
+        {profile.data?.premium ? (
+          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+        ) : null}
+      </div>
+      <p className="text-sm font-medium text-brand-500">
+        @{profile.data?.username}
+      </p>
+    </div>
+  );
+}
+
+function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
+  /**
+   * router hook by next
+   */
+  const { query } = useRouter();
+  const id = query.id as string;
+
+  /**
+   * trpc queries
+   */
+  const profile = trpc.getProfile.useQuery(id);
+  return (
     <div className="md:flex md:items-center md:justify-between md:space-x-5">
       <div className="flex items-center space-x-5">
-        <div className="flex-shrink-0">
-          <div className="relative">
-            {profile.data?.imageUrl ? (
-              <img
-                className="h-16 w-16 rounded-full"
-                src={profile.data.imageUrl}
-                alt=""
-              />
-            ) : (
-              <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
-            )}
-            <span
-              className="absolute inset-0 rounded-full shadow-inner"
-              aria-hidden="true"
-            />
-          </div>
-        </div>
-        <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-brand-50">
-              {profile.data?.name}
-            </h1>
-            {profile.data?.premium ? (
-              <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-            ) : null}
-          </div>
-          <p className="text-sm font-medium text-brand-500">
-            @{profile.data?.username}
-          </p>
-        </div>
-      </div>
-      <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
-        {sendingFriendStatus.data?.status === "PENDING" ||
-        sendingFriendStatus.data?.status === "REJECTED" ? (
-          <button
-            type="button"
-            onClick={() =>
-              handleOnDeleteFriendRequest(
-                sendingFriendStatus.data?.senderId,
-                sendingFriendStatus.data?.receiverId
-              )
-            }
-            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-          >
-            Delete friend request
-          </button>
-        ) : recievingFriendStatus.data?.status === "PENDING" ? (
-          <button
-            type="button"
-            onClick={() =>
-              handleOnDeleteFriendRequest(
-                recievingFriendStatus.data?.senderId,
-                recievingFriendStatus.data?.receiverId
-              )
-            }
-            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-          >
-            Delete friend request
-          </button>
-        ) : sendingFriendStatus.data?.status === "ACCEPTED" ? (
-          <button
-            type="button"
-            onClick={() =>
-              handleOnDeleteFriendRequest(
-                sendingFriendStatus.data?.senderId,
-                sendingFriendStatus.data?.receiverId
-              )
-            }
-            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-          >
-            Delete friend
-          </button>
-        ) : recievingFriendStatus.data?.status === "ACCEPTED" ? (
-          <button
-            type="button"
-            onClick={() =>
-              handleOnDeleteFriendRequest(
-                recievingFriendStatus.data?.senderId,
-                recievingFriendStatus.data?.receiverId
-              )
-            }
-            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-          >
-            Delete friend
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-          >
-            Report account
-          </button>
-        )}
+        {/**
+         * Render profile image
+         */}
+        <Avatar imageUrl={profile.data?.imageUrl} />
 
-        {sendingFriendStatus.data?.status === "PENDING" ||
-        sendingFriendStatus.data?.status === "REJECTED" ? (
-          <Link
-            href="/friends"
-            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-          >
-            View friend request
-          </Link>
-        ) : recievingFriendStatus.data?.status === "PENDING" ? (
-          <Link
-            href="/friends"
-            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-          >
-            View friend request
-          </Link>
-        ) : recievingFriendStatus.data?.status === "REJECTED" ? (
-          <button
-            type="button"
-            onClick={() =>
-              handleOnDeleteFriendRequest(
-                recievingFriendStatus.data?.senderId,
-                recievingFriendStatus.data?.receiverId
-              )
-            }
-            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-          >
-            Delete friend request
-          </button>
-        ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
-          recievingFriendStatus.data?.status === "ACCEPTED" ? (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-          >
-            Send a note
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleOnCreateFriendRequest}
-            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-          >
-            Send friend request
-          </button>
-        )}
+        {/**
+         * Render profile details
+         */}
+        <ProfileDetails />
       </div>
+
+      {/**
+       * Render profile buttons
+       */}
+      <ProfileButtons setOpen={setOpen} />
     </div>
   );
 }
 
 function Stats() {
+  /**
+   * router hook by next
+   */
   const { query } = useRouter();
   const id = query.id as string;
+
+  /**
+   * trpc queries
+   */
   const likes = trpc.getLikes.useQuery(id);
   const profile = trpc.getProfile.useQuery(id);
   const comments = trpc.getComments.useQuery(id);
   const bookmarks = trpc.getBookmarks.useQuery(id);
+
+  /**
+   * profile stats
+   */
   const stats = [
     {
       name: "Total Likes",
@@ -678,14 +655,33 @@ function Stats() {
 }
 
 export default function Account() {
+  /**
+   * user hook by clerk
+   */
   const { user } = useUser();
-  const { back, query } = useRouter();
-  const id = query.id as string;
+
+  /**
+   * useState that might be replaced with a state management library
+   */
   const [open, setOpen] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
+
+  /**
+   * router hook by next
+   */
+  const { back, query } = useRouter();
+  const id = query.id as string;
+
+  /**
+   * trpc queries
+   */
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
   const recievingFriendStatus = trpc.getRecievingFriendStatus.useQuery(id);
+
+  /**
+   * initialize auth session if user is authenticated to render private images from upload.io
+   */
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -694,20 +690,35 @@ export default function Account() {
       console.log(err.message);
     }
   };
+
+  /**
+   * useEffect hook for checking the state of the user
+   */
   useEffect(() => {
     if (user) initializeAuthSession();
     else upload.endAuthSession();
   }, [user]);
+
+  /**
+   * render empty UI if the relationship status between the currrent logged in user and the URL requested user has not been established yet
+   */
   if (sendingFriendStatus.isLoading || recievingFriendStatus.isLoading)
     return <></>;
+
+  /**
+   * render UI
+   */
   return (
     <>
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
-      {isAuth && profile.data ? (
+      {isAuth && !!profile.data && (
         <>
           {profile.data.label === "PUBLIC" ? (
             <main className="pb-36 pt-12">
               <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                {/**
+                 * Render back button
+                 */}
                 <button
                   type="button"
                   onClick={() => back()}
@@ -716,6 +727,10 @@ export default function Account() {
                   <ArrowLongLeftIcon className="h-5 w-5" />
                   <span>Go back</span>
                 </button>
+
+                {/**
+                 * Render banner image
+                 */}
                 <div className="relative">
                   <img
                     src={
@@ -726,7 +741,15 @@ export default function Account() {
                     className="rounded-lg object-cover"
                   />
                 </div>
+
+                {/**
+                 * Render profile header
+                 */}
                 <Header setOpen={setOpen} />
+
+                {/**
+                 * Render profile stats
+                 */}
                 <Stats />
               </div>
             </main>
@@ -744,7 +767,7 @@ export default function Account() {
             </div>
           )}
         </>
-      ) : null}
+      )}
     </>
   );
 }
