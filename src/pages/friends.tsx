@@ -41,7 +41,7 @@ export default function Friends() {
       utils.getAllFriends.invalidate();
       toast.success("Friend request updated!");
       utils.getSendingFriendStatus.invalidate();
-      utils.getRecievingFriendStatus.invalidate();
+      utils.getReceivingFriendStatus.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -57,7 +57,7 @@ export default function Friends() {
     toast.loading("Loading...");
     updateFriendStatus.mutate({
       senderId: id,
-      recieverId: user.id, // 1.
+      receiverId: user.id, // 1.
       status,
     });
   };

@@ -52,7 +52,7 @@ export const appRouter = router({
       });
     }),
   getInbox: protectedProcedure.query(async ({ ctx }) => {
-    const [sending, recieving] = await prisma.$transaction([
+    const [sending, receiving] = await prisma.$transaction([
       prisma.post.findMany({
         where: {
           authorId: ctx.auth.userId,
@@ -89,7 +89,7 @@ export const appRouter = router({
         },
       }),
     ]);
-    return sending.concat(recieving).sort((a, b) => {
+    return sending.concat(receiving).sort((a, b) => {
       if (a.createdAt < b.createdAt) return 1;
       if (a.createdAt > b.createdAt) return -1;
       return 0;
@@ -192,7 +192,7 @@ export const appRouter = router({
     });
   }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
-    const [sending, recieving] = await prisma.$transaction([
+    const [sending, receiving] = await prisma.$transaction([
       prisma.friend.findMany({
         where: {
           status: "ACCEPTED",
@@ -217,7 +217,7 @@ export const appRouter = router({
         friend: friend.receiver,
         createdAt: friend.createdAt,
       })),
-      ...recieving.map((friend) => ({
+      ...receiving.map((friend) => ({
         friend: friend.sender,
         createdAt: friend.createdAt,
       })),
@@ -228,7 +228,7 @@ export const appRouter = router({
     });
   }),
   getAllFriends: protectedProcedure.query(async ({ ctx }) => {
-    const [sending, recieving] = await prisma.$transaction([
+    const [sending, receiving] = await prisma.$transaction([
       prisma.friend.findMany({
         where: {
           senderId: ctx.auth.userId,
@@ -316,7 +316,7 @@ export const appRouter = router({
         },
       }),
     ]);
-    return sending.concat(recieving).sort((a, b) => {
+    return sending.concat(receiving).sort((a, b) => {
       if (a.createdAt < b.createdAt) return 1;
       if (a.createdAt > b.createdAt) return -1;
       return 0;
@@ -334,7 +334,7 @@ export const appRouter = router({
         },
       });
     }),
-  getRecievingFriendStatus: protectedProcedure
+  getReceivingFriendStatus: protectedProcedure
     .input(String)
     .query(async ({ input, ctx }) => {
       return await prisma.friend.findUnique({
@@ -350,14 +350,14 @@ export const appRouter = router({
     .input(
       z.object({
         senderId: z.string(),
-        recieverId: z.string(),
+        receiverId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       return await prisma.friend.create({
         data: {
           senderId: input.senderId,
-          receiverId: input.recieverId,
+          receiverId: input.receiverId,
         },
       });
     }),
@@ -365,7 +365,7 @@ export const appRouter = router({
     .input(
       z.object({
         senderId: z.string(),
-        recieverId: z.string(),
+        receiverId: z.string(),
         status: z.nativeEnum(Status),
       })
     )
@@ -378,7 +378,7 @@ export const appRouter = router({
         where: {
           receiverId_senderId: {
             senderId: input.senderId,
-            receiverId: input.recieverId,
+            receiverId: input.receiverId,
           },
         },
       });
@@ -387,7 +387,7 @@ export const appRouter = router({
     .input(
       z.object({
         senderId: z.string(),
-        recieverId: z.string(),
+        receiverId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
@@ -395,7 +395,7 @@ export const appRouter = router({
         where: {
           receiverId_senderId: {
             senderId: input.senderId,
-            receiverId: input.recieverId,
+            receiverId: input.receiverId,
           },
         },
       });

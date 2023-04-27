@@ -353,7 +353,7 @@ function ProfileButtons({
    */
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
-  const recievingFriendStatus = trpc.getRecievingFriendStatus.useQuery(id);
+  const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
 
   /**
    * create friend request mutation that links to corresponding procedure in the backend
@@ -364,7 +364,7 @@ function ProfileButtons({
       utils.getFriends.invalidate();
       toast.success("Friend request sent!");
       utils.getSendingFriendStatus.invalidate();
-      utils.getRecievingFriendStatus.invalidate();
+      utils.getReceivingFriendStatus.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -381,7 +381,7 @@ function ProfileButtons({
       toast.success("Deleted!");
       utils.getFriends.invalidate();
       utils.getSendingFriendStatus.invalidate();
-      utils.getRecievingFriendStatus.invalidate();
+      utils.getReceivingFriendStatus.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -397,7 +397,7 @@ function ProfileButtons({
     toast.loading("Loading...");
     createFriendRequest.mutate({
       senderId: user.id,
-      recieverId: profile.data.id,
+      receiverId: profile.data.id,
     });
   };
 
@@ -406,13 +406,13 @@ function ProfileButtons({
    */
   const handleOnDeleteFriendRequest = (
     senderId?: string,
-    recieverId?: string
+    receiverId?: string
   ) => {
-    if (!senderId || !recieverId) return;
+    if (!senderId || !receiverId) return;
     toast.loading("Loading...");
     deleteFriendRequest.mutate({
       senderId,
-      recieverId,
+      receiverId,
     });
   };
   return (
@@ -431,13 +431,13 @@ function ProfileButtons({
         >
           Delete friend request
         </button>
-      ) : recievingFriendStatus.data?.status === "PENDING" ? (
+      ) : receivingFriendStatus.data?.status === "PENDING" ? (
         <button
           type="button"
           onClick={() =>
             handleOnDeleteFriendRequest(
-              recievingFriendStatus.data?.senderId,
-              recievingFriendStatus.data?.receiverId
+              receivingFriendStatus.data?.senderId,
+              receivingFriendStatus.data?.receiverId
             )
           }
           className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
@@ -457,13 +457,13 @@ function ProfileButtons({
         >
           Delete friend
         </button>
-      ) : recievingFriendStatus.data?.status === "ACCEPTED" ? (
+      ) : receivingFriendStatus.data?.status === "ACCEPTED" ? (
         <button
           type="button"
           onClick={() =>
             handleOnDeleteFriendRequest(
-              recievingFriendStatus.data?.senderId,
-              recievingFriendStatus.data?.receiverId
+              receivingFriendStatus.data?.senderId,
+              receivingFriendStatus.data?.receiverId
             )
           }
           className="inline-flex items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
@@ -488,20 +488,20 @@ function ProfileButtons({
         >
           View friend request
         </Link>
-      ) : recievingFriendStatus.data?.status === "PENDING" ? (
+      ) : receivingFriendStatus.data?.status === "PENDING" ? (
         <Link
           href="/friends"
           className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           View friend request
         </Link>
-      ) : recievingFriendStatus.data?.status === "REJECTED" ? (
+      ) : receivingFriendStatus.data?.status === "REJECTED" ? (
         <button
           type="button"
           onClick={() =>
             handleOnDeleteFriendRequest(
-              recievingFriendStatus.data?.senderId,
-              recievingFriendStatus.data?.receiverId
+              receivingFriendStatus.data?.senderId,
+              receivingFriendStatus.data?.receiverId
             )
           }
           className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
@@ -509,7 +509,7 @@ function ProfileButtons({
           Delete friend request
         </button>
       ) : sendingFriendStatus.data?.status === "ACCEPTED" ||
-        recievingFriendStatus.data?.status === "ACCEPTED" ? (
+        receivingFriendStatus.data?.status === "ACCEPTED" ? (
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -677,7 +677,7 @@ export default function Account() {
    */
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
-  const recievingFriendStatus = trpc.getRecievingFriendStatus.useQuery(id);
+  const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
 
   /**
    * initialize auth session if user is authenticated to render private images from upload.io
@@ -702,7 +702,7 @@ export default function Account() {
   /**
    * render empty UI if the relationship status between the currrent logged in user and the URL requested user has not been established yet
    */
-  if (sendingFriendStatus.isLoading || recievingFriendStatus.isLoading)
+  if (sendingFriendStatus.isLoading || receivingFriendStatus.isLoading)
     return <></>;
 
   /**
