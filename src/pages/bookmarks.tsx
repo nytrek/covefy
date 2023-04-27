@@ -15,6 +15,7 @@ import FriendDropdown from "@src/components/frienddropdown";
 import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
 import Like from "@src/components/like";
+import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
 import PostSkeleton from "@src/components/postsskeleton";
 import ProfileDropdown from "@src/components/profiledropdown";
@@ -527,6 +528,22 @@ export default function Bookmarks() {
   });
 
   /**
+   * update post mutation that links to corresponding procedure in the backend
+   */
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      toast.success("Post updated!");
+      utils.getPinnedPosts.invalidate();
+      utils.getBookmarkedPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
    * delete post mutation that links to corresponding procedure in the backend
    */
   const deletePost = trpc.deletePost.useMutation({
@@ -596,6 +613,20 @@ export default function Bookmarks() {
     setFriend(post.friend);
     setLabel(post.label ?? null);
     setLength(post.description.length);
+  };
+
+  /**
+   * event handler for updating post
+   */
+  const handleOnUpdatePost = (post: Post, pinned: boolean) => {
+    toast.loading("Loading...");
+    updatePost.mutate({
+      id: post.id,
+      label: post.label,
+      title: post.title,
+      description: post.description,
+      pinned,
+    });
   };
 
   /**
@@ -689,47 +720,7 @@ export default function Bookmarks() {
           handleOnClick={handleOnClick}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
-          <SignedIn>
-            {!!pinned.data && !!pinned.data.length && (
-              <div className="mb-8">
-                <ul
-                  role="list"
-                  className="flex items-center space-x-6 overflow-x-auto"
-                >
-                  {pinned.data?.map((item) => (
-                    <li
-                      key={item.id}
-                      className="relative col-span-1 flex rounded-md shadow-sm"
-                    >
-                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
-                        {item.id}
-                      </div>
-                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 pr-2">
-                        <div className="flex-1 truncate px-4 py-2 text-sm">
-                          <Link
-                            href={"/post/" + item.id}
-                            className="font-medium text-brand-50"
-                          >
-                            {item.title}
-                          </Link>
-                          <p className="w-36 truncate text-brand-500">
-                            {item.description}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-brand-500"
-                        >
-                          <span className="sr-only">Unpin</span>
-                          <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </SignedIn>
+          <PinnedPosts handleOnUpdatePost={handleOnUpdatePost} />
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
               <SignedIn>
@@ -855,6 +846,33 @@ export default function Bookmarks() {
                                                 </button>
                                               )}
                                             </Menu.Item>
+
+                                            {/**
+                                             * Render pin button for the post
+                                             */}
+                                            {!item.pinned && (
+                                              <Menu.Item>
+                                                {({ active }) => (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleOnUpdatePost(
+                                                        item,
+                                                        true
+                                                      )
+                                                    }
+                                                    className={clsx(
+                                                      active
+                                                        ? "bg-brand-100 text-brand-900"
+                                                        : "text-brand-700",
+                                                      "w-full px-4 py-2 text-left text-sm"
+                                                    )}
+                                                  >
+                                                    Pin post
+                                                  </button>
+                                                )}
+                                              </Menu.Item>
+                                            )}
                                           </div>
                                         </Menu.Items>
                                       </Transition>

@@ -15,13 +15,13 @@ import FriendDropdown from "@src/components/frienddropdown";
 import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
 import Like from "@src/components/like";
+import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
 import PostSkeleton from "@src/components/postsskeleton";
 import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -531,7 +531,6 @@ export default function Posts() {
    */
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
-      setOpen(false);
       toast.dismiss();
       toast.success("Post updated!");
       utils.getPinnedPosts.invalidate();
@@ -720,48 +719,7 @@ export default function Posts() {
           handleOnClick={handleOnClick}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
-          <SignedIn>
-            {!!pinned.data && !!pinned.data.length && (
-              <div className="mb-8">
-                <ul
-                  role="list"
-                  className="flex items-center space-x-6 overflow-x-auto"
-                >
-                  {pinned.data?.map((item) => (
-                    <li
-                      key={item.id}
-                      className="relative col-span-1 flex rounded-md shadow-sm"
-                    >
-                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
-                        {item.id}
-                      </div>
-                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 pr-2">
-                        <div className="flex-1 truncate px-4 py-2 text-sm">
-                          <Link
-                            href={"/post/" + item.id}
-                            className="font-medium text-brand-50"
-                          >
-                            {item.title}
-                          </Link>
-                          <p className="w-36 truncate text-brand-500">
-                            {item.description}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleOnUpdatePost(item, false)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-brand-500"
-                        >
-                          <span className="sr-only">Unpin</span>
-                          <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </SignedIn>
+          <PinnedPosts handleOnUpdatePost={handleOnUpdatePost} />
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
               <SignedIn>

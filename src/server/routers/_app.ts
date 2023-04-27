@@ -141,7 +141,7 @@ export const appRouter = router({
         },
       },
       orderBy: {
-        createdAt: "desc",
+        updatedAt: "desc",
       },
     });
   }),
@@ -519,6 +519,7 @@ export const appRouter = router({
                   id: input.friendId,
                 },
               },
+              updatedAt: new Date(),
             },
             where: {
               id: input.id,
@@ -532,6 +533,7 @@ export const appRouter = router({
               pinned: input.pinned,
               attachment: input.attachment,
               attachmentPath: input.attachmentPath,
+              updatedAt: new Date(),
             },
             where: {
               id: input.id,
