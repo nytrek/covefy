@@ -78,15 +78,15 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
             </div>
           </>
         ) : (
-          <motion.div
-            key={0}
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            exit={{ opacity: 0, width: 0 }}
-            className="mb-8"
-          >
+          <div className="mb-8">
             <div className="flex items-center space-x-6 overflow-x-auto">
-              <div className="relative col-span-1 flex rounded-md shadow-sm">
+              <motion.div
+                key={0}
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="relative col-span-1 flex rounded-md shadow-sm"
+              >
                 <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
                   # ID
                 </div>
@@ -100,9 +100,9 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </SignedIn>
