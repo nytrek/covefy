@@ -135,6 +135,7 @@ function Modal({
       label: post.data.label, // 2.
       title: post.data.title, // 3.
       description: post.data.description, // 4.
+      pinned: post.data.pinned, // 5.
       attachment: null,
       attachmentPath: null,
     });
@@ -166,6 +167,7 @@ function Modal({
           label,
           title: target.title.value,
           description: target.description.value,
+          pinned: post.data.pinned, // 2.
           attachment: fileUrl,
           attachmentPath: filePath,
           friendId: friend?.id,
@@ -180,6 +182,7 @@ function Modal({
         label,
         title: target.title.value,
         description: target.description.value,
+        pinned: post.data.pinned, // 2.
         friendId: friend?.id,
       });
     }

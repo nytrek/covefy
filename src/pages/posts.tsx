@@ -148,6 +148,7 @@ function Modal({
       label: post.label, // 2.
       title: post.title, // 3.
       description: post.description, // 4.
+      pinned: post.pinned, // 5.
       attachment: null,
       attachmentPath: null,
     });
@@ -180,6 +181,7 @@ function Modal({
             label,
             title: target.title.value,
             description: target.description.value,
+            pinned: post.pinned,
             attachment: fileUrl,
             attachmentPath: filePath,
             friendId: friend?.id,
@@ -194,6 +196,7 @@ function Modal({
           label,
           title: target.title.value,
           description: target.description.value,
+          pinned: post.pinned,
           friendId: friend?.id,
         });
       }
@@ -524,6 +527,23 @@ export default function Posts() {
   });
 
   /**
+   * update post mutation that links to corresponding procedure in the backend
+   */
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      toast.success("Post updated!");
+      utils.getPinnedPosts.invalidate();
+      utils.getProfilePosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
    * delete post mutation that links to corresponding procedure in the backend
    */
   const deletePost = trpc.deletePost.useMutation({
@@ -593,6 +613,20 @@ export default function Posts() {
     setFriend(post.friend);
     setLabel(post.label ?? null);
     setLength(post.description.length);
+  };
+
+  /**
+   * event handler for updating post
+   */
+  const handleOnUpdatePost = (post: Post, pinned: boolean) => {
+    toast.loading("Loading...");
+    updatePost.mutate({
+      id: post.id,
+      label: post.label,
+      title: post.title,
+      description: post.description,
+      pinned,
+    });
   };
 
   /**
@@ -715,6 +749,7 @@ export default function Posts() {
                         </div>
                         <button
                           type="button"
+                          onClick={() => handleOnUpdatePost(item, false)}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-full text-brand-500"
                         >
                           <span className="sr-only">Unpin</span>
@@ -852,6 +887,33 @@ export default function Posts() {
                                                 </button>
                                               )}
                                             </Menu.Item>
+
+                                            {/**
+                                             * Render pin button for the post
+                                             */}
+                                            {!item.pinned && (
+                                              <Menu.Item>
+                                                {({ active }) => (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleOnUpdatePost(
+                                                        item,
+                                                        true
+                                                      )
+                                                    }
+                                                    className={clsx(
+                                                      active
+                                                        ? "bg-brand-100 text-brand-900"
+                                                        : "text-brand-700",
+                                                      "w-full px-4 py-2 text-left text-sm"
+                                                    )}
+                                                  >
+                                                    Pin post
+                                                  </button>
+                                                )}
+                                              </Menu.Item>
+                                            )}
                                           </div>
                                         </Menu.Items>
                                       </Transition>

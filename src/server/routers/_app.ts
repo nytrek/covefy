@@ -498,6 +498,7 @@ export const appRouter = router({
         title: z.string(),
         label: z.nativeEnum(Label),
         description: z.string(),
+        pinned: z.boolean(),
         attachment: z.string().nullish(),
         attachmentPath: z.string().nullish(),
         friendId: z.string().optional(),
@@ -510,6 +511,7 @@ export const appRouter = router({
               title: input.title,
               label: input.label,
               description: input.description,
+              pinned: input.pinned,
               attachment: input.attachment,
               attachmentPath: input.attachmentPath,
               friend: {
@@ -527,6 +529,7 @@ export const appRouter = router({
               title: input.title,
               label: input.label,
               description: input.description,
+              pinned: input.pinned,
               attachment: input.attachment,
               attachmentPath: input.attachmentPath,
             },
