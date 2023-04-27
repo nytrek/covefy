@@ -35,6 +35,7 @@ model Post {
   likes          Like[]
   attachment     String?
   attachmentPath String?
+  pinned         Boolean    @default(false)
   bookmarks      Bookmark[]
   author         Profile    @relation("Author", fields: [authorId], references: [id], onDelete: Cascade)
   authorId       String

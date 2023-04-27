@@ -123,6 +123,28 @@ export const appRouter = router({
       },
     });
   }),
+  getPinnedPosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        pinned: true,
+        authorId: ctx.auth.userId,
+      },
+      include: {
+        likes: true,
+        bookmarks: true,
+        author: true,
+        friend: true,
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
   getPublicPosts: publicProcedure.query(async () => {
     return await prisma.post.findMany({
       where: {

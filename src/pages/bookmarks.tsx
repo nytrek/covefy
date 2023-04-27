@@ -21,6 +21,7 @@ import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -460,6 +461,7 @@ export default function Bookmarks() {
    * trpc queries
    */
   const posts = trpc.getBookmarkedPosts.useQuery();
+  const pinned = trpc.getPinnedPosts.useQuery();
 
   /**
    * create like mutation that links to corresponding procedure in the backend
@@ -684,6 +686,47 @@ export default function Bookmarks() {
           handleOnClick={handleOnClick}
         />
         <div className="mt-16 px-4 sm:px-6 lg:px-8">
+          <SignedIn>
+            {!!pinned.data && !!pinned.data.length && (
+              <div className="mb-8">
+                <ul
+                  role="list"
+                  className="flex items-center space-x-6 overflow-x-auto"
+                >
+                  {pinned.data?.map((item) => (
+                    <li
+                      key={item.id}
+                      className="relative col-span-1 flex rounded-md shadow-sm"
+                    >
+                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
+                        {item.id}
+                      </div>
+                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 pr-2">
+                        <div className="flex-1 truncate px-4 py-2 text-sm">
+                          <Link
+                            href={"/post/" + item.id}
+                            className="font-medium text-brand-50"
+                          >
+                            {item.title}
+                          </Link>
+                          <p className="w-36 truncate text-brand-500">
+                            {item.description}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-brand-500"
+                        >
+                          <span className="sr-only">Unpin</span>
+                          <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </SignedIn>
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
               <SignedIn>
