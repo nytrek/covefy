@@ -116,8 +116,8 @@ function Modal({
     onSuccess: () => {
       setOpen(false);
       toast.dismiss();
+      utils.getPost.invalidate();
       toast.success("Post updated!");
-      utils.getPublicPosts.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -515,9 +515,9 @@ export default function Post() {
     onSuccess: () => {
       back();
       toast.dismiss();
+      utils.getPost.invalidate();
       utils.getProfile.invalidate();
       toast.success("Post deleted!");
-      utils.getProfilePosts.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
