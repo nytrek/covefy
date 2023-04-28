@@ -41,12 +41,12 @@ export default function Footer() {
             href={item.href}
             className="relative border border-transparent p-2"
           >
-            {item.current ? (
+            {item.current && (
               <motion.div
                 layoutId="current"
                 className="absolute inset-0 rounded-full border border-brand-base bg-brand-800"
               ></motion.div>
-            ) : null}
+            )}
             <item.icon className="relative h-6 w-6 rounded-full text-brand-50/70 sm:h-8 sm:w-8" />
           </Link>
         ))}

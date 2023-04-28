@@ -7,17 +7,19 @@ import clsx from "clsx";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
+interface Props {
+  header: string;
+  search: string;
+  setSearch: Dispatch<SetStateAction<string>>;
+  handleOnClick: () => void;
+}
+
 export default function Header({
   header,
   search,
   setSearch,
   handleOnClick,
-}: {
-  header: string;
-  search: string;
-  setSearch: Dispatch<SetStateAction<string>>;
-  handleOnClick: () => void;
-}) {
+}: Props) {
   const { user } = useUser();
   const { route } = useRouter();
   return (
@@ -26,7 +28,7 @@ export default function Header({
       <div className="mt-8 flex flex-1 justify-center">
         <div className="w-full px-2 lg:px-6">
           <label htmlFor="search" className="sr-only">
-            Search projects
+            Search notes
           </label>
           <div className="relative flex items-center text-brand-50">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

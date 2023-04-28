@@ -23,10 +23,10 @@ export default function ProfileDropdown({ post }: { post: Post }) {
     <Menu as="div" className="relative inline-block text-left">
       <div>
         <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
-          {post.author?.imageUrl ? (
+          {post.author.imageUrl ? (
             <img
               className="h-10 w-10 rounded-full"
-              src={post.author?.imageUrl}
+              src={post.author.imageUrl}
               alt=""
             />
           ) : (

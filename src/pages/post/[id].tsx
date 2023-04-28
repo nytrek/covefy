@@ -864,12 +864,10 @@ export default function Post() {
                           {/**
                            * Render comment box only if user is authenticated
                            */}
-                          {!!user && (
-                            <CommentBox
-                              item={post.data}
-                              handleOnCreateComment={handleOnCreateComment}
-                            />
-                          )}
+                          <CommentBox
+                            item={post.data}
+                            handleOnCreateComment={handleOnCreateComment}
+                          />
                         </div>
                       </div>
                     </div>

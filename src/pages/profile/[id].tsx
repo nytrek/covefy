@@ -559,23 +559,13 @@ function ProfileDetails() {
 }
 
 function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
-  /**
-   * router hook by next
-   */
-  const { query } = useRouter();
-  const id = query.id as string;
-
-  /**
-   * trpc queries
-   */
-  const profile = trpc.getProfile.useQuery(id);
   return (
     <div className="md:flex md:items-center md:justify-between md:space-x-5">
       <div className="flex items-center space-x-5">
         {/**
          * Render profile image
          */}
-        <Avatar imageUrl={profile.data?.imageUrl} />
+        <Avatar />
 
         {/**
          * Render profile details

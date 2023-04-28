@@ -1,13 +1,16 @@
-interface Props {
-  imageUrl: string | undefined;
-}
+import { useUser } from "@clerk/nextjs";
 
-export default function Avatar({ imageUrl }: Props) {
+export default function Avatar() {
+  const { user } = useUser();
   return (
     <div className="flex-shrink-0">
       <div className="relative">
-        {imageUrl ? (
-          <img className="h-16 w-16 rounded-full" src={imageUrl} alt="" />
+        {user?.profileImageUrl ? (
+          <img
+            className="h-16 w-16 rounded-full"
+            src={user.profileImageUrl}
+            alt="avatar"
+          />
         ) : (
           <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
         )}

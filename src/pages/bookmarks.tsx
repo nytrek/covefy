@@ -17,7 +17,7 @@ import LabelDropdown from "@src/components/labeldropdown";
 import Like from "@src/components/like";
 import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
-import PostSkeleton from "@src/components/postsskeleton";
+import PostSkeleton from "@src/components/postskeleton";
 import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";

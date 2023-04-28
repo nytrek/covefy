@@ -12,6 +12,10 @@ interface Props {
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
 }
 
+/**
+ *
+ * @prop edit signifies if there's an active post
+ */
 export default function PostButtons({
   edit,
   setLength,
@@ -19,21 +23,31 @@ export default function PostButtons({
 }: Props) {
   const utils = trpc.useContext();
   const profile = trpc.getProfile.useQuery();
+
+  const handleOnSuccess = (data: string | undefined) => {
+    toast.dismiss();
+    utils.getProfile.invalidate();
+    setLength((length) => data?.length ?? length);
+    toast.success("Updated your post with AI generated text!");
+    descriptionRef.current
+      ? (descriptionRef.current.value = (data ?? "").trim())
+      : null;
+  };
+
+  /**
+   * event handler for relaying error message to user
+   * @see handleOnDeleteAttachment
+   */
+  const handleOnError = (msg: string) => {
+    toast.dismiss();
+    toast.error(msg);
+  };
+
   const generateAI = trpc.generateAIResponse.useMutation({
-    onSuccess: (data) => {
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      setLength((length) => data?.length ?? length);
-      toast.success("Updated your post with AI generated text!");
-      descriptionRef.current
-        ? (descriptionRef.current.value = (data ?? "").trim())
-        : null;
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
+    onSuccess: (data) => handleOnSuccess(data),
+    onError: (err: any) => handleOnError(err.message ?? API_ERROR_MESSAGE),
   });
+
   const handleOnGenerateAI = (prompt: string | undefined) => {
     if (!prompt || !profile.data) return;
     if (profile.data.credits < 5) {
