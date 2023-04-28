@@ -656,7 +656,7 @@ export const appRouter = router({
         where: {
           authorId: input ?? ctx.auth.userId,
           comments: {
-            every: {
+            some: {
               authorId: {
                 not: {
                   equals: input ?? ctx.auth.userId,

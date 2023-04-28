@@ -160,6 +160,10 @@ function ProfileDetails() {
 }
 
 function Header() {
+  /**
+   * trpc queries
+   */
+  const profile = trpc.getProfile.useQuery();
   return (
     <>
       <div className="md:flex md:items-center md:justify-between md:space-x-5">
@@ -167,7 +171,7 @@ function Header() {
           {/**
            * Render profile image
            */}
-          <Avatar />
+          <Avatar imageUrl={profile.data?.imageUrl} />
 
           {/**
            * Render profile details

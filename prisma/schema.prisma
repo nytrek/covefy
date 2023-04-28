@@ -8,22 +8,23 @@ datasource db {
 }
 
 model Profile {
-  id        String     @id @unique
-  name      String
-  imageUrl  String
-  username  String
-  credits   Int
-  banner    String?
-  premium   Boolean    @default(false)
-  label     Label      @default(PUBLIC)
-  posts     Post[]     @relation("Author")
-  likes     Like[]
-  bookmarks Bookmark[]
-  sender    Friend[]   @relation("Sender")
-  receiver  Friend[]   @relation("Receiver")
-  inbox     Post[]     @relation("Friend")
-  comment   Comment[]
-  purchases Purchase[]
+  id         String     @id @unique
+  name       String
+  imageUrl   String
+  username   String
+  credits    Int
+  banner     String?
+  premium    Boolean    @default(false)
+  popularity Int        @default(0)
+  label      Label      @default(PUBLIC)
+  posts      Post[]     @relation("Author")
+  likes      Like[]
+  bookmarks  Bookmark[]
+  sender     Friend[]   @relation("Sender")
+  receiver   Friend[]   @relation("Receiver")
+  inbox      Post[]     @relation("Friend")
+  comment    Comment[]
+  purchases  Purchase[]
 }
 
 model Post {
