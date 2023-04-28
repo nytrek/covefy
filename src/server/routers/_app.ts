@@ -822,9 +822,9 @@ export const appRouter = router({
           input.prompt,
         temperature: 0.6,
         max_tokens: 480,
-        top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
+        user: ctx.auth.userId,
       });
       await prisma.profile.update({
         data: {
