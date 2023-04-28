@@ -130,6 +130,69 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                   </div>
                 </div>
               </motion.div>
+              <motion.div
+                key={0}
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="relative col-span-1 flex rounded-md shadow-sm"
+              >
+                <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
+                  <div className="flex h-2 w-2/5 items-center space-x-4 rounded-full bg-brand-500 motion-safe:animate-pulse"></div>
+                </div>
+                <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
+                  <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
+                    <h4 className="font-medium text-brand-50">
+                      <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+                    </h4>
+                    <p className="w-36 truncate text-brand-500">
+                      <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                key={0}
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="relative col-span-1 flex rounded-md shadow-sm"
+              >
+                <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
+                  <div className="flex h-2 w-2/5 items-center space-x-4 rounded-full bg-brand-500 motion-safe:animate-pulse"></div>
+                </div>
+                <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
+                  <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
+                    <h4 className="font-medium text-brand-50">
+                      <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+                    </h4>
+                    <p className="w-36 truncate text-brand-500">
+                      <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                key={0}
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="relative col-span-1 flex rounded-md shadow-sm"
+              >
+                <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
+                  <div className="flex h-2 w-2/5 items-center space-x-4 rounded-full bg-brand-500 motion-safe:animate-pulse"></div>
+                </div>
+                <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
+                  <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
+                    <h4 className="font-medium text-brand-50">
+                      <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+                    </h4>
+                    <p className="w-36 truncate text-brand-500">
+                      <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         )}
