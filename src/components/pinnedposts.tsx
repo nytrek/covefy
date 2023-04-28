@@ -38,7 +38,7 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                 role="list"
                 className="flex items-center space-x-6 overflow-x-auto"
               >
-                <AnimatePresence>
+                <AnimatePresence mode="wait" initial={false}>
                   {!!!pinned.data.length ? (
                     <motion.div
                       key={0}
@@ -62,7 +62,7 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                       </div>
                     </motion.div>
                   ) : (
-                    <>
+                    <AnimatePresence initial={false}>
                       {pinned.data.map((item) => (
                         <motion.li
                           key={item.id}
@@ -100,7 +100,7 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                           </div>
                         </motion.li>
                       ))}
-                    </>
+                    </AnimatePresence>
                   )}
                 </AnimatePresence>
               </ul>
