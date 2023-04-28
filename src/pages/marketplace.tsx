@@ -197,7 +197,7 @@ export default function Marketplace() {
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
             {banners.data
-              ?.filter((item) => item.imageUrl !== profile.data?.banner)
+              ?.filter((banner) => banner.imageUrl !== profile.data?.banner)
               .map((banner) => (
                 <Banner
                   key={banner.id}

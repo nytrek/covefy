@@ -17,12 +17,12 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-export default function BookmarkCheck({ item }: { item: Post }) {
+export default function BookmarkCheck({ post }: { post: Post }) {
   const { user } = useUser();
   return (
     <div>
       <AnimatePresence mode="wait">
-        {item.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
+        {post.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}

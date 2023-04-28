@@ -19,11 +19,11 @@ type Post = Prisma.PostGetPayload<{
 }>;
 
 export default function Like({
-  item,
+  post,
   handleOnCreateLike,
   handleOnDeleteLike,
 }: {
-  item: Post;
+  post: Post;
   handleOnCreateLike: (id: number) => void;
   handleOnDeleteLike: (id: number) => void;
 }) {
@@ -33,26 +33,26 @@ export default function Like({
       <button
         type="button"
         onClick={() => {
-          !!item.likes.find((post) => post.profileId === user?.id)
-            ? handleOnDeleteLike(item.id)
-            : handleOnCreateLike(item.id);
+          !!post.likes.find((_post) => _post.profileId === user?.id)
+            ? handleOnDeleteLike(post.id)
+            : handleOnCreateLike(post.id);
         }}
         className="inline-flex space-x-2"
       >
-        {item.likes.find((like) => like.profileId === user?.id) ? (
+        {post.likes.find((like) => like.profileId === user?.id) ? (
           <HandThumbUpIconSolid className="h-5 w-5" aria-hidden="true" />
         ) : (
           <HandThumbUpIconOutline className="h-5 w-5" aria-hidden="true" />
         )}
         <AnimatePresence mode="wait">
           <motion.span
-            key={item.likes.length}
+            key={post.likes.length}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             className="font-medium"
           >
-            {item.likes.length}
+            {post.likes.length}
           </motion.span>
         </AnimatePresence>
         <span className="sr-only">likes</span>

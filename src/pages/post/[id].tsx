@@ -816,7 +816,7 @@ export default function Post() {
                           <p>{post.data.description}</p>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <ProfileDropdown item={post.data} />
+                          <ProfileDropdown post={post.data} />
                           {/**
                            * Render user details
                            */}
@@ -836,13 +836,13 @@ export default function Post() {
                            */}
                           <div className="flex space-x-6">
                             <Like
-                              item={post.data}
+                              post={post.data}
                               handleOnCreateLike={handleOnCreateLike}
                               handleOnDeleteLike={handleOnDeleteLike}
                             />
-                            <Comment item={post.data} />
+                            <Comment post={post.data} />
                             <Bookmark
-                              item={post.data}
+                              post={post.data}
                               handleOnCreateBookmark={handleOnCreateBookmark}
                               handleOnDeleteBookmark={handleOnDeleteBookmark}
                             />
@@ -851,7 +851,7 @@ export default function Post() {
                           {/**
                            * Render a bookmark check if the user has bookmarked this post
                            */}
-                          <BookmarkCheck item={post.data} />
+                          <BookmarkCheck post={post.data} />
 
                           {/**
                            * Render all the comments attached to this post

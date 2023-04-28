@@ -18,15 +18,15 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-export default function ProfileDropdown({ item }: { item: Post }) {
+export default function ProfileDropdown({ post }: { post: Post }) {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
         <Menu.Button className="flex items-center rounded-full bg-brand-100 text-brand-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-brand-100">
-          {item.author?.imageUrl ? (
+          {post.author?.imageUrl ? (
             <img
               className="h-10 w-10 rounded-full"
-              src={item.author?.imageUrl}
+              src={post.author?.imageUrl}
               alt=""
             />
           ) : (
@@ -48,7 +48,7 @@ export default function ProfileDropdown({ item }: { item: Post }) {
             <Menu.Item>
               {({ active }) => (
                 <Link
-                  href={"/profile/" + item.authorId}
+                  href={"/profile/" + post.authorId}
                   className={clsx(
                     active ? "bg-brand-100 text-brand-900" : "text-brand-700",
                     "block px-4 py-2 text-sm"

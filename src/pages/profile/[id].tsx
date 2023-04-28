@@ -636,16 +636,16 @@ function Stats() {
         {profile.data?.name}&apos;s stats
       </h3>
       <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-        {stats.map((item) => (
+        {stats.map((stat) => (
           <div
-            key={item.name}
+            key={stat.name}
             className="overflow-hidden rounded-lg border border-brand-600 bg-brand-800 px-4 py-5 shadow sm:p-6"
           >
             <dt className="truncate text-sm font-medium text-brand-500">
-              {item.name}
+              {stat.name}
             </dt>
             <dd className="mt-1 text-3xl font-semibold tracking-tight text-brand-50">
-              {item.stat}
+              {stat.stat}
             </dd>
           </div>
         ))}

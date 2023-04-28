@@ -742,9 +742,9 @@ export default function Bookmarks() {
                             .toLowerCase()
                             .includes(search.toLowerCase())
                       )
-                      .map((item, index) => (
+                      .map((post) => (
                         <div
-                          key={index}
+                          key={post.id}
                           className="relative w-full break-inside-avoid-column"
                         >
                           <div
@@ -756,7 +756,7 @@ export default function Bookmarks() {
                              */}
                             <motion.button
                               type="button"
-                              onClick={() => push("/post/" + item.id)}
+                              onClick={() => push("/post/" + post.id)}
                               className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
                               style={{ background: flash }}
                             ></motion.button>
@@ -765,21 +765,21 @@ export default function Bookmarks() {
                               {/**
                                * Render any attachment connected to this post
                                */}
-                              {!!item.attachment && (
+                              {!!post.attachment && (
                                 <img
                                   className="h-full w-full rounded-lg"
-                                  src={item.attachment}
+                                  src={post.attachment}
                                   alt="attachment"
                                 />
                               )}
 
                               <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                  <h4 className="text-lg">{item.title}</h4>
+                                  <h4 className="text-lg">{post.title}</h4>
                                   {/**
                                    * Render dropdown menu for the post only if the user is the author of that post
                                    */}
-                                  {item.authorId === user?.id && (
+                                  {post.authorId === user?.id && (
                                     <Menu
                                       as="div"
                                       className="relative inline-block text-left"
@@ -811,7 +811,7 @@ export default function Bookmarks() {
                                                 <button
                                                   type="button"
                                                   onClick={() =>
-                                                    handleOnEditPost(item)
+                                                    handleOnEditPost(post)
                                                   }
                                                   className={clsx(
                                                     active
@@ -833,7 +833,7 @@ export default function Bookmarks() {
                                                 <button
                                                   type="button"
                                                   onClick={() =>
-                                                    handleOnDeletePost(item)
+                                                    handleOnDeletePost(post)
                                                   }
                                                   className={clsx(
                                                     active
@@ -850,14 +850,14 @@ export default function Bookmarks() {
                                             {/**
                                              * Render pin button for the post
                                              */}
-                                            {!item.pinned && (
+                                            {!post.pinned && (
                                               <Menu.Item>
                                                 {({ active }) => (
                                                   <button
                                                     type="button"
                                                     onClick={() =>
                                                       handleOnUpdatePost(
-                                                        item,
+                                                        post,
                                                         true
                                                       )
                                                     }
@@ -879,21 +879,21 @@ export default function Bookmarks() {
                                     </Menu>
                                   )}
                                 </div>
-                                <p>{item.description}</p>
+                                <p>{post.description}</p>
                               </div>
                               <div className="flex items-center space-x-4">
-                                <ProfileDropdown item={item} />
+                                <ProfileDropdown post={post} />
                                 {/**
                                  * Render user details
                                  */}
                                 <div className="flex flex-col">
                                   <div className="flex items-center space-x-1 font-semibold">
-                                    <span>{item.author?.name}</span>
-                                    {item.author?.premium && (
+                                    <span>{post.author?.name}</span>
+                                    {post.author?.premium && (
                                       <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
                                     )}
                                   </div>
-                                  <div>{`@${item.author?.username}`}</div>
+                                  <div>{`@${post.author?.username}`}</div>
                                 </div>
                               </div>
                               <div className="relative flex flex-col space-y-6">
@@ -902,13 +902,13 @@ export default function Bookmarks() {
                                  */}
                                 <div className="flex space-x-6">
                                   <Like
-                                    item={item}
+                                    post={post}
                                     handleOnCreateLike={handleOnCreateLike}
                                     handleOnDeleteLike={handleOnDeleteLike}
                                   />
-                                  <Comment item={item} />
+                                  <Comment post={post} />
                                   <Bookmark
-                                    item={item}
+                                    post={post}
                                     handleOnCreateBookmark={
                                       handleOnCreateBookmark
                                     }
@@ -921,7 +921,7 @@ export default function Bookmarks() {
                                 {/**
                                  * Render a bookmark check if the user has bookmarked this post
                                  */}
-                                <BookmarkCheck item={item} />
+                                <BookmarkCheck post={post} />
                               </div>
                             </div>
                           </div>

@@ -83,29 +83,32 @@ export default function Friends() {
                       .toLowerCase()
                       .includes(search.toLowerCase())
                 )
-                .map((item, index) => (
-                  <div key={index} className="w-full">
+                .map((friend) => (
+                  <div
+                    key={friend.senderId + " " + friend.receiverId}
+                    className="w-full"
+                  >
                     <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
                       <div className="flex items-center justify-between px-4 sm:px-6 lg:px-0">
                         <div>
                           <h2 className="text-2xl font-bold tracking-tight text-brand-50">
-                            {item.senderId === user?.id
-                              ? item.receiver.name
-                              : item.sender.name}
+                            {friend.senderId === user?.id
+                              ? friend.receiver.name
+                              : friend.sender.name}
                           </h2>
                           <p className="text-brand-500">
-                            {item.status === "ACCEPTED"
+                            {friend.status === "ACCEPTED"
                               ? "Latest posts"
-                              : item.status === "PENDING"
+                              : friend.status === "PENDING"
                               ? "Friend request pending"
                               : "Friend request rejected"}
                           </p>
                         </div>
                         <Link
                           href={`/profile/${
-                            item.senderId === user?.id
-                              ? item.receiverId
-                              : item.senderId
+                            friend.senderId === user?.id
+                              ? friend.receiverId
+                              : friend.senderId
                           }`}
                           className="hidden text-sm font-semibold text-brand-50 sm:block"
                         >
@@ -116,16 +119,16 @@ export default function Friends() {
 
                       <div className="relative mt-8">
                         <div className="relative -mb-6 w-full overflow-x-auto pb-6">
-                          {item.status === "ACCEPTED" ? (
+                          {friend.status === "ACCEPTED" ? (
                             <>
-                              {item.senderId === user?.id ? (
+                              {friend.senderId === user?.id ? (
                                 <>
-                                  {item.receiver.posts.length > 0 ? (
+                                  {friend.receiver.posts.length > 0 ? (
                                     <ul
                                       role="list"
                                       className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                                     >
-                                      {item.receiver.posts.map((post) => (
+                                      {friend.receiver.posts.map((post) => (
                                         <li
                                           key={post.id}
                                           className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
@@ -198,25 +201,25 @@ export default function Friends() {
                                   ) : (
                                     <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
                                       <img
-                                        src={item.receiver.imageUrl}
+                                        src={friend.receiver.imageUrl}
                                         alt="receiver"
                                         className="h-14 w-14 rounded-full"
                                       />
                                       <p className="text-center text-sm font-semibold text-brand-50">
-                                        {item.receiver.name} has not created any
-                                        posts
+                                        {friend.receiver.name} has not created
+                                        any posts
                                       </p>
                                     </div>
                                   )}
                                 </>
                               ) : (
                                 <>
-                                  {item.sender.posts.length > 0 ? (
+                                  {friend.sender.posts.length > 0 ? (
                                     <ul
                                       role="list"
                                       className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                                     >
-                                      {item.sender.posts.map((post) => (
+                                      {friend.sender.posts.map((post) => (
                                         <li
                                           key={post.id}
                                           className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
@@ -289,12 +292,12 @@ export default function Friends() {
                                   ) : (
                                     <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
                                       <img
-                                        src={item.sender.imageUrl}
+                                        src={friend.sender.imageUrl}
                                         alt="sender"
                                         className="h-14 w-14 rounded-full"
                                       />
                                       <p className="text-center text-sm font-semibold text-brand-50">
-                                        {item.sender.name} has not created any
+                                        {friend.sender.name} has not created any
                                         posts
                                       </p>
                                     </div>
@@ -302,37 +305,37 @@ export default function Friends() {
                                 </>
                               )}
                             </>
-                          ) : item.status === "PENDING" ? (
+                          ) : friend.status === "PENDING" ? (
                             <>
-                              {item.senderId === user?.id ? (
+                              {friend.senderId === user?.id ? (
                                 <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
                                   <img
-                                    src={item.receiver.imageUrl}
+                                    src={friend.receiver.imageUrl}
                                     alt="receiver"
                                     className="h-14 w-14 rounded-full"
                                   />
                                   <p className="text-center text-sm font-semibold text-brand-50">
                                     You sent a friend request to{" "}
-                                    {item.receiver.name}
+                                    {friend.receiver.name}
                                   </p>
                                 </div>
                               ) : (
                                 <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
                                   <img
-                                    src={item.sender.imageUrl}
+                                    src={friend.sender.imageUrl}
                                     alt="receiver"
                                     className="h-14 w-14 rounded-full"
                                   />
                                   <p className="text-center text-sm font-semibold text-brand-50">
                                     You have received a friend request from{" "}
-                                    {item.sender.name}
+                                    {friend.sender.name}
                                   </p>
                                   <div className="flex w-full flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-center sm:space-x-3 sm:space-y-0 sm:space-x-reverse">
                                     <button
                                       type="button"
                                       onClick={() =>
                                         handleOnUpdate(
-                                          item.senderId,
+                                          friend.senderId,
                                           "REJECTED"
                                         )
                                       }
@@ -344,7 +347,7 @@ export default function Friends() {
                                       type="button"
                                       onClick={() =>
                                         handleOnUpdate(
-                                          item.senderId,
+                                          friend.senderId,
                                           "ACCEPTED"
                                         )
                                       }
@@ -358,28 +361,28 @@ export default function Friends() {
                             </>
                           ) : (
                             <>
-                              {item.senderId === user?.id ? (
+                              {friend.senderId === user?.id ? (
                                 <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
                                   <img
-                                    src={item.receiver.imageUrl}
+                                    src={friend.receiver.imageUrl}
                                     alt="receiver"
                                     className="h-14 w-14 rounded-full"
                                   />
                                   <p className="text-center text-sm font-semibold text-brand-50">
-                                    {item.receiver.name} has rejected your
+                                    {friend.receiver.name} has rejected your
                                     friend request
                                   </p>
                                 </div>
                               ) : (
                                 <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
                                   <img
-                                    src={item.sender.imageUrl}
+                                    src={friend.sender.imageUrl}
                                     alt="sender"
                                     className="h-14 w-14 rounded-full"
                                   />
                                   <p className="text-center text-sm font-semibold text-brand-50">
-                                    You have rejected {item.sender.name}&apos;s
-                                    friend request
+                                    You have rejected {friend.sender.name}
+                                    &apos;s friend request
                                   </p>
                                 </div>
                               )}
@@ -391,9 +394,9 @@ export default function Friends() {
                       <div className="mt-12 flex px-4 sm:hidden">
                         <Link
                           href={`/profile/${
-                            item.senderId === user?.id
-                              ? item.receiverId
-                              : item.senderId
+                            friend.senderId === user?.id
+                              ? friend.receiverId
+                              : friend.senderId
                           }`}
                           className="text-sm font-semibold text-brand-50"
                         >

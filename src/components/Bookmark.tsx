@@ -19,11 +19,11 @@ type Post = Prisma.PostGetPayload<{
 }>;
 
 export default function Bookmark({
-  item,
+  post,
   handleOnCreateBookmark,
   handleOnDeleteBookmark,
 }: {
-  item: Post;
+  post: Post;
   handleOnCreateBookmark: (id: number) => void;
   handleOnDeleteBookmark: (id: number) => void;
 }) {
@@ -33,26 +33,26 @@ export default function Bookmark({
       <button
         type="button"
         onClick={() => {
-          !!item.bookmarks.find((post) => post.profileId === user?.id)
-            ? handleOnDeleteBookmark(item.id)
-            : handleOnCreateBookmark(item.id);
+          !!post.bookmarks.find((_post) => _post.profileId === user?.id)
+            ? handleOnDeleteBookmark(post.id)
+            : handleOnCreateBookmark(post.id);
         }}
         className="inline-flex space-x-2"
       >
-        {item.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
+        {post.bookmarks.find((bookmark) => bookmark.profileId === user?.id) ? (
           <BookmarkIconSolid className="h-5 w-5" aria-hidden="true" />
         ) : (
           <BookmarkIconOutline className="h-5 w-5" aria-hidden="true" />
         )}
         <AnimatePresence mode="wait">
           <motion.span
-            key={item.bookmarks.length}
+            key={post.bookmarks.length}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             className="font-medium"
           >
-            {item.bookmarks.length}
+            {post.bookmarks.length}
           </motion.span>
         </AnimatePresence>
         <span className="sr-only">bookmarks</span>

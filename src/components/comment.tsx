@@ -18,12 +18,12 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-export default function Comment({ item }: { item: Post }) {
+export default function Comment({ post }: { post: Post }) {
   const { user } = useUser();
   return (
     <span className="inline-flex items-center text-sm">
       <button type="button" className="inline-flex space-x-2">
-        {item.comments.find((comment) => comment.authorId === user?.id) ? (
+        {post.comments.find((comment) => comment.authorId === user?.id) ? (
           <ChatBubbleOvalLeftIconSolid className="h-5 w-5" aria-hidden="true" />
         ) : (
           <ChatBubbleOvalLeftIconOutline
@@ -33,13 +33,13 @@ export default function Comment({ item }: { item: Post }) {
         )}
         <AnimatePresence mode="wait">
           <motion.span
-            key={item.comments.length}
+            key={post.comments.length}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             className="font-medium"
           >
-            {item.comments.length}
+            {post.comments.length}
           </motion.span>
         </AnimatePresence>
         <span className="sr-only">comments</span>
