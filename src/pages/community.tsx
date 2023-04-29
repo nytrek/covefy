@@ -71,7 +71,7 @@ export default function Community() {
                                   <h2 className="sr-only">Summary</h2>
                                   <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
                                     <dl className="flex flex-wrap space-y-4">
-                                      <div className="flex-auto pl-6 pt-6">
+                                      <div className="flex-auto px-4 pt-4 sm:px-6 sm:pt-6">
                                         <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
                                           {post.title}
                                         </dd>
