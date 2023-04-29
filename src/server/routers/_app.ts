@@ -821,7 +821,7 @@ export const appRouter = router({
       const completion = await openai.createCompletion({
         model: "text-davinci-003",
         prompt:
-          "Respond to the following prompt with a maximum of 480 characters - " +
+          "Respond to the following prompt with less than 480 characters - " +
           input.prompt,
         temperature: 0.6,
         max_tokens: 480,
