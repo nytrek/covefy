@@ -813,7 +813,6 @@ export default function Post() {
                             handleOnCreateBookmark={handleOnCreateBookmark}
                             handleOnDeleteBookmark={handleOnDeleteBookmark}
                           />
-                          <BookmarkCheck post={post.data} />
                           <Comments
                             item={post.data}
                             handleOnDeleteComment={handleOnDeleteComment}

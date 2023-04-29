@@ -4,7 +4,6 @@ import { CheckBadgeIcon, PaperClipIcon } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
 import Attachment from "@src/components/attachment";
-import BookmarkCheck from "@src/components/bookmarkcheck";
 import FriendDropdown from "@src/components/frienddropdown";
 import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
@@ -795,7 +794,6 @@ export default function Home() {
                                 handleOnCreateBookmark={handleOnCreateBookmark}
                                 handleOnDeleteBookmark={handleOnDeleteBookmark}
                               />
-                              <BookmarkCheck post={post} />
                             </div>
                           </div>
                         </div>

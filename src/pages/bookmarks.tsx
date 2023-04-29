@@ -811,11 +811,6 @@ export default function Bookmarks() {
                                     handleOnDeleteBookmark
                                   }
                                 />
-
-                                {/**
-                                 * Render a bookmark check if the user has bookmarked this post
-                                 */}
-                                <BookmarkCheck post={post} />
                               </div>
                             </div>
                           </div>

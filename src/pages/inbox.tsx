@@ -799,7 +799,6 @@ export default function Inbox() {
                                     handleOnDeleteBookmark
                                   }
                                 />
-                                <BookmarkCheck post={post} />
                               </div>
                             </div>
                           </div>
