@@ -28,7 +28,7 @@ export default function Header({
       <div className="mt-8 flex flex-1 justify-center">
         <div className="w-full px-2 lg:px-6">
           <label htmlFor="search" className="sr-only">
-            Search notes
+            Search posts
           </label>
           <div className="relative flex items-center text-brand-50">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

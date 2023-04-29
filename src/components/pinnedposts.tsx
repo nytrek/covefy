@@ -143,10 +143,10 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                       <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 pr-2">
                         <div className="flex-1 truncate px-4 py-2 text-sm">
                           <h4 className="font-medium text-brand-50">
-                            Pinned notes will appear here
+                            Pinned posts will appear here
                           </h4>
                           <p className="w-36 truncate text-brand-500">
-                            Your note description
+                            Your post description
                           </p>
                         </div>
                       </div>

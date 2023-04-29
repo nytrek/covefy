@@ -6,13 +6,13 @@ const faqs = [
     id: 1,
     question: "What are credits used for?",
     answer:
-      "Credits can be used to create notes, interact with AI and purchase banners in the marketplace. The use of credits will expand as new features come in.",
+      "Credits can be used to create posts, interact with AI and purchase banners in the marketplace. The use of credits will expand as new features come in.",
   },
   {
     id: 2,
-    question: "How do I send notes to friends?",
+    question: "How do I send posts to friends?",
     answer:
-      "You can send notes to your friends by visiting their profile page. You can choose to send it publicly or privately like any other note.",
+      "You can send posts to your friends by visiting their profile page. You can choose to send it publicly or privately like any other post.",
   },
   {
     id: 3,
@@ -67,7 +67,7 @@ export default function Feedback() {
                   </dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-brand-200 pt-4">
-                  <dt className="text-brand-50">Create note</dt>
+                  <dt className="text-brand-50">Create post</dt>
                   <dd className="flex items-center space-x-1 font-medium text-brand-50">
                     <span>1</span>
                     <TicketIcon className="h-5 w-5" />

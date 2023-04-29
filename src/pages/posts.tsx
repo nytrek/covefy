@@ -715,7 +715,7 @@ export default function Posts() {
       />
       <div className="pb-36">
         <Header
-          header="Collect your notes in one place."
+          header="Collect your posts in one place."
           search={search}
           setSearch={setSearch}
           handleOnClick={handleOnClick}

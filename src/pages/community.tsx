@@ -25,7 +25,7 @@ export default function Community() {
     <>
       <div className="pb-36">
         <Header
-          header="Explore notes from the community."
+          header="Explore posts from the community."
           search={search}
           setSearch={setSearch}
           handleOnClick={() => null}

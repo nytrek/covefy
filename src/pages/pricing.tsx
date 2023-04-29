@@ -77,7 +77,7 @@ export default function Pricing() {
             </p>
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-brand-300">
-            Choose a plan and elevate your note-taking game today.
+            Choose a plan and elevate your content game today.
           </p>
           <div className="mt-16 flex justify-center">
             <RadioGroup
