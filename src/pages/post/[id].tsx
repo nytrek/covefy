@@ -891,17 +891,9 @@ export default function Post() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
-                      <button
-                        type="button"
-                        onClick={() => back()}
-                        className="flex items-center space-x-2"
-                      >
-                        <ArrowLongLeftIcon className="h-5 w-5" />
-                        <span>Go back</span>
-                      </button>
-                      <p>This post is not publicly accessible</p>
-                    </div>
+                    <p className="text-brand-50">
+                      This post is not publicly accessible
+                    </p>
                   )}
                 </>
               ) : (

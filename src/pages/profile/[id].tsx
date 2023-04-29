@@ -715,59 +715,52 @@ export default function Account() {
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
       {isAuth && !!profile.data && (
         <>
-          {profile.data.label === "PUBLIC" ? (
-            <main className="pb-36 pt-12">
-              <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-                {/**
-                 * Render back button
-                 */}
-                <button
-                  type="button"
-                  onClick={() => back()}
-                  className="flex items-center space-x-2 text-brand-50"
-                >
-                  <ArrowLongLeftIcon className="h-5 w-5" />
-                  <span>Go back</span>
-                </button>
-
-                {/**
-                 * Render banner image
-                 */}
-                <div className="relative">
-                  <img
-                    src={
-                      profile.data.banner ??
-                      "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                    }
-                    alt="banner"
-                    className="h-48 w-full rounded-lg object-cover"
-                  />
-                </div>
-
-                {/**
-                 * Render profile header
-                 */}
-                <Header setOpen={setOpen} />
-
-                {/**
-                 * Render profile stats
-                 */}
-                <Stats />
-              </div>
-            </main>
-          ) : (
-            <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
+          <main className="pb-36 pt-12">
+            <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+              {/**
+               * Render back button
+               */}
               <button
                 type="button"
                 onClick={() => back()}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 text-brand-50"
               >
                 <ArrowLongLeftIcon className="h-5 w-5" />
                 <span>Go back</span>
               </button>
-              <p>This profile is not publicly accessible</p>
+              {profile.data.label === "PUBLIC" ? (
+                <>
+                  {/**
+                   * Render banner image
+                   */}
+                  <div className="relative">
+                    <img
+                      src={
+                        profile.data.banner ??
+                        "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                      }
+                      alt="banner"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                  </div>
+
+                  {/**
+                   * Render profile header
+                   */}
+                  <Header setOpen={setOpen} />
+
+                  {/**
+                   * Render profile stats
+                   */}
+                  <Stats />
+                </>
+              ) : (
+                <p className="text-brand-50">
+                  This profile is not publicly accessible
+                </p>
+              )}
             </div>
-          )}
+          </main>
         </>
       )}
     </>
