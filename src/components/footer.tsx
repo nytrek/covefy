@@ -2,7 +2,7 @@ import {
   BookmarkIcon,
   HomeIcon,
   InboxStackIcon,
-  RectangleStackIcon,
+  SwatchIcon,
 } from "@heroicons/react/20/solid";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export default function Footer() {
     {
       href: "/posts",
       current: route === "/posts",
-      icon: RectangleStackIcon,
+      icon: SwatchIcon,
     },
     {
       href: "/bookmarks",
