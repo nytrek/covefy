@@ -533,6 +533,9 @@ export const appRouter = router({
               pinned: input.pinned,
               attachment: input.attachment,
               attachmentPath: input.attachmentPath,
+              friend: {
+                disconnect: true,
+              },
               updatedAt: new Date(),
             },
             where: {
