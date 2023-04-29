@@ -101,6 +101,17 @@ function Banner({
   };
   return (
     <>
+      {/**
+       * Render banner image
+       */}
+      <div className="relative">
+        <img
+          src={src}
+          alt="banner"
+          className="h-48 w-full rounded-lg object-cover"
+        />
+        <span className="absolute inset-0" />
+      </div>
       <div className="md:flex md:items-center md:justify-between md:space-x-5">
         {/**
          * Render banner details
@@ -143,18 +154,6 @@ function Banner({
             </button>
           )}
         </div>
-      </div>
-
-      {/**
-       * Render banner image
-       */}
-      <div className="relative">
-        <img
-          src={src}
-          alt="banner"
-          className="h-48 w-full rounded-lg object-cover"
-        />
-        <span className="absolute inset-0" />
       </div>
     </>
   );

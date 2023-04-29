@@ -696,26 +696,25 @@ export default function Post() {
         setLength={setLength}
       />
       <div className="pb-36">
-        {!!post.data && (
-          <>
-            {post.data.label === "PUBLIC" ||
-            post.data.authorId === user?.id ||
-            post.data.friendId === user?.id ? (
-              <div className="mx-auto mt-8 max-w-xl px-2 lg:px-8">
-                <div className="flex items-center justify-center">
-                  <div className="relative w-full space-y-6 px-4 py-6">
-                    {/**
-                     * Render go back button
-                     */}
-                    <button
-                      type="button"
-                      onClick={() => back()}
-                      className="flex items-center space-x-2 text-brand-50"
-                    >
-                      <ArrowLongLeftIcon className="h-5 w-5" />
-                      <span>Go back</span>
-                    </button>
-
+        <div className="mx-auto mt-8 max-w-xl px-2 lg:px-8">
+          <div className="flex items-center justify-center">
+            <div className="relative w-full space-y-6 px-4 py-6">
+              {/**
+               * Render go back button
+               */}
+              <button
+                type="button"
+                onClick={() => back()}
+                className="flex items-center space-x-2 text-brand-50"
+              >
+                <ArrowLongLeftIcon className="h-5 w-5" />
+                <span>Go back</span>
+              </button>
+              {!!post.data ? (
+                <>
+                  {post.data.label === "PUBLIC" ||
+                  post.data.authorId === user?.id ||
+                  post.data.friendId === user?.id ? (
                     <div
                       onMouseMove={handleMouseMove}
                       className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
@@ -891,24 +890,49 @@ export default function Post() {
                         </div>
                       </div>
                     </div>
+                  ) : (
+                    <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
+                      <button
+                        type="button"
+                        onClick={() => back()}
+                        className="flex items-center space-x-2"
+                      >
+                        <ArrowLongLeftIcon className="h-5 w-5" />
+                        <span>Go back</span>
+                      </button>
+                      <p>This post is not publicly accessible</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="relative w-full break-inside-avoid-column">
+                    <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-[30rem] w-screen flex-col items-center justify-center space-y-6 text-brand-50">
-                <button
-                  type="button"
-                  onClick={() => back()}
-                  className="flex items-center space-x-2"
-                >
-                  <ArrowLongLeftIcon className="h-5 w-5" />
-                  <span>Go back</span>
-                </button>
-                <p>This post is not publicly accessible</p>
-              </div>
-            )}
-          </>
-        )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
