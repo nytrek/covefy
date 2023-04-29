@@ -728,7 +728,8 @@ export default function Account() {
                 <ArrowLongLeftIcon className="h-5 w-5" />
                 <span>Go back</span>
               </button>
-              {profile.data.label === "PUBLIC" ? (
+              {profile.data.label === "PUBLIC" ||
+              profile.data.id === user?.id ? (
                 <>
                   {/**
                    * Render banner image
