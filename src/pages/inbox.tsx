@@ -369,7 +369,9 @@ function Modal({
                         <div className="flex">
                           <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                             <input
+                              key={Number(!!attachment)}
                               type="file"
+                              accept=".png, .jpg, .jpeg, .mp3, .mp4"
                               className="absolute inset-0 opacity-0"
                               onChange={(event) => handleFileSelect(event)}
                             />
@@ -766,11 +768,35 @@ export default function Inbox() {
                                * Render any attachment connected to this post
                                */}
                               {!!post.attachment && (
-                                <img
-                                  className="h-full w-full rounded-lg"
-                                  src={post.attachment}
-                                  alt="attachment"
-                                />
+                                <>
+                                  {post.attachment.includes(".mp4") ? (
+                                    <video
+                                      className="w-full rounded-lg"
+                                      controls
+                                    >
+                                      <source
+                                        src={post.attachment}
+                                        type="video/mp4"
+                                      />
+                                    </video>
+                                  ) : post.attachment.includes(".mp3") ? (
+                                    <audio
+                                      className="w-full rounded-lg"
+                                      controls
+                                    >
+                                      <source
+                                        src={post.attachment}
+                                        type="audio/mp3"
+                                      />
+                                    </audio>
+                                  ) : (
+                                    <img
+                                      className="h-full w-full rounded-lg"
+                                      src={post.attachment}
+                                      alt="attachment"
+                                    />
+                                  )}
+                                </>
                               )}
 
                               <div className="space-y-4">

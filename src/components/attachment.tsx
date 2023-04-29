@@ -43,6 +43,7 @@ function Button({ handleOnClick }: { handleOnClick: () => void }) {
  * containing meta details about a post which this
  * attachment is connected to. The object contains
  * an attachment which is a URL reference to
+ *
  * @link https://upload.io/ CDN and an attachmentPath
  * which is the folder path for where this attachment
  * is stored.
@@ -106,12 +107,32 @@ export default function Attachment({
     <>
       {attachment ? (
         <div className="relative">
-          <Image src={URL.createObjectURL(attachment)} />
+          {attachment.name.includes(".mp4") ? (
+            <video className="w-full rounded-lg" controls>
+              <source src={URL.createObjectURL(attachment)} type="video/mp4" />
+            </video>
+          ) : attachment.name.includes(".mp3") ? (
+            <audio className="w-3/4 rounded-lg" controls>
+              <source src={URL.createObjectURL(attachment)} type="audio/mp3" />
+            </audio>
+          ) : (
+            <Image src={URL.createObjectURL(attachment)} />
+          )}
           <Button handleOnClick={handleOnClick} />
         </div>
       ) : postAttachment?.attachment ? (
         <div className="relative">
-          <Image src={postAttachment.attachment} />
+          {postAttachment.attachment.includes(".mp4") ? (
+            <video className="w-full rounded-lg" controls>
+              <source src={postAttachment.attachment} type="video/mp4" />
+            </video>
+          ) : postAttachment.attachment.includes(".mp3") ? (
+            <audio className="w-3/4 rounded-lg" controls>
+              <source src={postAttachment.attachment} type="audio/mp3" />
+            </audio>
+          ) : (
+            <Image src={postAttachment.attachment} />
+          )}
           <Button handleOnClick={handleOnClick} />
         </div>
       ) : null}

@@ -326,6 +326,7 @@ function Modal({
                             <input
                               key={Number(!!attachment)}
                               type="file"
+                              accept=".png, .jpg, .jpeg, .mp3, .mp4"
                               className="absolute inset-0 opacity-0"
                               onChange={(event) => handleFileSelect(event)}
                             />
@@ -732,11 +733,29 @@ export default function Post() {
                          * Render any attachment connected to this post
                          */}
                         {!!post.data.attachment && (
-                          <img
-                            className="h-full w-full rounded-lg"
-                            src={post.data.attachment}
-                            alt="attachment"
-                          />
+                          <>
+                            {post.data.attachment.includes(".mp4") ? (
+                              <video className="w-full rounded-lg" controls>
+                                <source
+                                  src={post.data.attachment}
+                                  type="video/mp4"
+                                />
+                              </video>
+                            ) : post.data.attachment.includes(".mp3") ? (
+                              <audio className="w-full rounded-lg" controls>
+                                <source
+                                  src={post.data.attachment}
+                                  type="audio/mp3"
+                                />
+                              </audio>
+                            ) : (
+                              <img
+                                className="h-full w-full rounded-lg"
+                                src={post.data.attachment}
+                                alt="attachment"
+                              />
+                            )}
+                          </>
                         )}
 
                         <div className="space-y-4">

@@ -257,7 +257,9 @@ function Modal({ open, friend, setOpen }: Props) {
                       <div className="flex">
                         <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                           <input
+                            key={Number(!!attachment)}
                             type="file"
+                            accept=".png, .jpg, .jpeg, .mp3, .mp4"
                             className="absolute inset-0 opacity-0"
                             onChange={(event) => handleFileSelect(event)}
                           />
