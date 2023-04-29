@@ -426,7 +426,7 @@ export default function Account() {
                   "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
                 }
                 alt="banner"
-                className="rounded-lg object-cover"
+                className="h-48 w-full rounded-lg object-cover"
               />
               <span className="absolute inset-0" />
               <Dropdown />
