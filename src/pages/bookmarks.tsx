@@ -767,36 +767,16 @@ export default function Bookmarks() {
                               {/**
                                * Render any attachment connected to this post
                                */}
-                              {!!post.attachment && (
-                                <>
-                                  {post.attachment.includes(".mp4") ? (
-                                    <video
-                                      className="w-full rounded-lg"
-                                      controls
-                                    >
-                                      <source
-                                        src={post.attachment}
-                                        type="video/mp4"
-                                      />
-                                    </video>
-                                  ) : post.attachment.includes(".mp3") ? (
-                                    <audio
-                                      className="w-full rounded-lg"
-                                      controls
-                                    >
-                                      <source
-                                        src={post.attachment}
-                                        type="audio/mp3"
-                                      />
-                                    </audio>
-                                  ) : (
-                                    <img
-                                      className="h-full w-full rounded-lg"
-                                      src={post.attachment}
-                                      alt="attachment"
-                                    />
-                                  )}
-                                </>
+                              {!!post.attachmentPath && (
+                                <div className="relative -my-2 -ml-2 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
+                                  <PaperClipIcon
+                                    className="-ml-1 mr-2 h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                  <span className="w-full truncate text-sm italic text-brand-500">
+                                    {post.attachmentPath}
+                                  </span>
+                                </div>
                               )}
 
                               <div className="space-y-4">
