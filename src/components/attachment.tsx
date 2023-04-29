@@ -97,7 +97,7 @@ export default function Attachment({
 
   const handleOnClick = () => {
     if (postAttachment?.attachmentPath) {
-      handleOnDeleteAttachment;
+      handleOnDeleteAttachment();
     } else {
       setAttachment(null);
     }

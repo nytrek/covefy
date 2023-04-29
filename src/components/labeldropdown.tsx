@@ -21,7 +21,7 @@ export default function LabelDropdown({ label, setLabel }: Props) {
         <>
           <Listbox.Label className="sr-only"> Set label </Listbox.Label>
           <div className="relative">
-            <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
+            <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full border border-brand-800 bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
               <TagIcon
                 className="h-5 w-5 flex-shrink-0 text-brand-500 sm:-ml-1"
                 aria-hidden="true"

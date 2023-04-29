@@ -186,15 +186,6 @@ function Modal({ open, friend, setOpen }: Props) {
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
                 {/**
-                 * Render any attachment connected to this post
-                 */}
-                <Attachment
-                  attachment={attachment}
-                  setAttachment={setAttachment}
-                  handleUpdate={() => null}
-                />
-
-                {/**
                  * Render post form
                  */}
                 <form className="relative" onSubmit={handleOnSubmit}>
@@ -203,7 +194,7 @@ function Modal({ open, friend, setOpen }: Props) {
                    */}
                   <button
                     type="button"
-                    className="absolute right-2 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
+                    className="absolute right-1 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
                     onClick={() => setOpen(false)}
                   >
                     <XMarkIcon className="h-5 w-5 text-brand-600" />
@@ -259,7 +250,7 @@ function Modal({ open, friend, setOpen }: Props) {
                    * Render post toolkit
                    */}
                   <div>
-                    <div className="flex items-center justify-between space-x-3 py-2 pl-2">
+                    <div className="flex items-center justify-between space-x-3 py-2 pl-1">
                       {/**
                        * Render attachment button
                        */}
@@ -307,6 +298,15 @@ function Modal({ open, friend, setOpen }: Props) {
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
+
+                    {/**
+                     * Render any attachment connected to this post
+                     */}
+                    <Attachment
+                      attachment={attachment}
+                      setAttachment={setAttachment}
+                      handleUpdate={() => null}
+                    />
 
                     {/**
                      * Render post buttons

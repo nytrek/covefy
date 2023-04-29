@@ -61,7 +61,7 @@ export default function PostButtons({
     });
   };
   return (
-    <div className="mt-5 space-y-2 pl-2 pr-3.5 sm:mt-6">
+    <div className="mt-5 space-y-2 sm:mt-6">
       <button
         type="button"
         onClick={() => handleOnGenerateAI(descriptionRef.current?.value)}
