@@ -1,28 +1,22 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
-import { Dialog, Menu, Transition } from "@headlessui/react";
-import {
-  CheckBadgeIcon,
-  EllipsisVerticalIcon,
-  PaperClipIcon,
-} from "@heroicons/react/20/solid";
+import { Dialog, Transition } from "@headlessui/react";
+import { CheckBadgeIcon, PaperClipIcon } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
-import Bookmark from "@src/components/Bookmark";
 import Attachment from "@src/components/attachment";
 import BookmarkCheck from "@src/components/bookmarkcheck";
-import Comment from "@src/components/comment";
 import FriendDropdown from "@src/components/frienddropdown";
 import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
-import Like from "@src/components/like";
 import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
+import PostDropdown from "@src/components/postdropdown";
 import PostSkeleton from "@src/components/postskeleton";
+import PostStats from "@src/components/poststats";
 import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -467,7 +461,15 @@ export default function Bookmarks() {
    * trpc queries
    */
   const posts = trpc.getBookmarkedPosts.useQuery();
-  const pinned = trpc.getPinnedPosts.useQuery();
+
+  const filterPost = (post: Post) => {
+    return (
+      post.title.toLowerCase().includes(search.toLowerCase()) ||
+      post.description.toLowerCase().includes(search.toLowerCase()) ||
+      post.author.name.toLowerCase().includes(search.toLowerCase()) ||
+      post.author.username.toLowerCase().includes(search.toLowerCase())
+    );
+  };
 
   /**
    * create like mutation that links to corresponding procedure in the backend
@@ -729,21 +731,7 @@ export default function Bookmarks() {
                 {posts.data ? (
                   <>
                     {posts.data
-                      .filter(
-                        (post) =>
-                          post.title
-                            .toLowerCase()
-                            .includes(search.toLowerCase()) ||
-                          post.description
-                            .toLowerCase()
-                            .includes(search.toLowerCase()) ||
-                          post.author.name
-                            .toLowerCase()
-                            .includes(search.toLowerCase()) ||
-                          post.author.username
-                            .toLowerCase()
-                            .includes(search.toLowerCase())
-                      )
+                      .filter((post) => filterPost(post))
                       .map((post) => (
                         <div
                           key={post.id}
@@ -786,103 +774,12 @@ export default function Bookmarks() {
                                    * Render dropdown menu for the post only if the user is the author of that post
                                    */}
                                   {post.authorId === user?.id && (
-                                    <Menu
-                                      as="div"
-                                      className="relative inline-block text-left"
-                                    >
-                                      <div>
-                                        <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
-                                          <EllipsisVerticalIcon
-                                            className="h-5 w-5"
-                                            aria-hidden="true"
-                                          />
-                                        </Menu.Button>
-                                      </div>
-                                      <Transition
-                                        as={Fragment}
-                                        enter="transition ease-out duration-100"
-                                        enterFrom="transform opacity-0 scale-95"
-                                        enterTo="transform opacity-100 scale-100"
-                                        leave="transition ease-in duration-75"
-                                        leaveFrom="transform opacity-100 scale-100"
-                                        leaveTo="transform opacity-0 scale-95"
-                                      >
-                                        <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                                          <div className="py-1">
-                                            {/**
-                                             * Render edit button for the post
-                                             */}
-                                            <Menu.Item>
-                                              {({ active }) => (
-                                                <button
-                                                  type="button"
-                                                  onClick={() =>
-                                                    handleOnEditPost(post)
-                                                  }
-                                                  className={clsx(
-                                                    active
-                                                      ? "bg-brand-100 text-brand-900"
-                                                      : "text-brand-700",
-                                                    "w-full px-4 py-2 text-left text-sm"
-                                                  )}
-                                                >
-                                                  Edit
-                                                </button>
-                                              )}
-                                            </Menu.Item>
-
-                                            {/**
-                                             * Render delete button for the post
-                                             */}
-                                            <Menu.Item>
-                                              {({ active }) => (
-                                                <button
-                                                  type="button"
-                                                  onClick={() =>
-                                                    handleOnDeletePost(post)
-                                                  }
-                                                  className={clsx(
-                                                    active
-                                                      ? "bg-brand-100 text-brand-900"
-                                                      : "text-brand-700",
-                                                    "w-full px-4 py-2 text-left text-sm"
-                                                  )}
-                                                >
-                                                  Delete
-                                                </button>
-                                              )}
-                                            </Menu.Item>
-
-                                            {/**
-                                             * Render pin button for the post
-                                             */}
-                                            {!post.pinned && (
-                                              <Menu.Item>
-                                                {({ active }) => (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                      handleOnUpdatePost(
-                                                        post,
-                                                        true
-                                                      )
-                                                    }
-                                                    className={clsx(
-                                                      active
-                                                        ? "bg-brand-100 text-brand-900"
-                                                        : "text-brand-700",
-                                                      "w-full px-4 py-2 text-left text-sm"
-                                                    )}
-                                                  >
-                                                    Pin post
-                                                  </button>
-                                                )}
-                                              </Menu.Item>
-                                            )}
-                                          </div>
-                                        </Menu.Items>
-                                      </Transition>
-                                    </Menu>
+                                    <PostDropdown
+                                      post={post}
+                                      handleOnEditPost={handleOnEditPost}
+                                      handleOnDeletePost={handleOnDeletePost}
+                                      handleOnUpdatePost={handleOnUpdatePost}
+                                    />
                                   )}
                                 </div>
                                 <p>{post.description}</p>
@@ -903,26 +800,17 @@ export default function Bookmarks() {
                                 </div>
                               </div>
                               <div className="relative flex flex-col space-y-6">
-                                {/**
-                                 * Render the stats for this post
-                                 */}
-                                <div className="flex space-x-6">
-                                  <Like
-                                    post={post}
-                                    handleOnCreateLike={handleOnCreateLike}
-                                    handleOnDeleteLike={handleOnDeleteLike}
-                                  />
-                                  <Comment post={post} />
-                                  <Bookmark
-                                    post={post}
-                                    handleOnCreateBookmark={
-                                      handleOnCreateBookmark
-                                    }
-                                    handleOnDeleteBookmark={
-                                      handleOnDeleteBookmark
-                                    }
-                                  />
-                                </div>
+                                <PostStats
+                                  post={post}
+                                  handleOnCreateLike={handleOnCreateLike}
+                                  handleOnDeleteLike={handleOnDeleteLike}
+                                  handleOnCreateBookmark={
+                                    handleOnCreateBookmark
+                                  }
+                                  handleOnDeleteBookmark={
+                                    handleOnDeleteBookmark
+                                  }
+                                />
 
                                 {/**
                                  * Render a bookmark check if the user has bookmarked this post

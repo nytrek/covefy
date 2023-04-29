@@ -1,23 +1,22 @@
 import { useUser } from "@clerk/nextjs";
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Dialog, Transition } from "@headlessui/react";
 import {
   ArrowLongLeftIcon,
   CheckBadgeIcon,
-  EllipsisVerticalIcon,
   PaperClipIcon,
 } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
-import Bookmark from "@src/components/Bookmark";
 import Attachment from "@src/components/attachment";
 import BookmarkCheck from "@src/components/bookmarkcheck";
-import Comment from "@src/components/comment";
 import CommentBox from "@src/components/commentbox";
 import Comments from "@src/components/comments";
 import FriendDropdown from "@src/components/frienddropdown";
 import LabelDropdown from "@src/components/labeldropdown";
-import Like from "@src/components/like";
+import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
+import PostDropdown from "@src/components/postdropdown";
+import PostStats from "@src/components/poststats";
 import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
@@ -514,6 +513,23 @@ export default function Post() {
   });
 
   /**
+   * update post mutation that links to corresponding procedure in the backend
+   */
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      utils.getPost.invalidate();
+      toast.success("Post updated!");
+      utils.getPinnedPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
    * delete post mutation that links to corresponding procedure in the backend
    */
   const deletePost = trpc.deletePost.useMutation({
@@ -543,7 +559,7 @@ export default function Post() {
   /**
    * event handler for editing post
    */
-  const handleEditPost = () => {
+  const handleOnEditPost = () => {
     if (!post.data) return; //we have values that depend on the data being not undefined
     setOpen(true);
     setLabel(post.data.label); // 1.
@@ -552,9 +568,23 @@ export default function Post() {
   };
 
   /**
+   * event handler for updating post
+   */
+  const handleOnUpdatePost = (post: Post, pinned: boolean) => {
+    toast.loading("Loading...");
+    updatePost.mutate({
+      id: post.id,
+      label: post.label,
+      title: post.title,
+      description: post.description,
+      pinned,
+    });
+  };
+
+  /**
    * event handler for deleting post
    */
-  const handleDeletePost = () => {
+  const handleOnDeletePost = () => {
     if (!post.data) return; //we have values that depend on the data being not undefined
     toast.loading("Loading...");
     // 1.
@@ -699,9 +729,6 @@ export default function Post() {
         <div className="mx-auto mt-8 max-w-xl px-2 lg:px-8">
           <div className="flex items-center justify-center">
             <div className="relative w-full space-y-6 px-4 py-6">
-              {/**
-               * Render go back button
-               */}
               <button
                 type="button"
                 onClick={() => back()}
@@ -712,6 +739,7 @@ export default function Post() {
               </button>
               {!!post.data ? (
                 <>
+                  <PinnedPosts handleOnUpdatePost={handleOnUpdatePost} />
                   {post.data.label === "PUBLIC" ||
                   post.data.authorId === user?.id ||
                   post.data.friendId === user?.id ? (
@@ -719,18 +747,12 @@ export default function Post() {
                       onMouseMove={handleMouseMove}
                       className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
                     >
-                      {/**
-                       * Render flash effect for the post container
-                       */}
                       <motion.div
                         className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
                         style={{ background: flash }}
                       ></motion.div>
 
                       <div className="space-y-6 text-brand-50">
-                        {/**
-                         * Render any attachment connected to this post
-                         */}
                         {!!post.data.attachment && (
                           <>
                             {post.data.attachment.includes(".mp4") ? (
@@ -760,85 +782,19 @@ export default function Post() {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <h4 className="text-lg">{post.data.title}</h4>
-                            {/**
-                             * Render dropdown menu for the post
-                             */}
                             {post.data.authorId === user?.id && (
-                              <Menu
-                                as="div"
-                                className="relative inline-block text-left"
-                              >
-                                <div>
-                                  <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
-                                    <EllipsisVerticalIcon
-                                      className="h-5 w-5"
-                                      aria-hidden="true"
-                                    />
-                                  </Menu.Button>
-                                </div>
-                                <Transition
-                                  as={Fragment}
-                                  enter="transition ease-out duration-100"
-                                  enterFrom="transform opacity-0 scale-95"
-                                  enterTo="transform opacity-100 scale-100"
-                                  leave="transition ease-in duration-75"
-                                  leaveFrom="transform opacity-100 scale-100"
-                                  leaveTo="transform opacity-0 scale-95"
-                                >
-                                  <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-                                    <div className="py-1">
-                                      {/**
-                                       * Render edit button for the post
-                                       */}
-                                      <Menu.Item>
-                                        {({ active }) => (
-                                          <button
-                                            type="button"
-                                            onClick={handleEditPost}
-                                            className={clsx(
-                                              active
-                                                ? "bg-brand-100 text-brand-900"
-                                                : "text-brand-700",
-                                              "w-full px-4 py-2 text-left text-sm"
-                                            )}
-                                          >
-                                            Edit
-                                          </button>
-                                        )}
-                                      </Menu.Item>
-
-                                      {/**
-                                       * Render delete button for the post
-                                       */}
-                                      <Menu.Item>
-                                        {({ active }) => (
-                                          <button
-                                            type="button"
-                                            onClick={handleDeletePost}
-                                            className={clsx(
-                                              active
-                                                ? "bg-brand-100 text-brand-900"
-                                                : "text-brand-700",
-                                              "w-full px-4 py-2 text-left text-sm"
-                                            )}
-                                          >
-                                            Delete
-                                          </button>
-                                        )}
-                                      </Menu.Item>
-                                    </div>
-                                  </Menu.Items>
-                                </Transition>
-                              </Menu>
+                              <PostDropdown
+                                post={post.data}
+                                handleOnEditPost={handleOnEditPost}
+                                handleOnDeletePost={handleOnDeletePost}
+                                handleOnUpdatePost={handleOnUpdatePost}
+                              />
                             )}
                           </div>
                           <p>{post.data.description}</p>
                         </div>
                         <div className="flex items-center space-x-4">
                           <ProfileDropdown post={post.data} />
-                          {/**
-                           * Render user details
-                           */}
                           <div className="flex flex-col">
                             <div className="flex items-center space-x-1 font-semibold">
                               <span>{post.data.author?.name}</span>
@@ -850,39 +806,18 @@ export default function Post() {
                           </div>
                         </div>
                         <div className="relative flex flex-col space-y-6">
-                          {/**
-                           * Render the stats for this post
-                           */}
-                          <div className="flex space-x-6">
-                            <Like
-                              post={post.data}
-                              handleOnCreateLike={handleOnCreateLike}
-                              handleOnDeleteLike={handleOnDeleteLike}
-                            />
-                            <Comment post={post.data} />
-                            <Bookmark
-                              post={post.data}
-                              handleOnCreateBookmark={handleOnCreateBookmark}
-                              handleOnDeleteBookmark={handleOnDeleteBookmark}
-                            />
-                          </div>
-
-                          {/**
-                           * Render a bookmark check if the user has bookmarked this post
-                           */}
+                          <PostStats
+                            post={post.data}
+                            handleOnCreateLike={handleOnCreateLike}
+                            handleOnDeleteLike={handleOnDeleteLike}
+                            handleOnCreateBookmark={handleOnCreateBookmark}
+                            handleOnDeleteBookmark={handleOnDeleteBookmark}
+                          />
                           <BookmarkCheck post={post.data} />
-
-                          {/**
-                           * Render all the comments attached to this post
-                           */}
                           <Comments
                             item={post.data}
                             handleOnDeleteComment={handleOnDeleteComment}
                           />
-
-                          {/**
-                           * Render comment box only if user is authenticated
-                           */}
                           <CommentBox
                             item={post.data}
                             handleOnCreateComment={handleOnCreateComment}
