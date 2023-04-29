@@ -166,6 +166,34 @@ export const appRouter = router({
       },
     });
   }),
+  getCommunityPosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.profile.findMany({
+      where: {
+        popularity: {
+          gt: 0,
+        },
+      },
+      include: {
+        posts: {
+          where: {
+            label: "PUBLIC",
+          },
+          include: {
+            likes: true,
+            comments: true,
+            bookmarks: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 4,
+        },
+      },
+      orderBy: {
+        popularity: "desc",
+      },
+    });
+  }),
   getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {

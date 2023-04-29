@@ -29,6 +29,7 @@ export default function Navbar() {
       href: "/marketplace",
       current: route === "/marketplace",
     },
+    { name: "Community", href: "/community", current: route === "/community" },
     {
       name: "Send feedback",
       href: "/feedback",
