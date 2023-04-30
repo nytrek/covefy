@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import Bookmark from "@src/components/Bookmark";
+import Bookmark from "@src/components/bookmark";
 import BookmarkCheck from "@src/components/bookmarkcheck";
 import Comment from "@src/components/comment";
 import Like from "@src/components/like";
