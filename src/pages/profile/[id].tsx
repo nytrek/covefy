@@ -42,36 +42,18 @@ interface Props {
 }
 
 function Modal({ open, friend, setOpen }: Props) {
-  /**
-   * user hook by clerk
-   */
   const { user } = useUser();
 
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * useState that might be replaced with a state management library
-   */
   const [length, setLength] = useState(0);
   const [label, setLabel] = useState<Label | null>(null);
-  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachment, setAttachment] = useState<File | string | null>(null);
 
-  /**
-   * useRef hook
-   */
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery();
 
-  /**
-   * create post mutation that links to corresponding procedure in the backend
-   */
   const createPost = trpc.createPost.useMutation({
     onSuccess: () => {
       setOpen(false);
@@ -86,59 +68,67 @@ function Modal({ open, friend, setOpen }: Props) {
     },
   });
 
-  /**
-   * event handler for form submission
-   */
-  const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    //we have values that depend on the data being not undefined
+  const handleOnUpload = async (title: string, description: string) => {
+    if (!label) return toast.error("Please set a label for the post");
+    if (
+      !user?.id ||
+      !profile.data ||
+      !attachment ||
+      typeof attachment === "string"
+    )
+      return;
+    try {
+      const { fileUrl, filePath } = await upload.uploadFile(attachment, {
+        path: {
+          folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
+          fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
+        },
+      });
+      createPost.mutate({
+        label,
+        title,
+        description,
+        attachment: fileUrl,
+        attachmentPath: filePath,
+        authorId: user.id,
+        friendId: friend?.id,
+        credits: profile.data.credits - 1,
+      });
+    } catch (e: any) {
+      toast.dismiss();
+      toast.error(e.message ?? API_ERROR_MESSAGE);
+    }
+  };
+
+  const handleOnCreate = async (title: string, description: string) => {
+    if (!label) return toast.error("Please set a label for the post");
     if (!user?.id || !profile.data) return;
-    const target = e.target as typeof e.target & {
-      title: { value: string };
-      description: { value: string };
-    };
-    if (!label) return toast("Please set a label for the post");
-    toast.loading("Loading...");
-    // 1. - the cost of creating a post is 1 credit
     if (profile.data.credits < 1)
       return toast.error("You don't have enough credits");
-    else if (attachment) {
-      try {
-        const { fileUrl, filePath } = await upload.uploadFile(attachment, {
-          path: {
-            folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
-            fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
-          },
-        });
-        createPost.mutate({
-          label,
-          title: target.title.value,
-          description: target.description.value,
-          attachment: fileUrl,
-          attachmentPath: filePath,
-          authorId: user.id, // 2.
-          friendId: friend?.id,
-          credits: profile.data.credits - 1, // 3.
-        });
-      } catch (e: any) {
-        toast.dismiss();
-        toast.error(e.message ?? API_ERROR_MESSAGE);
-      }
+    else if (attachment && typeof attachment !== "string") {
+      handleOnUpload(title, description);
     } else {
       createPost.mutate({
         label,
-        title: target.title.value,
-        description: target.description.value,
-        authorId: user.id, // 4.
+        title,
+        description,
+        authorId: user.id,
         friendId: friend?.id,
-        credits: profile.data.credits - 1, // 5.
+        credits: profile.data.credits - 1,
       });
     }
   };
 
-  /**
-   * event handler for selecting attachment file
-   */
+  const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const target = e.target as typeof e.target & {
+      title: { value: string };
+      description: { value: string };
+    };
+    toast.loading("Loading...");
+    handleOnCreate(target.title.value, target.description.value);
+  };
+
   const handleFileSelect = async (event: FormEvent<HTMLInputElement>) => {
     const target = event.target as typeof event.target & {
       files: FileList;
@@ -147,17 +137,10 @@ function Modal({ open, friend, setOpen }: Props) {
     setAttachment(file);
   };
 
-  /**
-   * character length indicator effect
-   */
   const progress = `
     radial-gradient(closest-side, white 85%, transparent 80% 100%),
     conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
   `;
-
-  /**
-   * render UI
-   */
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -185,13 +168,7 @@ function Modal({ open, friend, setOpen }: Props) {
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
-                {/**
-                 * Render post form
-                 */}
                 <form className="relative" onSubmit={handleOnSubmit}>
-                  {/**
-                   * Render close button
-                   */}
                   <button
                     type="button"
                     className="absolute right-1 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
@@ -201,9 +178,6 @@ function Modal({ open, friend, setOpen }: Props) {
                   </button>
 
                   <div className="overflow-hidden rounded-lg">
-                    {/**
-                     * Render title field
-                     */}
                     <label htmlFor="title" className="sr-only">
                       Title
                     </label>
@@ -216,10 +190,6 @@ function Modal({ open, friend, setOpen }: Props) {
                       maxLength={100}
                       required
                     />
-
-                    {/**
-                     * Render description field
-                     */}
                     <label htmlFor="description" className="sr-only">
                       Description
                     </label>
@@ -235,25 +205,14 @@ function Modal({ open, friend, setOpen }: Props) {
                       required
                     />
                   </div>
-
-                  {/**
-                   * Render max character indicator
-                   */}
                   <div className="flex justify-end px-4 pt-4">
                     <div
                       className="h-5 w-5 rounded-full"
                       style={{ background: progress }}
                     ></div>
                   </div>
-
-                  {/**
-                   * Render post toolkit
-                   */}
                   <div>
                     <div className="flex items-center justify-between space-x-3 py-2 pl-1">
-                      {/**
-                       * Render attachment button
-                       */}
                       <div className="flex">
                         <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                           <input
@@ -272,10 +231,6 @@ function Modal({ open, friend, setOpen }: Props) {
                           </span>
                         </div>
                       </div>
-
-                      {/**
-                       * Render friend tag
-                       */}
                       <div className="flex flex-nowrap justify-end space-x-2 py-2">
                         <div className="flex-shrink-0">
                           <div className="relative inline-flex items-center whitespace-nowrap rounded-full bg-brand-50 px-2 py-2 text-sm font-medium text-brand-500 hover:bg-brand-100 sm:px-3">
@@ -293,26 +248,13 @@ function Modal({ open, friend, setOpen }: Props) {
                             )}
                           </div>
                         </div>
-
-                        {/**
-                         * Render label dropdown
-                         */}
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
-
-                    {/**
-                     * Render any attachment connected to this post
-                     */}
                     <Attachment
                       attachment={attachment}
                       setAttachment={setAttachment}
-                      handleUpdate={() => null}
                     />
-
-                    {/**
-                     * Render post buttons
-                     */}
                     <PostButtons
                       edit={false}
                       setLength={setLength}

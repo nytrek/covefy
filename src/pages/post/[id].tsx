@@ -8,7 +8,6 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
 import Attachment from "@src/components/attachment";
-import BookmarkCheck from "@src/components/bookmarkcheck";
 import CommentBox from "@src/components/commentbox";
 import Comments from "@src/components/comments";
 import FriendDropdown from "@src/components/frienddropdown";
@@ -61,10 +60,39 @@ interface Props {
   label: Label | null;
   friend: Profile | null;
   length: number;
+  attachment: File | string | null;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setLabel: Dispatch<SetStateAction<Label | null>>;
   setFriend: Dispatch<SetStateAction<Profile | null>>;
   setLength: Dispatch<SetStateAction<number>>;
+  setAttachment: Dispatch<SetStateAction<File | string | null>>;
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="relative w-full break-inside-avoid-column">
+      <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
+        <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
+          <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+          <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Modal({
@@ -72,51 +100,28 @@ function Modal({
   label,
   friend,
   length,
+  attachment,
   setOpen,
   setLabel,
   setFriend,
   setLength,
+  setAttachment,
 }: Props) {
-  /**
-   * user hook by clerk
-   */
-  const { user } = useUser();
-
-  /**
-   * router hook by next
-   */
   const { query } = useRouter();
 
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * useState that might be replaced with a state management library
-   */
-  const [attachment, setAttachment] = useState<File | null>(null);
-
-  /**
-   * useRef hook
-   */
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
 
-  /**
-   * trpc queries
-   */
   const id = query.id ?? 0;
   const post = trpc.getPost.useQuery(Number(id));
 
-  /**
-   * update post mutation that links to corresponding procedure in the backend
-   */
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
       setOpen(false);
       toast.dismiss();
-      utils.getPost.invalidate();
       toast.success("Post updated!");
+      utils.getProfilePosts.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -124,72 +129,103 @@ function Modal({
     },
   });
 
-  /**
-   * event handler for updating post
-   */
-  const handleUpdate = () => {
-    if (!post.data) return; //we have values that depend on the data being not undefined
-    updatePost.mutate({
-      id: post.data.id, // 1.
-      label: post.data.label, // 2.
-      title: post.data.title, // 3.
-      description: post.data.description, // 4.
-      pinned: post.data.pinned, // 5.
-      attachment: null,
-      attachmentPath: null,
-    });
+  const deleteAttachment = trpc.deleteAttachment.useMutation({
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  const handleOnUpload = async (title: string, description: string) => {
+    if (!label) return toast.error("Please set a label for the post");
+    if (!post.data || !attachment || typeof attachment === "string") return;
+    try {
+      const { fileUrl, filePath } = await upload.uploadFile(attachment, {
+        path: {
+          folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
+          fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
+        },
+      });
+      updatePost.mutate({
+        id: post.data.id,
+        label,
+        title,
+        description,
+        pinned: post.data.pinned,
+        attachment: fileUrl,
+        attachmentPath: filePath,
+        friendId: friend?.id,
+      });
+    } catch (e: any) {
+      toast.dismiss();
+      toast.error(e.message ?? API_ERROR_MESSAGE);
+    }
   };
 
-  /**
-   * event handler for form submission
-   */
-  const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    //we have values that depend on the data being not undefined
+  const handleOnUpdate = (title: string, description: string) => {
+    if (!label) return toast.error("Please set a label for the post");
     if (!post.data) return;
-    const target = e.target as typeof e.target & {
-      title: { value: string };
-      description: { value: string };
-    };
-    if (!label) return toast("Please set a label for the post");
-    toast.loading("Loading...");
-    if (attachment) {
+    if (attachment && typeof attachment !== "string") {
       try {
-        const { fileUrl, filePath } = await upload.uploadFile(attachment, {
-          path: {
-            folderPath: "/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}",
-            fileName: "{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}",
-          },
-        });
-        updatePost.mutate({
-          id: post.data.id, // 1.
-          label,
-          title: target.title.value,
-          description: target.description.value,
-          pinned: post.data.pinned, // 2.
-          attachment: fileUrl,
-          attachmentPath: filePath,
-          friendId: friend?.id,
-        });
+        if (post.data.attachmentPath) {
+          deleteAttachment.mutate(
+            {
+              attachmentPath: post.data.attachmentPath,
+            },
+            {
+              onSuccess: () => handleOnUpload(title, description),
+            }
+          );
+        } else {
+          handleOnUpload(title, description);
+        }
       } catch (e: any) {
         toast.dismiss();
         toast.error(e.message ?? API_ERROR_MESSAGE);
       }
+    } else if (!attachment && post.data.attachmentPath) {
+      deleteAttachment.mutate(
+        {
+          attachmentPath: post.data.attachmentPath,
+        },
+        {
+          onSuccess: () => {
+            if (!post.data) return;
+            updatePost.mutate({
+              id: post.data.id,
+              label,
+              title,
+              description,
+              pinned: post.data.pinned,
+              attachment: null,
+              attachmentPath: null,
+              friendId: friend?.id,
+            });
+          },
+        }
+      );
     } else {
       updatePost.mutate({
-        id: post.data.id, // 1.
+        id: post.data.id,
         label,
-        title: target.title.value,
-        description: target.description.value,
-        pinned: post.data.pinned, // 2.
+        title,
+        description,
+        pinned: post.data.pinned,
         friendId: friend?.id,
       });
     }
   };
 
-  /**
-   * event handler for selecting attachment file
-   */
+  const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const target = e.target as typeof e.target & {
+      title: { value: string };
+      description: { value: string };
+    };
+    toast.loading("Loading...");
+    handleOnUpdate(target.title.value, target.description.value);
+  };
+
   const handleFileSelect = async (event: FormEvent<HTMLInputElement>) => {
     const target = event.target as typeof event.target & {
       files: FileList;
@@ -198,22 +234,10 @@ function Modal({
     setAttachment(file);
   };
 
-  /**
-   * character length indicator effect
-   */
   const progress = `
     radial-gradient(closest-side, white 85%, transparent 80% 100%),
     conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
   `;
-
-  /**
-   * render empty UI if the post data has not loaded in
-   */
-  if (!post.data) return <></>;
-
-  /**
-   * render UI
-   */
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -241,13 +265,7 @@ function Modal({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative w-full max-w-xl transform space-y-4 overflow-hidden rounded-lg bg-brand-50 px-4 pb-4 pt-5 text-left shadow-xl transition-all">
-                {/**
-                 * Render post form
-                 */}
                 <form className="relative" onSubmit={handleOnSubmit}>
-                  {/**
-                   * Render close button
-                   */}
                   <button
                     type="button"
                     className="absolute right-1 top-2 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
@@ -257,9 +275,6 @@ function Modal({
                   </button>
 
                   <div className="overflow-hidden rounded-lg">
-                    {/**
-                     * Render title field
-                     */}
                     <label htmlFor="title" className="sr-only">
                       Title
                     </label>
@@ -273,10 +288,6 @@ function Modal({
                       maxLength={100}
                       required
                     />
-
-                    {/**
-                     * Render description field
-                     */}
                     <label htmlFor="description" className="sr-only">
                       Description
                     </label>
@@ -293,20 +304,12 @@ function Modal({
                       required
                     />
                   </div>
-
-                  {/**
-                   * Render max character indicator
-                   */}
                   <div className="flex justify-end px-4 pt-4">
                     <div
                       className="h-5 w-5 rounded-full"
                       style={{ background: progress }}
                     ></div>
                   </div>
-
-                  {/**
-                   * Render post toolkit
-                   */}
                   <div>
                     <div
                       className={clsx(
@@ -316,9 +319,6 @@ function Modal({
                         "flex items-center space-x-3 py-2 pl-1"
                       )}
                     >
-                      {/**
-                       * Only render the attachment button if the post has no prior attachment
-                       */}
                       {!post.data?.attachment && (
                         <div className="flex">
                           <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
@@ -341,33 +341,14 @@ function Modal({
                       )}
 
                       <div className="flex flex-nowrap justify-end space-x-2 py-2">
-                        {/**
-                         * Render friend dropdown
-                         */}
                         <FriendDropdown friend={friend} setFriend={setFriend} />
-
-                        {/**
-                         * Render label dropdown
-                         */}
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
-                    {/**
-                     * Render any attachment connected to this post
-                     */}
                     <Attachment
                       attachment={attachment}
                       setAttachment={setAttachment}
-                      postAttachment={{
-                        attachment: post.data.attachment,
-                        attachmentPath: post.data.attachmentPath,
-                      }}
-                      handleUpdate={handleUpdate}
                     />
-
-                    {/**
-                     * Render post buttons
-                     */}
                     <PostButtons
                       edit={!!post}
                       setLength={setLength}
@@ -385,45 +366,25 @@ function Modal({
 }
 
 export default function Post() {
-  /**
-   * Mouse position
-   */
   let mouseX = useMotionValue(0);
   let mouseY = useMotionValue(0);
 
-  /**
-   * user hook by clerk
-   */
   const { user } = useUser();
 
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * router hook by next
-   */
   const { back, query } = useRouter();
 
-  /**
-   * useState that might be replaced with a state management library
-   */
   const [open, setOpen] = useState(false);
   const [length, setLength] = useState(0);
   const [label, setLabel] = useState<Label | null>(null);
   const [friend, setFriend] = useState<Profile | null>(null);
+  const [attachment, setAttachment] = useState<File | string | null>(null);
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery();
   const id = query.id ?? 0;
   const post = trpc.getPost.useQuery(Number(id));
 
-  /**
-   * create like mutation that links to corresponding procedure in the backend
-   */
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -436,9 +397,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * delete like mutation that links to corresponding procedure in the backend
-   */
   const deleteLike = trpc.deleteLike.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -451,9 +409,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * create comment mutation that links to corresponding procedure in the backend
-   */
   const createComment = trpc.createComment.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -467,9 +422,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * delete comment mutation that links to corresponding procedure in the backend
-   */
   const deleteComment = trpc.deleteComment.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -482,9 +434,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * create bookmark mutation that links to corresponding procedure in the backend
-   */
   const createBookmark = trpc.createBookmark.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -497,9 +446,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * delete bookmark mutation that links to corresponding procedure in the backend
-   */
   const deleteBookmark = trpc.deleteBookmark.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -512,9 +458,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * update post mutation that links to corresponding procedure in the backend
-   */
   const updatePost = trpc.updatePost.useMutation({
     onSuccess: () => {
       setOpen(false);
@@ -529,9 +472,6 @@ export default function Post() {
     },
   });
 
-  /**
-   * delete post mutation that links to corresponding procedure in the backend
-   */
   const deletePost = trpc.deletePost.useMutation({
     onSuccess: () => {
       back();
@@ -546,20 +486,15 @@ export default function Post() {
     },
   });
 
-  /**
-   * event handler for editing post
-   */
   const handleOnEditPost = () => {
-    if (!post.data) return; //we have values that depend on the data being not undefined
+    if (!post.data) return;
     setOpen(true);
-    setLabel(post.data.label); // 1.
-    setLength(post.data.description.length); // 2.
-    if (post.data.friend) setFriend(post.data.friend); // 3.
+    setLabel(post.data.label);
+    setAttachment(post.data.attachment);
+    setLength(post.data.description.length);
+    if (post.data.friend) setFriend(post.data.friend);
   };
 
-  /**
-   * event handler for updating post
-   */
   const handleOnUpdatePost = (post: Post, pinned: boolean) => {
     toast.loading("Loading...");
     updatePost.mutate({
@@ -571,50 +506,36 @@ export default function Post() {
     });
   };
 
-  /**
-   * event handler for deleting post
-   */
   const handleOnDeletePost = (post: Post) => {
-    if (!post) return; //we have values that depend on the data being not undefined
+    if (!post) return;
     toast.loading("Loading...");
-    // 1.
     deletePost.mutate({
-      id: post.id, // 2.
+      id: post.id,
       attachmentPath: post.attachmentPath,
     });
   };
 
-  /**
-   * event handler for liking post
-   */
   const handleOnCreateLike = (id: number) => {
-    if (!user?.id) return; //we have values that depend on the data being not undefined
+    if (!user?.id) return;
     toast.loading("Loading...");
     createLike.mutate({
       postId: id,
-      profileId: user.id, // 1.
+      profileId: user.id,
     });
   };
 
-  /**
-   * event handler for disliking post
-   */
   const handleOnDeleteLike = (id: number) => {
-    if (!user?.id) return; //we have values that depend on the data being not undefined
+    if (!user?.id) return;
     toast.loading("Loading...");
     deleteLike.mutate({
       postId: id,
-      profileId: user.id, // 1.
+      profileId: user.id,
     });
   };
 
-  /**
-   * event handler for creating comment
-   */
   const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user?.id || !profile.data) return; //we have values that depend on the data being not undefined
-    // 1. - the cost of creating a comment is 1 credit
+    if (!user?.id || !profile.data) return;
     if (profile.data.credits < 1)
       return toast.error("You don't have enough credits");
     const target = e.target as typeof e.target & {
@@ -626,61 +547,46 @@ export default function Post() {
       {
         postId: Number(target.comment.id),
         comment: target.comment.value,
-        credits: profile.data.credits - 1, // 2.
+        credits: profile.data.credits - 1,
       },
       {
         onSuccess: () => {
           setLength(0);
-          target.reset(); //reset the comment field on success
+          target.reset();
         },
       }
     );
   };
 
-  /**
-   * event handler for deleting comment
-   */
   const handleOnDeleteComment = (id: number) => {
     toast.loading("Loading...");
     deleteComment.mutate({ id });
   };
 
-  /**
-   * event handler for creating bookmark
-   */
   const handleOnCreateBookmark = (id: number) => {
-    if (!user?.id) return; //we have values that depend on the data being not undefined
+    if (!user?.id) return;
     toast.loading("Loading...");
     createBookmark.mutate({
       postId: id,
-      profileId: user.id, // 1.
+      profileId: user.id,
     });
   };
 
-  /**
-   * event handler for deleting bookmark
-   */
   const handleOnDeleteBookmark = (id: number) => {
-    if (!user?.id) return; //we have values that depend on the data being not undefined
+    if (!user?.id) return;
     toast.loading("Loading...");
     deleteBookmark.mutate({
       postId: id,
-      profileId: user.id, // 1.
+      profileId: user.id,
     });
   };
 
-  /**
-   * event handler for mouse movement
-   */
   function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
     let { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
   }
 
-  /**
-   * flash effect
-   */
   const flash = useMotionTemplate`
   radial-gradient(
     650px circle at ${mouseX}px ${mouseY}px,
@@ -695,10 +601,12 @@ export default function Post() {
         label={label}
         friend={friend}
         length={length}
+        attachment={attachment}
         setOpen={setOpen}
         setLabel={setLabel}
         setFriend={setFriend}
         setLength={setLength}
+        setAttachment={setAttachment}
       />
       <div className="pb-36">
         <div className="mx-auto mt-8 max-w-xl px-2 lg:px-8">
@@ -806,30 +714,7 @@ export default function Post() {
                   )}
                 </>
               ) : (
-                <>
-                  <div className="relative w-full break-inside-avoid-column">
-                    <div className="relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6">
-                      <div className="space-y-6 text-brand-50 motion-safe:animate-pulse">
-                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-4/5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-2.5 w-2/3 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                <LoadingSkeleton />
               )}
             </div>
           </div>
