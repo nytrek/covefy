@@ -338,7 +338,7 @@ function Modal({
                   <div>
                     <div
                       className={clsx(
-                        !!attachment ? "justify-end" : "justify-between",
+                        attachment ? "justify-end" : "justify-between",
                         "flex items-center space-x-3 py-2 pl-1"
                       )}
                     >

@@ -33,7 +33,7 @@ export default function Like({
       <button
         type="button"
         onClick={() => {
-          !!post.likes.find((_post) => _post.profileId === user?.id)
+          post.likes.find((_post) => _post.profileId === user?.id)
             ? handleOnDeleteLike(post.id)
             : handleOnCreateLike(post.id);
         }}

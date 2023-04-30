@@ -2,7 +2,6 @@ import { useUser } from "@clerk/nextjs";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   ArrowLongLeftIcon,
-  CheckBadgeIcon,
   PaperClipIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
@@ -12,6 +11,8 @@ import Attachment from "@src/components/attachment";
 import Avatar from "@src/components/avatar";
 import LabelDropdown from "@src/components/labeldropdown";
 import PostButtons from "@src/components/postbuttons";
+import ProfileDetails from "@src/components/profiledetails";
+import ProfileStats from "@src/components/profilestats";
 import { trpc } from "@src/utils/trpc";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -276,32 +277,17 @@ function ProfileButtons({
 }: {
   setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
-  /**
-   * user hook by clerk
-   */
   const { user } = useUser();
 
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * router hook by next
-   */
   const { push, query } = useRouter();
   const id = query.id as string;
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
   const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
 
-  /**
-   * create friend request mutation that links to corresponding procedure in the backend
-   */
   const createFriendRequest = trpc.createFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -316,9 +302,6 @@ function ProfileButtons({
     },
   });
 
-  /**
-   * delete friend request mutation that links to corresponding procedure in the backend
-   */
   const deleteFriendRequest = trpc.deleteFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -333,9 +316,6 @@ function ProfileButtons({
     },
   });
 
-  /**
-   * event handler for creating friend request
-   */
   const handleOnCreateFriendRequest = () => {
     if (!user?.id || !profile.data?.id) return;
     toast.loading("Loading...");
@@ -345,9 +325,6 @@ function ProfileButtons({
     });
   };
 
-  /**
-   * event handler for deleting friend request
-   */
   const handleOnDeleteFriendRequest = (
     senderId?: string,
     receiverId?: string
@@ -474,158 +451,61 @@ function ProfileButtons({
   );
 }
 
-function ProfileDetails() {
-  /**
-   * router hook by next
-   */
-  const { query } = useRouter();
-  const id = query.id as string;
-
-  /**
-   * trpc queries
-   */
-  const profile = trpc.getProfile.useQuery(id);
-  return (
-    <div>
-      <div className="flex items-center space-x-2">
-        <h1 className="text-2xl font-bold text-brand-50">
-          {profile.data?.name}
-        </h1>
-        {profile.data?.premium ? (
-          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-        ) : null}
-      </div>
-      <p className="text-sm font-medium text-brand-500">
-        @{profile.data?.username}
-      </p>
-    </div>
-  );
-}
-
 function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
-  /**
-   * router hook by next
-   */
   const { query } = useRouter();
   const id = query.id as string;
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery(id);
+  if (!profile.data) return <></>;
   return (
     <div className="md:flex md:items-center md:justify-between md:space-x-5">
       <div className="flex items-center space-x-5">
-        {/**
-         * Render profile image
-         */}
         <Avatar imageUrl={profile.data?.imageUrl} />
-
-        {/**
-         * Render profile details
-         */}
-        <ProfileDetails />
+        <ProfileDetails profile={profile.data} />
       </div>
-
-      {/**
-       * Render profile buttons
-       */}
       <ProfileButtons setOpen={setOpen} />
     </div>
   );
 }
 
-function Stats() {
-  /**
-   * router hook by next
-   */
-  const { query } = useRouter();
+export default function Account() {
+  const { user } = useUser();
+
+  const [open, setOpen] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
+
+  const { back, query } = useRouter();
   const id = query.id as string;
 
-  /**
-   * trpc queries
-   */
-  const likes = trpc.getLikes.useQuery(id);
   const profile = trpc.getProfile.useQuery(id);
+  const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
+  const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
+  const likes = trpc.getLikes.useQuery(id);
   const comments = trpc.getComments.useQuery(id);
   const bookmarks = trpc.getBookmarks.useQuery(id);
 
-  /**
-   * profile stats
-   */
   const stats = [
     {
       name: "Total Likes",
-      stat:
+      value:
         likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
     },
     {
       name: "Total Comments",
-      stat:
+      value:
         comments.data?.reduce((prev, curr) => prev + curr._count.comments, 0) ??
         0,
     },
     {
       name: "Total Bookmarks",
-      stat:
+      value:
         bookmarks.data?.reduce(
           (prev, curr) => prev + curr._count.bookmarks,
           0
         ) ?? 0,
     },
   ];
-  return (
-    <div>
-      <h3 className="text-base font-semibold leading-6 text-brand-50">
-        {profile.data?.name}&apos;s stats
-      </h3>
-      <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="overflow-hidden rounded-lg border border-brand-600 bg-brand-800 px-4 py-5 shadow sm:p-6"
-          >
-            <dt className="truncate text-sm font-medium text-brand-500">
-              {stat.name}
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-brand-50">
-              {stat.stat}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  );
-}
 
-export default function Account() {
-  /**
-   * user hook by clerk
-   */
-  const { user } = useUser();
-
-  /**
-   * useState that might be replaced with a state management library
-   */
-  const [open, setOpen] = useState(false);
-  const [isAuth, setIsAuth] = useState(false);
-
-  /**
-   * router hook by next
-   */
-  const { back, query } = useRouter();
-  const id = query.id as string;
-
-  /**
-   * trpc queries
-   */
-  const profile = trpc.getProfile.useQuery(id);
-  const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
-  const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
-
-  /**
-   * initialize auth session if user is authenticated to render private images from upload.io
-   */
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -635,23 +515,13 @@ export default function Account() {
     }
   };
 
-  /**
-   * useEffect hook for checking the state of the user
-   */
   useEffect(() => {
     if (user) initializeAuthSession();
     else upload.endAuthSession();
   }, [user]);
 
-  /**
-   * render empty UI if the relationship status between the currrent logged in user and the URL requested user has not been established yet
-   */
   if (sendingFriendStatus.isLoading || receivingFriendStatus.isLoading)
     return <></>;
-
-  /**
-   * render UI
-   */
   return (
     <>
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
@@ -659,9 +529,6 @@ export default function Account() {
         <>
           <main className="pb-36 pt-12">
             <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-              {/**
-               * Render back button
-               */}
               <button
                 type="button"
                 onClick={() => back()}
@@ -673,9 +540,6 @@ export default function Account() {
               {profile.data.label === "PUBLIC" ||
               profile.data.id === user?.id ? (
                 <>
-                  {/**
-                   * Render banner image
-                   */}
                   <div className="relative">
                     <img
                       src={
@@ -686,16 +550,11 @@ export default function Account() {
                       className="h-48 w-full rounded-lg object-cover"
                     />
                   </div>
-
-                  {/**
-                   * Render profile header
-                   */}
                   <Header setOpen={setOpen} />
-
-                  {/**
-                   * Render profile stats
-                   */}
-                  <Stats />
+                  <ProfileStats
+                    stats={stats}
+                    header={`${profile.data?.name}'s stats`}
+                  />
                 </>
               ) : (
                 <p className="text-brand-50">

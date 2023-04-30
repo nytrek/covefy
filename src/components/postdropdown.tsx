@@ -49,9 +49,6 @@ export default function PostDropdown({
       >
         <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
           <div className="py-1">
-            {/**
-             * Render edit button for the post
-             */}
             <Menu.Item>
               {({ active }) => (
                 <button
@@ -66,10 +63,6 @@ export default function PostDropdown({
                 </button>
               )}
             </Menu.Item>
-
-            {/**
-             * Render delete button for the post
-             */}
             <Menu.Item>
               {({ active }) => (
                 <button
@@ -84,10 +77,6 @@ export default function PostDropdown({
                 </button>
               )}
             </Menu.Item>
-
-            {/**
-             * Render pin button for the post
-             */}
             {!post.pinned && (
               <Menu.Item>
                 {({ active }) => (

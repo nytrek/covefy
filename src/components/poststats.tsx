@@ -35,9 +35,6 @@ export default function PostStats({
 }: Props) {
   return (
     <div className="relative flex flex-col space-y-6">
-      {/**
-       * Render the stats for this post
-       */}
       <div className="flex space-x-6">
         <Like
           post={post}
@@ -51,10 +48,6 @@ export default function PostStats({
           handleOnDeleteBookmark={handleOnDeleteBookmark}
         />
       </div>
-
-      {/**
-       * Render a bookmark check if the user has bookmarked this post
-       */}
       <BookmarkCheck post={post} />
     </div>
   );

@@ -1,7 +1,9 @@
 import { useUser } from "@clerk/nextjs";
 import { Menu, RadioGroup, Transition } from "@headlessui/react";
-import { CheckBadgeIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
+import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import Avatar from "@src/components/avatar";
+import ProfileDetails from "@src/components/profiledetails";
+import ProfileStats from "@src/components/profilestats";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
@@ -18,24 +20,12 @@ const upload = Upload({
 });
 
 function ProfileButtons() {
-  /**
-   * router hook by next
-   */
   const { reload } = useRouter();
 
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery();
 
-  /**
-   * update profile mutation that links to corresponding procedure in the backend
-   */
   const updateProfile = trpc.updateProfile.useMutation({
     onSuccess: (data) => {
       toast.dismiss();
@@ -48,9 +38,6 @@ function ProfileButtons() {
     },
   });
 
-  /**
-   * delete profile mutation that links to corresponding procedure in the backend
-   */
   const deleteProfile = trpc.deleteProfile.useMutation({
     onSuccess: () => {
       reload();
@@ -61,9 +48,6 @@ function ProfileButtons() {
     },
   });
 
-  /**
-   * event handler for updating profile
-   */
   const handleOnUpdate = () => {
     toast.loading("Loading...");
     updateProfile.mutate({
@@ -71,9 +55,6 @@ function ProfileButtons() {
     });
   };
 
-  /**
-   * event handler for deleting profile
-   */
   const handleOnDelete = () => {
     toast.loading("Loading...");
     deleteProfile.mutate();
@@ -140,106 +121,16 @@ function ProfileButtons() {
   );
 }
 
-function ProfileDetails() {
-  const profile = trpc.getProfile.useQuery();
-  return (
-    <div>
-      <div className="flex items-center space-x-2">
-        <h1 className="text-2xl font-bold text-brand-50">
-          {profile.data?.name}
-        </h1>
-        {profile.data?.premium ? (
-          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
-        ) : null}
-      </div>
-      <p className="text-sm font-medium text-brand-500">
-        @{profile.data?.username}
-      </p>
-    </div>
-  );
-}
-
 function Header() {
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery();
+  if (!profile.data) return <></>;
   return (
-    <>
-      <div className="md:flex md:items-center md:justify-between md:space-x-5">
-        <div className="flex items-center space-x-5">
-          {/**
-           * Render profile image
-           */}
-          <Avatar imageUrl={profile.data?.imageUrl} />
-
-          {/**
-           * Render profile details
-           */}
-          <ProfileDetails />
-        </div>
-
-        {/**
-         * Render profile buttons
-         */}
-        <ProfileButtons />
+    <div className="md:flex md:items-center md:justify-between md:space-x-5">
+      <div className="flex items-center space-x-5">
+        <Avatar imageUrl={profile.data?.imageUrl} />
+        <ProfileDetails profile={profile.data} />;
       </div>
-    </>
-  );
-}
-
-function Stats() {
-  /**
-   * trpc queries
-   */
-  const likes = trpc.getLikes.useQuery();
-  const comments = trpc.getComments.useQuery();
-  const bookmarks = trpc.getBookmarks.useQuery();
-
-  /**
-   * profile stats
-   */
-  const stats = [
-    {
-      name: "Total Likes",
-      stat:
-        likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
-    },
-    {
-      name: "Total Comments",
-      stat:
-        comments.data?.reduce((prev, curr) => prev + curr._count.comments, 0) ??
-        0,
-    },
-    {
-      name: "Total Bookmarks",
-      stat:
-        bookmarks.data?.reduce(
-          (prev, curr) => prev + curr._count.bookmarks,
-          0
-        ) ?? 0,
-    },
-  ];
-  return (
-    <div>
-      <h3 className="text-base font-semibold leading-6 text-brand-50">
-        Your stats
-      </h3>
-      <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="overflow-hidden rounded-lg border border-brand-600 bg-brand-800 px-4 py-5 shadow sm:p-6"
-          >
-            <dt className="truncate text-sm font-medium text-brand-500">
-              {stat.name}
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-brand-50">
-              {stat.stat}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <ProfileButtons />
     </div>
   );
 }
@@ -373,24 +264,37 @@ function Dropdown() {
 }
 
 export default function Account() {
-  /**
-   * user hook by clerk
-   */
   const { user } = useUser();
 
-  /**
-   * trpc queries
-   */
+  const likes = trpc.getLikes.useQuery();
   const profile = trpc.getProfile.useQuery();
+  const comments = trpc.getComments.useQuery();
+  const bookmarks = trpc.getBookmarks.useQuery();
 
-  /**
-   * useState that might be replaced with a state management library
-   */
+  const stats = [
+    {
+      name: "Total Likes",
+      value:
+        likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
+    },
+    {
+      name: "Total Comments",
+      value:
+        comments.data?.reduce((prev, curr) => prev + curr._count.comments, 0) ??
+        0,
+    },
+    {
+      name: "Total Bookmarks",
+      value:
+        bookmarks.data?.reduce(
+          (prev, curr) => prev + curr._count.bookmarks,
+          0
+        ) ?? 0,
+    },
+  ];
+
   const [isAuth, setIsAuth] = useState(false);
 
-  /**
-   * initialize auth session if user is authenticated to render private images from upload.io
-   */
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -400,25 +304,15 @@ export default function Account() {
     }
   };
 
-  /**
-   * useEffect hook for checking the state of the user
-   */
   useEffect(() => {
     if (user) initializeAuthSession();
     else upload.endAuthSession();
   }, [user]);
-
-  /**
-   * render UI
-   */
   return (
     <>
       {isAuth && !!profile.data && (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            {/**
-             * Render banner image
-             */}
             <div className="relative">
               <img
                 src={
@@ -431,16 +325,8 @@ export default function Account() {
               <span className="absolute inset-0" />
               <Dropdown />
             </div>
-
-            {/**
-             * Render profile header
-             */}
             <Header />
-
-            {/**
-             * Render profile stats
-             */}
-            <Stats />
+            <ProfileStats stats={stats} />;
           </div>
         </main>
       )}

@@ -313,13 +313,11 @@ function Modal({
                   <div>
                     <div
                       className={clsx(
-                        post.data?.attachment
-                          ? "justify-end"
-                          : "justify-between",
+                        attachment ? "justify-end" : "justify-between",
                         "flex items-center space-x-3 py-2 pl-1"
                       )}
                     >
-                      {!post.data?.attachment && (
+                      {!!!attachment && (
                         <div className="flex">
                           <div className="group relative -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-brand-400">
                             <input

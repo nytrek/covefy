@@ -32,19 +32,10 @@ function Banner({
   description,
   purchased,
 }: Props) {
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery();
 
-  /**
-   * create purchase mutation that links to corresponding procedure in the backend
-   */
   const createPurchase = trpc.createPurchase.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -58,9 +49,6 @@ function Banner({
     },
   });
 
-  /**
-   * delete purchase mutation that links to corresponding procedure in the backend
-   */
   const deletePurchase = trpc.deletePurchase.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -74,9 +62,6 @@ function Banner({
     },
   });
 
-  /**
-   * event handler for creating purchase
-   */
   const handleOnCreatePurchase = () => {
     if (!profile.data) return;
     toast.loading("Loading...");
@@ -87,9 +72,6 @@ function Banner({
     });
   };
 
-  /**
-   * event handler for deleting purchase
-   */
   const handleOnDeletePurchase = () => {
     if (!profile.data) return;
     toast.loading("Loading...");
@@ -150,25 +132,13 @@ function Banner({
 }
 
 export default function Marketplace() {
-  /**
-   * user hook by clerk
-   */
   const { user } = useUser();
 
-  /**
-   * trpc queries
-   */
   const profile = trpc.getProfile.useQuery();
   const banners = trpc.getBanners.useQuery();
 
-  /**
-   * useState that might be replaced with a state management library
-   */
   const [isAuth, setIsAuth] = useState(false);
 
-  /**
-   * initialize auth session if user is authenticated to render private images from upload.io
-   */
   const initializeAuthSession = async () => {
     try {
       await upload.beginAuthSession("/api/auth", async () => ({}));
@@ -178,9 +148,6 @@ export default function Marketplace() {
     }
   };
 
-  /**
-   * useEffect hook for checking the state of the user
-   */
   useEffect(() => {
     if (user) initializeAuthSession();
     else upload.endAuthSession();

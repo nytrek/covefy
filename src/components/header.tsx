@@ -38,7 +38,7 @@ export default function Header({
               id="search"
               name="search"
               className={clsx(
-                !!!user || route === "/friends" || route === "/community"
+                !user || route === "/friends" || route === "/community"
                   ? "pl-10"
                   : "px-10",
                 "block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
@@ -48,7 +48,7 @@ export default function Header({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {!!user && route !== "/friends" && route !== "/community" ? (
+            {user && route !== "/friends" && route !== "/community" ? (
               <button type="button" onClick={handleOnClick}>
                 <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
               </button>

@@ -12,10 +12,6 @@ interface Props {
   descriptionRef: MutableRefObject<HTMLTextAreaElement | null>;
 }
 
-/**
- *
- * @prop edit signifies if there's an active post
- */
 export default function PostButtons({
   edit,
   setLength,
@@ -34,10 +30,6 @@ export default function PostButtons({
       : null;
   };
 
-  /**
-   * event handler for relaying error message to user
-   * @see handleOnDeleteAttachment
-   */
   const handleOnError = (msg: string) => {
     toast.dismiss();
     toast.error(msg);

@@ -33,7 +33,7 @@ export default function Bookmark({
       <button
         type="button"
         onClick={() => {
-          !!post.bookmarks.find((_post) => _post.profileId === user?.id)
+          post.bookmarks.find((_post) => _post.profileId === user?.id)
             ? handleOnDeleteBookmark(post.id)
             : handleOnCreateBookmark(post.id);
         }}

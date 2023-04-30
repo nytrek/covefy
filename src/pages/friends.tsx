@@ -11,35 +11,19 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { trpc } from "../utils/trpc";
-import { ArrowLongRightIcon } from "@heroicons/react/20/solid";
 
 const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
 
 export default function Friends() {
-  /**
-   * user hook by clerk
-   */
   const { user } = useUser();
 
-  /**
-   * trpc context
-   */
   const utils = trpc.useContext();
 
-  /**
-   * useState that might be replaced with a state management library
-   */
   const [search, setSearch] = useState("");
 
-  /**
-   * trpc queries
-   */
   const friends = trpc.getAllFriends.useQuery();
 
-  /**
-   * update friend status mutation that links to corresponding procedure in the backend
-   */
   const updateFriendStatus = trpc.updateFriendStatus.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -54,15 +38,12 @@ export default function Friends() {
     },
   });
 
-  /**
-   * event handler for updating friend status
-   */
   const handleOnUpdate = (id: string, status: Status) => {
-    if (!user?.id) return; //we have values that depend on the data being not undefined
+    if (!user?.id) return;
     toast.loading("Loading...");
     updateFriendStatus.mutate({
       senderId: id,
-      receiverId: user.id, // 1.
+      receiverId: user.id,
       status,
     });
   };

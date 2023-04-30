@@ -121,7 +121,7 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
   return (
     <SignedIn>
       <AnimatePresence mode="wait">
-        {!!pinned.data ? (
+        {pinned.data ? (
           <>
             <div className="mb-8">
               <ul
@@ -129,7 +129,7 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                 className="flex items-center space-x-6 overflow-x-auto"
               >
                 <AnimatePresence mode="wait" initial={false}>
-                  {!!!pinned.data.length ? (
+                  {!pinned.data.length ? (
                     <motion.div
                       key={0}
                       initial={{ opacity: 0, width: 0 }}
