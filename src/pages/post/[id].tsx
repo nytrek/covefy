@@ -547,16 +547,6 @@ export default function Post() {
   });
 
   /**
-   * delete attachment mutation that links to corresponding procedure in the backend
-   */
-  const deleteAttachment = trpc.deleteAttachment.useMutation({
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
-  /**
    * event handler for editing post
    */
   const handleOnEditPost = () => {
@@ -584,29 +574,14 @@ export default function Post() {
   /**
    * event handler for deleting post
    */
-  const handleOnDeletePost = () => {
-    if (!post.data) return; //we have values that depend on the data being not undefined
+  const handleOnDeletePost = (post: Post) => {
+    if (!post) return; //we have values that depend on the data being not undefined
     toast.loading("Loading...");
     // 1.
-    if (post.data.attachmentPath) {
-      deleteAttachment.mutate(
-        {
-          attachmentPath: post.data.attachmentPath, // 2.
-        },
-        {
-          onSuccess: () => {
-            if (!post.data) return;
-            deletePost.mutate({
-              id: post.data.id, // 3.
-            });
-          },
-        }
-      );
-    } else {
-      deletePost.mutate({
-        id: post.data.id, // 4.
-      });
-    }
+    deletePost.mutate({
+      id: post.id, // 2.
+      attachmentPath: post.attachmentPath,
+    });
   };
 
   /**

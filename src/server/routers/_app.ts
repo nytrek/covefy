@@ -543,19 +543,6 @@ export const appRouter = router({
             },
           });
     }),
-  deletePost: protectedProcedure
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.post.delete({
-        where: {
-          id: input.id,
-        },
-      });
-    }),
   getLikes: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
@@ -784,6 +771,29 @@ export const appRouter = router({
         },
         where: {
           id: ctx.auth.userId,
+        },
+      });
+    }),
+  deletePost: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        attachmentPath: z.string().nullish(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      if (input.attachmentPath) {
+        await deleteFile({
+          accountId: process.env.UPLOAD_ACCOUNTID,
+          apiKey: process.env.UPLOAD_SECRETKEY,
+          querystring: {
+            filePath: input.attachmentPath,
+          },
+        });
+      }
+      return await prisma.post.delete({
+        where: {
+          id: input.id,
         },
       });
     }),
