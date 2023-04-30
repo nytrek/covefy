@@ -1,5 +1,9 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
-import { CalendarDaysIcon, ChartBarIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowRightIcon,
+  CalendarDaysIcon,
+  ChartBarIcon,
+} from "@heroicons/react/20/solid";
 import { Status } from "@prisma/client";
 import Header from "@src/components/header";
 import { formatDistanceToNow } from "date-fns";
@@ -7,6 +11,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { trpc } from "../utils/trpc";
+import { ArrowLongRightIcon } from "@heroicons/react/20/solid";
 
 const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
@@ -113,7 +118,10 @@ export default function Friends() {
                           className="hidden text-sm font-semibold text-brand-50 sm:block"
                         >
                           View profile
-                          <span aria-hidden="true"> &rarr;</span>
+                          <span aria-hidden="true">
+                            {" "}
+                            <ArrowRightIcon className="inline h-4 w-4" />
+                          </span>
                         </Link>
                       </div>
 
@@ -189,7 +197,8 @@ export default function Friends() {
                                                 >
                                                   View post{" "}
                                                   <span aria-hidden="true">
-                                                    &rarr;
+                                                    {" "}
+                                                    <ArrowRightIcon className="inline h-4 w-4" />
                                                   </span>
                                                 </Link>
                                               </div>
@@ -280,7 +289,8 @@ export default function Friends() {
                                                 >
                                                   View post{" "}
                                                   <span aria-hidden="true">
-                                                    &rarr;
+                                                    {" "}
+                                                    <ArrowRightIcon className="inline h-4 w-4" />
                                                   </span>
                                                 </Link>
                                               </div>
@@ -401,7 +411,10 @@ export default function Friends() {
                           className="text-sm font-semibold text-brand-50"
                         >
                           View profile
-                          <span aria-hidden="true"> &rarr;</span>
+                          <span aria-hidden="true">
+                            {" "}
+                            <ArrowRightIcon className="inline h-4 w-4" />
+                          </span>
                         </Link>
                       </div>
                     </div>

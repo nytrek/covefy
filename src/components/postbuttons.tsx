@@ -50,14 +50,14 @@ export default function PostButtons({
 
   const handleOnGenerateAI = (prompt: string | undefined) => {
     if (!prompt || !profile.data) return;
-    if (profile.data.credits < 5) {
+    if (profile.data.credits < 10) {
       toast.dismiss();
       return toast.error("You don't have enough credits");
     }
     toast.loading("Loading...");
     generateAI.mutate({
       prompt,
-      credits: profile.data.credits - 5,
+      credits: profile.data.credits - 10,
     });
   };
   return (

@@ -156,7 +156,7 @@ function Modal({
           attachmentPath: filePath,
           authorId: user.id,
           friendId: friend?.id,
-          credits: profile.data.credits - 1,
+          credits: profile.data.credits - 5,
         });
       }
     } catch (e: any) {
@@ -221,7 +221,7 @@ function Modal({
   const handleOnCreate = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 1)
+    if (profile.data.credits < 5)
       return toast.error("You don't have enough credits");
     else if (attachment && typeof attachment !== "string") {
       handleOnUpload(title, description);
@@ -232,7 +232,7 @@ function Modal({
         description,
         authorId: user.id,
         friendId: friend?.id,
-        credits: profile.data.credits - 1,
+        credits: profile.data.credits - 5,
       });
     }
   };

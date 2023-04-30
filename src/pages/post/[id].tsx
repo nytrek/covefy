@@ -536,7 +536,7 @@ export default function Post() {
   const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 1)
+    if (profile.data.credits < 5)
       return toast.error("You don't have enough credits");
     const target = e.target as typeof e.target & {
       reset: () => void;
@@ -547,7 +547,7 @@ export default function Post() {
       {
         postId: Number(target.comment.id),
         comment: target.comment.value,
-        credits: profile.data.credits - 1,
+        credits: profile.data.credits - 5,
       },
       {
         onSuccess: () => {
