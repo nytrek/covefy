@@ -69,7 +69,7 @@ export default function PostButtons({
       >
         <span>Use AI</span>
         <span className="flex items-center space-x-1">
-          <span>(5</span>
+          <span>(10</span>
           <TicketIcon className="h-5 w-5" />)
         </span>
       </button>
@@ -83,7 +83,7 @@ export default function PostButtons({
           <>
             <span>Create</span>
             <span className="flex items-center space-x-1">
-              <span>(1</span>
+              <span>(5</span>
               <TicketIcon className="h-5 w-5" />)
             </span>
           </>
