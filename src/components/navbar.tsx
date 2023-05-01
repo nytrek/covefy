@@ -40,8 +40,8 @@ export default function Navbar() {
       {({ open }) => (
         <>
           <div className="px-4 py-4 sm:px-6 lg:px-8">
-            <div className="relative flex justify-between">
-              <div className="flex space-x-10">
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center space-x-10">
                 <Link href="/" className="flex flex-shrink-0 items-center">
                   <Image
                     className="mx-auto block h-10 w-10"
