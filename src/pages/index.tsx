@@ -615,7 +615,7 @@ export default function Home() {
                       >
                         <div
                           onMouseMove={handleMouseMove}
-                          className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
+                          className="group relative rounded-2xl border border-brand-600 bg-brand-800 text-sm leading-6"
                         >
                           <motion.button
                             type="button"
@@ -625,7 +625,7 @@ export default function Home() {
                           ></motion.button>
 
                           <div className="space-y-6 text-brand-50">
-                            {!!post.attachmentPath && (
+                            {/* {!!post.attachmentPath && (
                               <div className="relative -my-2 -ml-2 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
                                 <PaperClipIcon
                                   className="-ml-1 mr-2 h-5 w-5"
@@ -635,42 +635,89 @@ export default function Home() {
                                   {post.attachmentPath}
                                 </span>
                               </div>
+                            )} */}
+                            {!!post.attachment && (
+                              <>
+                                {post.attachment.includes(".mp4") ? (
+                                  <video
+                                    className="w-full rounded-t-2xl"
+                                    autoPlay
+                                    muted
+                                    loop
+                                    controls
+                                  >
+                                    <source
+                                      src={post.attachment}
+                                      type="video/mp4"
+                                    />
+                                  </video>
+                                ) : post.attachment.includes(".png") ||
+                                  post.attachment.includes(".jpg") ||
+                                  post.attachment.includes(".jpeg") ? (
+                                  <img
+                                    className="h-full w-full rounded-t-2xl"
+                                    src={post.attachment}
+                                    alt="attachment"
+                                  />
+                                ) : null}
+                              </>
                             )}
 
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-lg">{post.title}</h4>
-                                {post.authorId === user?.id && (
-                                  <PostDropdown
-                                    post={post}
-                                    handleOnEditPost={handleOnEditPost}
-                                    handleOnDeletePost={handleOnDeletePost}
-                                    handleOnUpdatePost={handleOnUpdatePost}
-                                  />
-                                )}
-                              </div>
-                              <p>{post.description}</p>
-                            </div>
-                            <div className="flex items-center space-x-4">
-                              <ProfileDropdown post={post} />
-                              <div className="flex flex-col">
-                                <div className="flex items-center space-x-1 font-semibold">
-                                  <span>{post.author?.name}</span>
-                                  {post.author?.premium && (
-                                    <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                            <div className="space-y-6 p-5">
+                              {!!post.attachment && (
+                                <>
+                                  {post.attachment.includes(".mp3") && (
+                                    <div className="relative -my-2 -ml-2 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
+                                      <PaperClipIcon
+                                        className="-ml-1 mr-2 h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                      <span className="w-full truncate text-sm italic text-brand-500">
+                                        {post.attachmentPath}
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-lg">{post.title}</h4>
+                                  {post.authorId === user?.id && (
+                                    <PostDropdown
+                                      post={post}
+                                      handleOnEditPost={handleOnEditPost}
+                                      handleOnDeletePost={handleOnDeletePost}
+                                      handleOnUpdatePost={handleOnUpdatePost}
+                                    />
                                   )}
                                 </div>
-                                <div>{`@${post.author?.username}`}</div>
+                                <p>{post.description}</p>
                               </div>
-                            </div>
-                            <div className="relative flex flex-col space-y-6">
-                              <PostStats
-                                post={post}
-                                handleOnCreateLike={handleOnCreateLike}
-                                handleOnDeleteLike={handleOnDeleteLike}
-                                handleOnCreateBookmark={handleOnCreateBookmark}
-                                handleOnDeleteBookmark={handleOnDeleteBookmark}
-                              />
+                              <div className="flex items-center space-x-4">
+                                <ProfileDropdown post={post} />
+                                <div className="flex flex-col">
+                                  <div className="flex items-center space-x-1 font-semibold">
+                                    <span>{post.author?.name}</span>
+                                    {post.author?.premium && (
+                                      <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                                    )}
+                                  </div>
+                                  <div>{`@${post.author?.username}`}</div>
+                                </div>
+                              </div>
+                              <div className="relative flex flex-col space-y-6">
+                                <PostStats
+                                  post={post}
+                                  handleOnCreateLike={handleOnCreateLike}
+                                  handleOnDeleteLike={handleOnDeleteLike}
+                                  handleOnCreateBookmark={
+                                    handleOnCreateBookmark
+                                  }
+                                  handleOnDeleteBookmark={
+                                    handleOnDeleteBookmark
+                                  }
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
