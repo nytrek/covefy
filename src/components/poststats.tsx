@@ -34,7 +34,7 @@ export default function PostStats({
   handleOnDeleteBookmark,
 }: Props) {
   return (
-    <div className="relative flex-col space-y-6">
+    <div className="relative flex-col sm:space-y-6">
       <div className="flex items-center justify-end space-x-6 sm:justify-between">
         <div className="hidden items-center space-x-6 sm:flex">
           <Like
