@@ -34,21 +34,39 @@ export default function PostStats({
   handleOnDeleteBookmark,
 }: Props) {
   return (
-    <div className="relative flex flex-col space-y-6">
-      <div className="flex space-x-6">
-        <Like
-          post={post}
-          handleOnCreateLike={handleOnCreateLike}
-          handleOnDeleteLike={handleOnDeleteLike}
-        />
-        <Comment post={post} />
-        <Bookmark
-          post={post}
-          handleOnCreateBookmark={handleOnCreateBookmark}
-          handleOnDeleteBookmark={handleOnDeleteBookmark}
-        />
+    <div className="relative flex-col space-y-6">
+      <div className="flex items-center justify-end space-x-6 sm:justify-between">
+        <div className="hidden items-center space-x-6 sm:flex">
+          <Like
+            post={post}
+            handleOnCreateLike={handleOnCreateLike}
+            handleOnDeleteLike={handleOnDeleteLike}
+          />
+          <Comment post={post} />
+          <Bookmark
+            post={post}
+            handleOnCreateBookmark={handleOnCreateBookmark}
+            handleOnDeleteBookmark={handleOnDeleteBookmark}
+          />
+        </div>
+        {!!post.friend && (
+          <img
+            src={post.friend.imageUrl}
+            alt=""
+            className="hidden h-5 w-5 flex-shrink-0 rounded-full sm:flex"
+          />
+        )}
       </div>
-      <BookmarkCheck post={post} />
+      <div className="flex items-center justify-between">
+        <BookmarkCheck post={post} />
+        {!!post.friend && (
+          <img
+            src={post.friend.imageUrl}
+            alt=""
+            className="h-5 w-5 flex-shrink-0 rounded-full sm:hidden"
+          />
+        )}
+      </div>
     </div>
   );
 }
