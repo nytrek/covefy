@@ -5,13 +5,34 @@ import { AnimatePresence, motion } from "framer-motion";
 
 type Post = Prisma.PostGetPayload<{
   include: {
-    likes: true;
-    bookmarks: true;
+    _count: true;
     author: true;
     friend: true;
+    likes: {
+      include: {
+        profile: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
     comments: {
       include: {
-        author: true;
+        author: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
+    bookmarks: {
+      include: {
+        profile: {
+          select: {
+            id: true;
+          };
+        };
       };
     };
   };

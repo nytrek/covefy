@@ -6,13 +6,34 @@ import { AnimatePresence, motion } from "framer-motion";
 
 type Post = Prisma.PostGetPayload<{
   include: {
-    likes: true;
-    bookmarks: true;
+    _count: true;
     author: true;
     friend: true;
+    likes: {
+      include: {
+        profile: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
     comments: {
       include: {
-        author: true;
+        author: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
+    bookmarks: {
+      include: {
+        profile: {
+          select: {
+            id: true;
+          };
+        };
       };
     };
   };
@@ -46,13 +67,13 @@ export default function Bookmark({
         )}
         <AnimatePresence mode="wait">
           <motion.span
-            key={post.bookmarks.length}
+            key={post._count.bookmarks}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             className="font-medium"
           >
-            {post.bookmarks.length}
+            {post._count.bookmarks}
           </motion.span>
         </AnimatePresence>
         <span className="sr-only">bookmarks</span>

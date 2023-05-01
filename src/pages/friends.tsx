@@ -142,9 +142,9 @@ export default function Friends() {
                                                     />
                                                   </dt>
                                                   <dd className="text-sm font-medium leading-6 text-brand-50">
-                                                    {post.likes.length +
-                                                      post.comments.length +
-                                                      post.bookmarks.length}
+                                                    {post._count.likes +
+                                                      post._count.comments +
+                                                      post._count.bookmarks}
                                                   </dd>
                                                 </div>
                                                 <div className="flex w-full flex-none gap-x-4 px-6">
@@ -234,9 +234,9 @@ export default function Friends() {
                                                     />
                                                   </dt>
                                                   <dd className="text-sm font-medium leading-6 text-brand-50">
-                                                    {post.likes.length +
-                                                      post.comments.length +
-                                                      post.bookmarks.length}
+                                                    {post._count.likes +
+                                                      post._count.comments +
+                                                      post._count.bookmarks}
                                                   </dd>
                                                 </div>
                                                 <div className="flex w-full flex-none gap-x-4 px-6">

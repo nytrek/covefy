@@ -7,13 +7,34 @@ import Link from "next/link";
 
 type Post = Prisma.PostGetPayload<{
   include: {
-    likes: true;
-    bookmarks: true;
+    _count: true;
     author: true;
     friend: true;
+    likes: {
+      include: {
+        profile: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
     comments: {
       include: {
-        author: true;
+        author: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
+    bookmarks: {
+      include: {
+        profile: {
+          select: {
+            id: true;
+          };
+        };
       };
     };
   };
@@ -28,7 +49,6 @@ function Skeleton() {
     <div className="mb-8">
       <div className="flex items-center space-x-6 overflow-x-auto">
         <motion.div
-          key={0}
           initial={{ opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: "auto" }}
           exit={{ opacity: 0, width: 0 }}
@@ -39,17 +59,12 @@ function Skeleton() {
           </div>
           <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
             <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
-              <h4 className="font-medium text-brand-50">
-                <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </h4>
-              <p className="w-36 truncate text-brand-500">
-                <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </p>
+              <div className="flex h-2 w-36 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+              <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
             </div>
           </div>
         </motion.div>
         <motion.div
-          key={0}
           initial={{ opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: "auto" }}
           exit={{ opacity: 0, width: 0 }}
@@ -60,17 +75,12 @@ function Skeleton() {
           </div>
           <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
             <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
-              <h4 className="font-medium text-brand-50">
-                <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </h4>
-              <p className="w-36 truncate text-brand-500">
-                <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </p>
+              <div className="flex h-2 w-36 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+              <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
             </div>
           </div>
         </motion.div>
         <motion.div
-          key={0}
           initial={{ opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: "auto" }}
           exit={{ opacity: 0, width: 0 }}
@@ -81,17 +91,12 @@ function Skeleton() {
           </div>
           <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
             <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
-              <h4 className="font-medium text-brand-50">
-                <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </h4>
-              <p className="w-36 truncate text-brand-500">
-                <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </p>
+              <div className="flex h-2 w-36 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+              <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
             </div>
           </div>
         </motion.div>
         <motion.div
-          key={0}
           initial={{ opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: "auto" }}
           exit={{ opacity: 0, width: 0 }}
@@ -102,12 +107,8 @@ function Skeleton() {
           </div>
           <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 py-3 pr-2">
             <div className="flex-1 space-y-2 truncate px-4 py-2 text-sm">
-              <h4 className="font-medium text-brand-50">
-                <div className="flex h-2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </h4>
-              <p className="w-36 truncate text-brand-500">
-                <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
-              </p>
+              <div className="flex h-2 w-36 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
+              <div className="flex h-2 w-1/2 items-center space-x-4 rounded-full bg-brand-700 motion-safe:animate-pulse"></div>
             </div>
           </div>
         </motion.div>
@@ -131,7 +132,6 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                 <AnimatePresence mode="wait" initial={false}>
                   {!pinned.data.length ? (
                     <motion.div
-                      key={0}
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
