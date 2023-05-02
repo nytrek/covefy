@@ -1,9 +1,13 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
 import { TicketIcon } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
+import { trpc } from "@src/utils/trpc";
 import { FormEvent, useState } from "react";
+import { toast } from "react-hot-toast";
 
 const MAX_TOKENS = 720;
+const API_ERROR_MESSAGE =
+  "API request failed, please refresh the page and try again.";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -42,12 +46,55 @@ type Post = Prisma.PostGetPayload<{
 
 interface Props {
   item: Post;
-  handleOnCreateComment: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-export default function CommentBox({ item, handleOnCreateComment }: Props) {
+export default function CommentBox({ item }: Props) {
   const { user } = useUser();
+
+  const utils = trpc.useContext();
+
   const [length, setLength] = useState(0);
+
+  const profile = trpc.getProfile.useQuery();
+
+  const createComment = trpc.createComment.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getPost.invalidate();
+      utils.getProfile.invalidate();
+      toast.success("Comment created!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!user?.id || !profile.data) return;
+    if (profile.data.credits < 5)
+      return toast.error("You don't have enough credits");
+    const target = e.target as typeof e.target & {
+      reset: () => void;
+      comment: { id: string; value: string };
+    };
+    toast.loading("Loading");
+    createComment.mutate(
+      {
+        postId: Number(target.comment.id),
+        comment: target.comment.value,
+        credits: profile.data.credits - 5,
+      },
+      {
+        onSuccess: () => {
+          setLength(0);
+          target.reset();
+        },
+      }
+    );
+  };
+
   const progress = `
     radial-gradient(closest-side, #242427 85%, transparent 80% 100%),
     conic-gradient(white ${Math.round((length / MAX_TOKENS) * 100)}%, #242427 0)

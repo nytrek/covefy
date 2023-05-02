@@ -428,19 +428,6 @@ export default function Post() {
     },
   });
 
-  const createComment = trpc.createComment.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getPost.invalidate();
-      utils.getProfile.invalidate();
-      toast.success("Comment created!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
   const deleteComment = trpc.deleteComment.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -550,31 +537,6 @@ export default function Post() {
       postId: id,
       profileId: user.id,
     });
-  };
-
-  const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 5)
-      return toast.error("You don't have enough credits");
-    const target = e.target as typeof e.target & {
-      reset: () => void;
-      comment: { id: string; value: string };
-    };
-    toast.loading("Loading");
-    createComment.mutate(
-      {
-        postId: Number(target.comment.id),
-        comment: target.comment.value,
-        credits: profile.data.credits - 5,
-      },
-      {
-        onSuccess: () => {
-          setLength(0);
-          target.reset();
-        },
-      }
-    );
   };
 
   const handleOnDeleteComment = (id: number) => {
@@ -719,10 +681,7 @@ export default function Post() {
                             item={post.data}
                             handleOnDeleteComment={handleOnDeleteComment}
                           />
-                          <CommentBox
-                            item={post.data}
-                            handleOnCreateComment={handleOnCreateComment}
-                          />
+                          <CommentBox item={post.data} />
                         </div>
                       </div>
                     </div>
