@@ -683,11 +683,11 @@ export default function Home() {
                               </>
                             )}
 
-                            <div className="space-y-6 p-5">
+                            <div className="px-5">
                               {!!post.attachment && (
                                 <>
                                   {post.attachment.includes(".mp3") && (
-                                    <div className="relative -my-2 -ml-2 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
+                                    <div className="relative -ml-2 mt-3 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
                                       <PaperClipIcon
                                         className="-ml-1 mr-2 h-5 w-5"
                                         aria-hidden="true"
@@ -699,44 +699,46 @@ export default function Home() {
                                   )}
                                 </>
                               )}
-                              <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-lg">{post.title}</h4>
-                                  {post.authorId === user?.id && (
-                                    <PostDropdown
-                                      post={post}
-                                      handleOnEditPost={handleOnEditPost}
-                                      handleOnDeletePost={handleOnDeletePost}
-                                      handleOnUpdatePost={handleOnUpdatePost}
-                                    />
-                                  )}
-                                </div>
-                                <p>{post.description}</p>
-                              </div>
-                              <div className="flex items-center space-x-4">
-                                <ProfileDropdown post={post} />
-                                <div className="flex flex-col">
-                                  <div className="flex items-center space-x-1 font-semibold">
-                                    <span>{post.author?.name}</span>
-                                    {post.author?.premium && (
-                                      <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                              <div className="mt-4 space-y-6">
+                                <div className="space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-lg">{post.title}</h4>
+                                    {post.authorId === user?.id && (
+                                      <PostDropdown
+                                        post={post}
+                                        handleOnEditPost={handleOnEditPost}
+                                        handleOnDeletePost={handleOnDeletePost}
+                                        handleOnUpdatePost={handleOnUpdatePost}
+                                      />
                                     )}
                                   </div>
-                                  <div>{`@${post.author?.username}`}</div>
+                                  <p>{post.description}</p>
                                 </div>
-                              </div>
-                              <div className="relative flex flex-col space-y-6">
-                                <PostStats
-                                  post={post}
-                                  handleOnCreateLike={handleOnCreateLike}
-                                  handleOnDeleteLike={handleOnDeleteLike}
-                                  handleOnCreateBookmark={
-                                    handleOnCreateBookmark
-                                  }
-                                  handleOnDeleteBookmark={
-                                    handleOnDeleteBookmark
-                                  }
-                                />
+                                <div className="flex items-center space-x-4">
+                                  <ProfileDropdown post={post} />
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center space-x-1 font-semibold">
+                                      <span>{post.author?.name}</span>
+                                      {post.author?.premium && (
+                                        <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                                      )}
+                                    </div>
+                                    <div>{`@${post.author?.username}`}</div>
+                                  </div>
+                                </div>
+                                <div className="relative flex flex-col space-y-6">
+                                  <PostStats
+                                    post={post}
+                                    handleOnCreateLike={handleOnCreateLike}
+                                    handleOnDeleteLike={handleOnDeleteLike}
+                                    handleOnCreateBookmark={
+                                      handleOnCreateBookmark
+                                    }
+                                    handleOnDeleteBookmark={
+                                      handleOnDeleteBookmark
+                                    }
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>
