@@ -3,6 +3,7 @@ import Bookmark from "@src/components/bookmark";
 import BookmarkCheck from "@src/components/bookmarkcheck";
 import Comment from "@src/components/comment";
 import Like from "@src/components/like";
+import clsx from "clsx";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -78,7 +79,12 @@ export default function PostStats({
           />
         )}
       </div>
-      <div className="flex items-center justify-between">
+      <div
+        className={clsx(
+          !!post.friend && "pb-6",
+          "flex items-center justify-between"
+        )}
+      >
         <BookmarkCheck post={post} />
         {!!post.friend && (
           <img
