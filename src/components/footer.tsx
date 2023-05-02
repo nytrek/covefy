@@ -40,7 +40,7 @@ export default function Footer() {
     <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-40 sm:flex sm:justify-center sm:px-6 sm:pb-5 lg:px-8">
       <div className="pointer-events-auto flex items-center justify-between border border-brand-600 bg-brand-900 bg-opacity-90 p-6 backdrop-blur-md sm:gap-x-16 sm:rounded-xl">
         {navigation.map((item) => (
-          <div key={item.href} className="flex flex-col items-center space-y-2">
+          <div key={item.href} className="flex flex-col items-center space-y-1">
             <Link
               href={item.href}
               className="relative border border-transparent p-2"
