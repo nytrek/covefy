@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/nextjs";
 import { Prisma } from "@prisma/client";
 import Bookmark from "@src/components/bookmark";
 import BookmarkCheck from "@src/components/bookmarkcheck";
@@ -55,6 +56,7 @@ export default function PostStats({
   handleOnCreateBookmark,
   handleOnDeleteBookmark,
 }: Props) {
+  const { user } = useUser();
   return (
     <div className="relative flex-col sm:space-y-6">
       <div className="flex items-center justify-end space-x-6 sm:justify-between">
@@ -81,7 +83,11 @@ export default function PostStats({
       </div>
       <div
         className={clsx(
-          !!post.friend && "pb-6",
+          (!!post.friend ||
+            !!post.bookmarks.find(
+              (bookmark) => bookmark.profileId === user?.id
+            )) &&
+            "pb-6",
           "flex items-center justify-between"
         )}
       >
