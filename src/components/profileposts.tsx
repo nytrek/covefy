@@ -15,10 +15,7 @@ type Post = Prisma.PostGetPayload<{
 
 export default function ProfilePosts({ post }: { post: Post }) {
   return (
-    <li
-      key={post.id}
-      className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
-    >
+    <li className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto">
       <div className="lg:col-start-3 lg:row-end-1">
         <h2 className="sr-only">Summary</h2>
         <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">

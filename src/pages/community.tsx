@@ -44,7 +44,7 @@ export default function Community() {
                               className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                             >
                               {profile.posts.map((post) => (
-                                <ProfilePosts post={post} />
+                                <ProfilePosts key={post.id} post={post} />
                               ))}
                             </ul>
                           ) : (
