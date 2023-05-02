@@ -21,7 +21,7 @@ export default function ProfilePosts({ post }: { post: Post }) {
         <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
           <dl className="flex flex-wrap space-y-4">
             <div className="flex-auto px-4 pt-4 sm:px-6 sm:pt-6">
-              <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
+              <dd className="mt-1 w-56 truncate text-base font-semibold leading-6 text-brand-50">
                 {post.title}
               </dd>
             </div>
