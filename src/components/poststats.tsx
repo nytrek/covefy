@@ -58,9 +58,9 @@ export default function PostStats({
 }: Props) {
   const { user } = useUser();
   return (
-    <div className="relative flex-col sm:space-y-6">
-      <div className="flex items-center justify-end space-x-6 sm:justify-between">
-        <div className="hidden items-center space-x-6 sm:flex">
+    <div className="relative flex-col space-y-6">
+      <div className="flex items-center justify-between space-x-6">
+        <div className="flex items-center space-x-6">
           <Like
             post={post}
             handleOnCreateLike={handleOnCreateLike}
@@ -77,28 +77,18 @@ export default function PostStats({
           <img
             src={post.friend.imageUrl}
             alt=""
-            className="hidden h-5 w-5 flex-shrink-0 rounded-full sm:flex"
+            className="h-5 w-5 flex-shrink-0 rounded-full"
           />
         )}
       </div>
       <div
         className={clsx(
-          (!!post.friend ||
-            !!post.bookmarks.find(
-              (bookmark) => bookmark.profileId === user?.id
-            )) &&
-            "pb-6",
-          "flex items-center justify-between"
+          !!post.bookmarks.find(
+            (bookmark) => bookmark.profileId === user?.id
+          ) && "pb-6"
         )}
       >
         <BookmarkCheck post={post} />
-        {!!post.friend && (
-          <img
-            src={post.friend.imageUrl}
-            alt=""
-            className="h-5 w-5 flex-shrink-0 rounded-full sm:hidden"
-          />
-        )}
       </div>
     </div>
   );
