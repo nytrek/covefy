@@ -1,12 +1,10 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
-import {
-  ArrowRightIcon,
-  CalendarDaysIcon,
-  ChartBarIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowRightIcon } from "@heroicons/react/20/solid";
 import { Status } from "@prisma/client";
 import Header from "@src/components/header";
-import { formatDistanceToNow } from "date-fns";
+import PostMessage from "@src/components/postmessage";
+import ProfileHeader from "@src/components/profileheader";
+import ProfilePosts from "@src/components/profileposts";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -75,36 +73,25 @@ export default function Friends() {
                     className="w-full"
                   >
                     <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
-                      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-0">
-                        <div>
-                          <h2 className="text-2xl font-bold tracking-tight text-brand-50">
-                            {friend.senderId === user?.id
-                              ? friend.receiver.name
-                              : friend.sender.name}
-                          </h2>
-                          <p className="text-brand-500">
-                            {friend.status === "ACCEPTED"
-                              ? "Latest posts"
-                              : friend.status === "PENDING"
-                              ? "Friend request pending"
-                              : "Friend request rejected"}
-                          </p>
-                        </div>
-                        <Link
-                          href={`/profile/${
-                            friend.senderId === user?.id
-                              ? friend.receiverId
-                              : friend.senderId
-                          }`}
-                          className="hidden text-sm font-semibold text-brand-50 sm:block"
-                        >
-                          View profile
-                          <span aria-hidden="true">
-                            {" "}
-                            <ArrowRightIcon className="inline h-4 w-4" />
-                          </span>
-                        </Link>
-                      </div>
+                      <ProfileHeader
+                        url={`/profile/${
+                          friend.senderId === user?.id
+                            ? friend.receiverId
+                            : friend.senderId
+                        }`}
+                        name={
+                          friend.senderId === user?.id
+                            ? friend.receiver.name
+                            : friend.sender.name
+                        }
+                        text={
+                          friend.status === "ACCEPTED"
+                            ? "Latest posts"
+                            : friend.status === "PENDING"
+                            ? "Friend request pending"
+                            : "Friend request rejected"
+                        }
+                      />
 
                       <div className="relative mt-8">
                         <div className="relative -mb-6 w-full overflow-x-auto pb-6">
@@ -118,88 +105,14 @@ export default function Friends() {
                                       className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                                     >
                                       {friend.receiver.posts.map((post) => (
-                                        <li
-                                          key={post.id}
-                                          className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
-                                        >
-                                          <div className="lg:col-start-3 lg:row-end-1">
-                                            <h2 className="sr-only">Summary</h2>
-                                            <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
-                                              <dl className="flex flex-wrap space-y-4">
-                                                <div className="flex-auto px-4 pt-4 sm:px-6 sm:pt-6">
-                                                  <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
-                                                    {post.title}
-                                                  </dd>
-                                                </div>
-                                                <div className="flex w-full flex-none gap-x-4 px-6">
-                                                  <dt className="flex-none">
-                                                    <span className="sr-only">
-                                                      Stats
-                                                    </span>
-                                                    <ChartBarIcon
-                                                      className="h-6 w-5 text-brand-50"
-                                                      aria-hidden="true"
-                                                    />
-                                                  </dt>
-                                                  <dd className="text-sm font-medium leading-6 text-brand-50">
-                                                    {post._count.likes +
-                                                      post._count.comments +
-                                                      post._count.bookmarks}
-                                                  </dd>
-                                                </div>
-                                                <div className="flex w-full flex-none gap-x-4 px-6">
-                                                  <dt className="flex-none">
-                                                    <span className="sr-only">
-                                                      Created
-                                                    </span>
-                                                    <CalendarDaysIcon
-                                                      className="h-6 w-5 text-brand-50"
-                                                      aria-hidden="true"
-                                                    />
-                                                  </dt>
-                                                  <dd className="text-sm leading-6 text-brand-50">
-                                                    <time
-                                                      dateTime={post.createdAt.toString()}
-                                                    >
-                                                      {formatDistanceToNow(
-                                                        post.createdAt,
-                                                        {
-                                                          addSuffix: true,
-                                                        }
-                                                      )}
-                                                    </time>
-                                                  </dd>
-                                                </div>
-                                              </dl>
-                                              <div className="px-6 py-6">
-                                                <Link
-                                                  href={"/post/" + post.id}
-                                                  className="text-sm font-semibold leading-6 text-brand-50"
-                                                >
-                                                  View post{" "}
-                                                  <span aria-hidden="true">
-                                                    {" "}
-                                                    <ArrowRightIcon className="inline h-4 w-4" />
-                                                  </span>
-                                                </Link>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </li>
+                                        <ProfilePosts post={post} />
                                       ))}
                                     </ul>
                                   ) : (
-                                    <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
-                                      <img
-                                        src={friend.receiver.imageUrl}
-                                        alt="receiver"
-                                        className="h-14 w-14 rounded-full"
-                                      />
-                                      <p className="text-center text-sm font-semibold text-brand-50">
-                                        {friend.receiver.name} has not created
-                                        any posts
-                                      </p>
-                                    </div>
+                                    <PostMessage
+                                      message={`${friend.receiver.name} has not created any posts`}
+                                      imageUrl={friend.receiver.imageUrl}
+                                    />
                                   )}
                                 </>
                               ) : (
@@ -210,88 +123,14 @@ export default function Friends() {
                                       className="mx-4 inline-flex space-x-8 sm:mx-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-x-8 lg:space-x-0"
                                     >
                                       {friend.sender.posts.map((post) => (
-                                        <li
-                                          key={post.id}
-                                          className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto"
-                                        >
-                                          <div className="lg:col-start-3 lg:row-end-1">
-                                            <h2 className="sr-only">Summary</h2>
-                                            <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
-                                              <dl className="flex flex-wrap space-y-4">
-                                                <div className="flex-auto pl-6 pt-6">
-                                                  <dd className="mt-1 text-base font-semibold leading-6 text-brand-50">
-                                                    {post.title}
-                                                  </dd>
-                                                </div>
-                                                <div className="flex w-full flex-none gap-x-4 px-6">
-                                                  <dt className="flex-none">
-                                                    <span className="sr-only">
-                                                      Stats
-                                                    </span>
-                                                    <ChartBarIcon
-                                                      className="h-6 w-5 text-brand-50"
-                                                      aria-hidden="true"
-                                                    />
-                                                  </dt>
-                                                  <dd className="text-sm font-medium leading-6 text-brand-50">
-                                                    {post._count.likes +
-                                                      post._count.comments +
-                                                      post._count.bookmarks}
-                                                  </dd>
-                                                </div>
-                                                <div className="flex w-full flex-none gap-x-4 px-6">
-                                                  <dt className="flex-none">
-                                                    <span className="sr-only">
-                                                      Created
-                                                    </span>
-                                                    <CalendarDaysIcon
-                                                      className="h-6 w-5 text-brand-50"
-                                                      aria-hidden="true"
-                                                    />
-                                                  </dt>
-                                                  <dd className="text-sm leading-6 text-brand-50">
-                                                    <time
-                                                      dateTime={post.createdAt.toString()}
-                                                    >
-                                                      {formatDistanceToNow(
-                                                        post.createdAt,
-                                                        {
-                                                          addSuffix: true,
-                                                        }
-                                                      )}
-                                                    </time>
-                                                  </dd>
-                                                </div>
-                                              </dl>
-                                              <div className="px-6 py-6">
-                                                <Link
-                                                  href={"/post/" + post.id}
-                                                  className="text-sm font-semibold leading-6 text-brand-50"
-                                                >
-                                                  View post{" "}
-                                                  <span aria-hidden="true">
-                                                    {" "}
-                                                    <ArrowRightIcon className="inline h-4 w-4" />
-                                                  </span>
-                                                </Link>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </li>
+                                        <ProfilePosts post={post} />
                                       ))}
                                     </ul>
                                   ) : (
-                                    <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
-                                      <img
-                                        src={friend.sender.imageUrl}
-                                        alt="sender"
-                                        className="h-14 w-14 rounded-full"
-                                      />
-                                      <p className="text-center text-sm font-semibold text-brand-50">
-                                        {friend.sender.name} has not created any
-                                        posts
-                                      </p>
-                                    </div>
+                                    <PostMessage
+                                      message={`${friend.sender.name} has not created any posts`}
+                                      imageUrl={friend.sender.imageUrl}
+                                    />
                                   )}
                                 </>
                               )}
@@ -299,28 +138,15 @@ export default function Friends() {
                           ) : friend.status === "PENDING" ? (
                             <>
                               {friend.senderId === user?.id ? (
-                                <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
-                                  <img
-                                    src={friend.receiver.imageUrl}
-                                    alt="receiver"
-                                    className="h-14 w-14 rounded-full"
-                                  />
-                                  <p className="text-center text-sm font-semibold text-brand-50">
-                                    You sent a friend request to{" "}
-                                    {friend.receiver.name}
-                                  </p>
-                                </div>
+                                <PostMessage
+                                  message={`You sent a friend request to ${friend.receiver.name}`}
+                                  imageUrl={friend.receiver.imageUrl}
+                                />
                               ) : (
-                                <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
-                                  <img
-                                    src={friend.sender.imageUrl}
-                                    alt="receiver"
-                                    className="h-14 w-14 rounded-full"
-                                  />
-                                  <p className="text-center text-sm font-semibold text-brand-50">
-                                    You have received a friend request from{" "}
-                                    {friend.sender.name}
-                                  </p>
+                                <PostMessage
+                                  message={`You have received a friend request from ${friend.sender.name}`}
+                                  imageUrl={friend.sender.imageUrl}
+                                >
                                   <div className="flex w-full flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-center sm:space-x-3 sm:space-y-0 sm:space-x-reverse">
                                     <button
                                       type="button"
@@ -347,35 +173,21 @@ export default function Friends() {
                                       Accept
                                     </button>
                                   </div>
-                                </div>
+                                </PostMessage>
                               )}
                             </>
                           ) : (
                             <>
                               {friend.senderId === user?.id ? (
-                                <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
-                                  <img
-                                    src={friend.receiver.imageUrl}
-                                    alt="receiver"
-                                    className="h-14 w-14 rounded-full"
-                                  />
-                                  <p className="text-center text-sm font-semibold text-brand-50">
-                                    {friend.receiver.name} has rejected your
-                                    friend request
-                                  </p>
-                                </div>
+                                <PostMessage
+                                  message={`${friend.receiver.imageUrl} has rejected your friend request`}
+                                  imageUrl={friend.receiver.name}
+                                />
                               ) : (
-                                <div className="mx-4 flex flex-col items-center justify-center space-y-6 rounded-lg border border-brand-600 bg-brand-800 px-4 py-8 sm:mx-6 lg:mx-0">
-                                  <img
-                                    src={friend.sender.imageUrl}
-                                    alt="sender"
-                                    className="h-14 w-14 rounded-full"
-                                  />
-                                  <p className="text-center text-sm font-semibold text-brand-50">
-                                    You have rejected {friend.sender.name}
-                                    &apos;s friend request
-                                  </p>
-                                </div>
+                                <PostMessage
+                                  message={`You have rejected ${friend.sender.name}'s friend request`}
+                                  imageUrl={friend.sender.imageUrl}
+                                />
                               )}
                             </>
                           )}

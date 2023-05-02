@@ -665,7 +665,6 @@ export default function Home() {
                                     autoPlay
                                     muted
                                     loop
-                                    controls
                                   >
                                     <source
                                       src={post.attachment}

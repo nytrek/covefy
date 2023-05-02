@@ -132,6 +132,7 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                 <AnimatePresence mode="wait" initial={false}>
                   {!pinned.data.length ? (
                     <motion.div
+                      key={Number(!pinned.data.length)}
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
