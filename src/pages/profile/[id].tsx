@@ -452,6 +452,8 @@ function ProfileButtons({
 }
 
 function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
+  const { user } = useUser();
+
   const { query } = useRouter();
   const id = query.id as string;
 
@@ -463,7 +465,7 @@ function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
         <Avatar imageUrl={profile.data?.imageUrl} />
         <ProfileDetails profile={profile.data} />
       </div>
-      <ProfileButtons setOpen={setOpen} />
+      {profile.data.id !== user?.id && <ProfileButtons setOpen={setOpen} />}
     </div>
   );
 }
