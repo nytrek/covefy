@@ -674,7 +674,7 @@ export default function Posts() {
       />
       <div className="pb-36">
         <Header
-          header="Collect your posts in one place."
+          header=""
           search={search}
           setSearch={setSearch}
           handleOnClick={handleOnClick}

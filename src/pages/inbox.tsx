@@ -674,7 +674,7 @@ export default function Inbox() {
       />
       <div className="pb-36">
         <Header
-          header="Scour through your digital inbox."
+          header=""
           search={search}
           setSearch={setSearch}
           handleOnClick={handleOnClick}

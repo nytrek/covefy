@@ -674,7 +674,7 @@ export default function Home() {
       />
       <div className="pb-36">
         <Header
-          header="Discover, learn and connect."
+          header=""
           search={search}
           setSearch={setSearch}
           handleOnClick={handleOnClick}

@@ -674,7 +674,7 @@ export default function Bookmarks() {
       />
       <div className="pb-36">
         <Header
-          header="Bookmark your favorite posts."
+          header=""
           search={search}
           setSearch={setSearch}
           handleOnClick={handleOnClick}

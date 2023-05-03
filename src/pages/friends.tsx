@@ -49,7 +49,7 @@ export default function Friends() {
     <>
       <div className="pb-36">
         <Header
-          header="Explore posts from friends."
+          header=""
           search={search}
           setSearch={setSearch}
           handleOnClick={() => null}
