@@ -1,10 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import { Dialog, Transition } from "@headlessui/react";
-import {
-  ArrowLongLeftIcon,
-  CheckBadgeIcon,
-  PaperClipIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowLongLeftIcon, PaperClipIcon } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
 import Attachment from "@src/components/attachment";
@@ -14,9 +10,7 @@ import FriendDropdown from "@src/components/frienddropdown";
 import LabelDropdown from "@src/components/labeldropdown";
 import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
-import PostDropdown from "@src/components/postdropdown";
-import PostStats from "@src/components/poststats";
-import ProfileDropdown from "@src/components/profiledropdown";
+import PostCard from "@src/components/postcard";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
@@ -428,18 +422,6 @@ export default function Post() {
     },
   });
 
-  const deleteComment = trpc.deleteComment.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getPost.invalidate();
-      toast.success("Comment deleted!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
   const createBookmark = trpc.createBookmark.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -539,11 +521,6 @@ export default function Post() {
     });
   };
 
-  const handleOnDeleteComment = (id: number) => {
-    toast.loading("Loading...");
-    deleteComment.mutate({ id });
-  };
-
   const handleOnCreateBookmark = (id: number) => {
     if (!user?.id) return;
     toast.loading("Loading...");
@@ -609,81 +586,26 @@ export default function Post() {
                   post.data.friendId === user?.id ? (
                     <div
                       onMouseMove={handleMouseMove}
-                      className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
+                      className="group relative rounded-2xl border border-brand-600 bg-brand-800 text-sm leading-6"
                     >
                       <motion.div
                         className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
                         style={{ background: flash }}
                       ></motion.div>
 
-                      <div className="space-y-6 text-brand-50">
-                        {!!post.data.attachment && (
-                          <>
-                            {post.data.attachment.includes(".mp4") ? (
-                              <video className="w-full rounded-lg" controls>
-                                <source
-                                  src={post.data.attachment}
-                                  type="video/mp4"
-                                />
-                              </video>
-                            ) : post.data.attachment.includes(".mp3") ? (
-                              <audio className="w-full rounded-lg" controls>
-                                <source
-                                  src={post.data.attachment}
-                                  type="audio/mp3"
-                                />
-                              </audio>
-                            ) : (
-                              <img
-                                className="h-full w-full rounded-lg"
-                                src={post.data.attachment}
-                                alt="attachment"
-                              />
-                            )}
-                          </>
-                        )}
-
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-lg">{post.data.title}</h4>
-                            {post.data.authorId === user?.id && (
-                              <PostDropdown
-                                post={post.data}
-                                handleOnEditPost={handleOnEditPost}
-                                handleOnDeletePost={handleOnDeletePost}
-                                handleOnUpdatePost={handleOnUpdatePost}
-                              />
-                            )}
-                          </div>
-                          <p>{post.data.description}</p>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <ProfileDropdown post={post.data} />
-                          <div className="flex flex-col">
-                            <div className="flex items-center space-x-1 font-semibold">
-                              <span>{post.data.author?.name}</span>
-                              {post.data.author?.premium && (
-                                <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
-                              )}
-                            </div>
-                            <div>{`@${post.data.author?.username}`}</div>
-                          </div>
-                        </div>
-                        <div className="relative flex flex-col space-y-6">
-                          <PostStats
-                            post={post.data}
-                            handleOnCreateLike={handleOnCreateLike}
-                            handleOnDeleteLike={handleOnDeleteLike}
-                            handleOnCreateBookmark={handleOnCreateBookmark}
-                            handleOnDeleteBookmark={handleOnDeleteBookmark}
-                          />
-                          <Comments
-                            item={post.data}
-                            handleOnDeleteComment={handleOnDeleteComment}
-                          />
-                          <CommentBox item={post.data} />
-                        </div>
-                      </div>
+                      <PostCard
+                        post={post.data}
+                        handleOnEditPost={handleOnEditPost}
+                        handleOnDeletePost={handleOnDeletePost}
+                        handleOnUpdatePost={handleOnUpdatePost}
+                        handleOnCreateLike={handleOnCreateLike}
+                        handleOnDeleteLike={handleOnDeleteLike}
+                        handleOnCreateBookmark={handleOnCreateBookmark}
+                        handleOnDeleteBookmark={handleOnDeleteBookmark}
+                      >
+                        <Comments post={post.data} />
+                        <CommentBox post={post.data} />
+                      </PostCard>
                     </div>
                   ) : (
                     <p className="text-brand-50">

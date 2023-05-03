@@ -41,7 +41,7 @@ type Post = Prisma.PostGetPayload<{
 }>;
 
 interface Props {
-  handleOnUpdatePost: (item: Post, pinned: boolean) => void;
+  handleOnUpdatePost: (post: Post, pinned: boolean) => void;
 }
 
 function Skeleton() {
@@ -154,32 +154,32 @@ export default function PinnedPosts({ handleOnUpdatePost }: Props) {
                     </motion.div>
                   ) : (
                     <AnimatePresence initial={false}>
-                      {pinned.data.map((item) => (
+                      {pinned.data.map((post) => (
                         <motion.li
-                          key={item.id}
+                          key={post.id}
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: "auto" }}
                           exit={{ opacity: 0, width: 0 }}
                           className="relative col-span-1 flex rounded-md shadow-sm"
                         >
                           <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md bg-brand-600 text-sm font-medium text-brand-50">
-                            {item.id}
+                            {post.id}
                           </div>
                           <div className="flex flex-1 items-center justify-between truncate rounded-r-md bg-brand-800 pr-2">
                             <div className="w-48 flex-1 truncate px-4 py-2 text-sm text-brand-50">
                               <Link
-                                href={"/post/" + item.id}
+                                href={"/post/" + post.id}
                                 className="font-medium"
                               >
-                                {item.title}
+                                {post.title}
                               </Link>
                               <p className="w-36 truncate text-brand-500">
-                                {item.description}
+                                {post.description}
                               </p>
                             </div>
                             <button
                               type="button"
-                              onClick={() => handleOnUpdatePost(item, false)}
+                              onClick={() => handleOnUpdatePost(post, false)}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-full text-brand-500"
                             >
                               <span className="sr-only">Unpin</span>

@@ -1,6 +1,6 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
 import { Dialog, Transition } from "@headlessui/react";
-import { CheckBadgeIcon, PaperClipIcon } from "@heroicons/react/20/solid";
+import { PaperClipIcon } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
 import Attachment from "@src/components/attachment";
@@ -9,10 +9,8 @@ import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
 import PinnedPosts from "@src/components/pinnedposts";
 import PostButtons from "@src/components/postbuttons";
-import PostDropdown from "@src/components/postdropdown";
+import PostCard from "@src/components/postcard";
 import PostSkeleton from "@src/components/postskeleton";
-import PostStats from "@src/components/poststats";
-import ProfileDropdown from "@src/components/profiledropdown";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
@@ -637,7 +635,7 @@ export default function Posts() {
                         >
                           <div
                             onMouseMove={handleMouseMove}
-                            className="group relative rounded-2xl border border-brand-600 bg-brand-800 p-5 text-sm leading-6"
+                            className="group relative rounded-2xl border border-brand-600 bg-brand-800 text-sm leading-6"
                           >
                             <motion.button
                               type="button"
@@ -646,59 +644,16 @@ export default function Posts() {
                               style={{ background: flash }}
                             ></motion.button>
 
-                            <div className="space-y-6 text-brand-50">
-                              {!!post.attachmentPath && (
-                                <div className="relative -my-2 -ml-2 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
-                                  <PaperClipIcon
-                                    className="-ml-1 mr-2 h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                  <span className="w-full truncate text-sm italic text-brand-500">
-                                    {post.attachmentPath}
-                                  </span>
-                                </div>
-                              )}
-
-                              <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-lg">{post.title}</h4>
-                                  {post.authorId === user?.id && (
-                                    <PostDropdown
-                                      post={post}
-                                      handleOnEditPost={handleOnEditPost}
-                                      handleOnDeletePost={handleOnDeletePost}
-                                      handleOnUpdatePost={handleOnUpdatePost}
-                                    />
-                                  )}
-                                </div>
-                                <p>{post.description}</p>
-                              </div>
-                              <div className="flex items-center space-x-4">
-                                <ProfileDropdown post={post} />
-                                <div className="flex flex-col">
-                                  <div className="flex items-center space-x-1 font-semibold">
-                                    <span>{post.author?.name}</span>
-                                    {post.author?.premium && (
-                                      <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
-                                    )}
-                                  </div>
-                                  <div>{`@${post.author?.username}`}</div>
-                                </div>
-                              </div>
-                              <div className="relative flex flex-col space-y-6">
-                                <PostStats
-                                  post={post}
-                                  handleOnCreateLike={handleOnCreateLike}
-                                  handleOnDeleteLike={handleOnDeleteLike}
-                                  handleOnCreateBookmark={
-                                    handleOnCreateBookmark
-                                  }
-                                  handleOnDeleteBookmark={
-                                    handleOnDeleteBookmark
-                                  }
-                                />
-                              </div>
-                            </div>
+                            <PostCard
+                              post={post}
+                              handleOnEditPost={handleOnEditPost}
+                              handleOnDeletePost={handleOnDeletePost}
+                              handleOnUpdatePost={handleOnUpdatePost}
+                              handleOnCreateLike={handleOnCreateLike}
+                              handleOnDeleteLike={handleOnDeleteLike}
+                              handleOnCreateBookmark={handleOnCreateBookmark}
+                              handleOnDeleteBookmark={handleOnDeleteBookmark}
+                            />
                           </div>
                         </div>
                       ))}

@@ -45,10 +45,10 @@ type Post = Prisma.PostGetPayload<{
 }>;
 
 interface Props {
-  item: Post;
+  post: Post;
 }
 
-export default function CommentBox({ item }: Props) {
+export default function CommentBox({ post }: Props) {
   const { user } = useUser();
 
   const utils = trpc.useContext();
@@ -101,7 +101,7 @@ export default function CommentBox({ item }: Props) {
   `;
   return (
     <SignedIn>
-      <div className="mt-6 flex gap-x-3">
+      <div className="mt-6 flex gap-x-3 pb-6">
         {user?.profileImageUrl ? (
           <img
             src={user.profileImageUrl}
@@ -117,7 +117,7 @@ export default function CommentBox({ item }: Props) {
               Add your comment
             </label>
             <textarea
-              id={String(item.id)}
+              id={String(post.id)}
               rows={2}
               name="comment"
               className="block w-full resize-none border-0 bg-transparent py-1.5 text-sm leading-6 text-brand-50 placeholder:text-brand-50 focus:ring-0"

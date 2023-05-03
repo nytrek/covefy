@@ -1,10 +1,15 @@
 import { useUser } from "@clerk/nextjs";
 import { Menu, Transition } from "@headlessui/react";
 import { Prisma } from "@prisma/client";
+import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { Fragment } from "react";
+import { toast } from "react-hot-toast";
+
+const API_ERROR_MESSAGE =
+  "API request failed, please refresh the page and try again.";
 
 type Post = Prisma.PostGetPayload<{
   include: {
@@ -44,16 +49,34 @@ type Post = Prisma.PostGetPayload<{
 }>;
 
 interface Props {
-  item: Post;
-  handleOnDeleteComment: (id: number) => void;
+  post: Post;
 }
 
-export default function Comments({ item, handleOnDeleteComment }: Props) {
+export default function Comments({ post }: Props) {
   const { user } = useUser();
+
+  const utils = trpc.useContext();
+
+  const deleteComment = trpc.deleteComment.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getPost.invalidate();
+      toast.success("Comment deleted!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  const handleOnDeleteComment = (id: number) => {
+    toast.loading("Loading...");
+    deleteComment.mutate({ id });
+  };
   return (
     <ul role="list" className="space-y-6">
       <AnimatePresence>
-        {item.comments.map((comment) => (
+        {post.comments.map((comment) => (
           <motion.li
             key={comment.id}
             initial={{ opacity: 0, height: 0 }}
