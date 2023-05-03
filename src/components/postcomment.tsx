@@ -39,7 +39,7 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-export default function Comment({ post }: { post: Post }) {
+export default function PostComment({ post }: { post: Post }) {
   const { user } = useUser();
   return (
     <span className="inline-flex items-center text-sm">

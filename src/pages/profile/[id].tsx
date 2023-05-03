@@ -7,9 +7,9 @@ import {
 } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Profile } from "@prisma/client";
-import Attachment from "@src/components/attachment";
 import Avatar from "@src/components/avatar";
 import LabelDropdown from "@src/components/labeldropdown";
+import PostAttachment from "@src/components/postattachment";
 import PostButtons from "@src/components/postbuttons";
 import ProfileDetails from "@src/components/profiledetails";
 import ProfileStats from "@src/components/profilestats";
@@ -252,7 +252,7 @@ function Modal({ open, friend, setOpen }: Props) {
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
-                    <Attachment
+                    <PostAttachment
                       attachment={attachment}
                       setAttachment={setAttachment}
                     />

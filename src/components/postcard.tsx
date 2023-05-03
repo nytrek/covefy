@@ -48,10 +48,26 @@ interface Props {
   handleOnEditPost: (post: Post) => void;
   handleOnDeletePost: (post: Post) => void;
   handleOnUpdatePost: (post: Post, pinned: boolean) => void;
-  handleOnCreateLike: (id: number) => void;
-  handleOnDeleteLike: (id: number) => void;
-  handleOnCreateBookmark: (id: number) => void;
-  handleOnDeleteBookmark: (id: number) => void;
+  handleOnCreateLike: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnDeleteLike: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnCreateBookmark: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnDeleteBookmark: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
 }
 
 export default function PostCard({

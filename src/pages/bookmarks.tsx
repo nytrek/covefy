@@ -3,11 +3,11 @@ import { Dialog, Transition } from "@headlessui/react";
 import { PaperClipIcon } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
-import Attachment from "@src/components/attachment";
 import FriendDropdown from "@src/components/frienddropdown";
 import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
 import PinnedPosts from "@src/components/pinnedposts";
+import PostAttachment from "@src/components/postattachment";
 import PostButtons from "@src/components/postbuttons";
 import PostCard from "@src/components/postcard";
 import PostSkeleton from "@src/components/postskeleton";
@@ -387,7 +387,7 @@ function Modal({
                         <LabelDropdown label={label} setLabel={setLabel} />
                       </div>
                     </div>
-                    <Attachment
+                    <PostAttachment
                       attachment={attachment}
                       setAttachment={setAttachment}
                     />
@@ -519,21 +519,29 @@ export default function Bookmarks() {
     setAttachment(null);
   };
 
-  const handleOnCreateLike = (id: number) => {
-    if (!user?.id) return;
+  const handleOnCreateLike = (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => {
     toast.loading("Loading...");
     createLike.mutate({
-      postId: id,
-      profileId: user.id,
+      postId,
+      profileId,
+      popularity,
     });
   };
 
-  const handleOnDeleteLike = (id: number) => {
-    if (!user?.id) return;
+  const handleOnDeleteLike = (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => {
     toast.loading("Loading...");
     deleteLike.mutate({
-      postId: id,
-      profileId: user.id,
+      postId,
+      profileId,
+      popularity,
     });
   };
 
@@ -566,21 +574,29 @@ export default function Bookmarks() {
     });
   };
 
-  const handleOnCreateBookmark = (id: number) => {
-    if (!user?.id) return;
+  const handleOnCreateBookmark = (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => {
     toast.loading("Loading...");
     createBookmark.mutate({
-      postId: id,
-      profileId: user.id,
+      postId,
+      profileId,
+      popularity,
     });
   };
 
-  const handleOnDeleteBookmark = (id: number) => {
-    if (!user?.id) return;
+  const handleOnDeleteBookmark = (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => {
     toast.loading("Loading...");
     deleteBookmark.mutate({
-      postId: id,
-      profileId: user.id,
+      postId,
+      profileId,
+      popularity,
     });
   };
 

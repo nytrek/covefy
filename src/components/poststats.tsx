@@ -1,9 +1,9 @@
 import { useUser } from "@clerk/nextjs";
 import { Prisma } from "@prisma/client";
-import Bookmark from "@src/components/bookmark";
 import BookmarkCheck from "@src/components/bookmarkcheck";
-import Comment from "@src/components/comment";
-import Like from "@src/components/like";
+import PostBookmark from "@src/components/postbookmark";
+import PostComment from "@src/components/postcomment";
+import PostLike from "@src/components/postlike";
 import clsx from "clsx";
 
 type Post = Prisma.PostGetPayload<{
@@ -43,10 +43,26 @@ type Post = Prisma.PostGetPayload<{
 
 interface Props {
   post: Post;
-  handleOnCreateLike: (id: number) => void;
-  handleOnDeleteLike: (id: number) => void;
-  handleOnCreateBookmark: (id: number) => void;
-  handleOnDeleteBookmark: (id: number) => void;
+  handleOnCreateLike: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnDeleteLike: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnCreateBookmark: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnDeleteBookmark: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
 }
 
 export default function PostStats({
@@ -61,13 +77,13 @@ export default function PostStats({
     <div className="relative flex-col space-y-6">
       <div className="flex items-center justify-between space-x-6">
         <div className="flex items-center space-x-6">
-          <Like
+          <PostLike
             post={post}
             handleOnCreateLike={handleOnCreateLike}
             handleOnDeleteLike={handleOnDeleteLike}
           />
-          <Comment post={post} />
-          <Bookmark
+          <PostComment post={post} />
+          <PostBookmark
             post={post}
             handleOnCreateBookmark={handleOnCreateBookmark}
             handleOnDeleteBookmark={handleOnDeleteBookmark}

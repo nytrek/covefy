@@ -24,7 +24,7 @@ function Button({ handleOnClick }: { handleOnClick: () => void }) {
   );
 }
 
-export default function Attachment({ attachment, setAttachment }: Props) {
+export default function PostAttachment({ attachment, setAttachment }: Props) {
   return (
     <>
       {attachment && typeof attachment !== "string" ? (

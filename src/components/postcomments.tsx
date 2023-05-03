@@ -52,7 +52,7 @@ interface Props {
   post: Post;
 }
 
-export default function Comments({ post }: Props) {
+export default function PostComments({ post }: Props) {
   const { user } = useUser();
 
   const utils = trpc.useContext();

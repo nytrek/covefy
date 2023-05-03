@@ -39,14 +39,22 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-export default function Bookmark({
+export default function PostBookmark({
   post,
   handleOnCreateBookmark,
   handleOnDeleteBookmark,
 }: {
   post: Post;
-  handleOnCreateBookmark: (id: number) => void;
-  handleOnDeleteBookmark: (id: number) => void;
+  handleOnCreateBookmark: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnDeleteBookmark: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
 }) {
   const { user } = useUser();
   return (
@@ -55,8 +63,16 @@ export default function Bookmark({
         type="button"
         onClick={() => {
           post.bookmarks.find((_post) => _post.profileId === user?.id)
-            ? handleOnDeleteBookmark(post.id)
-            : handleOnCreateBookmark(post.id);
+            ? handleOnDeleteBookmark(
+                post.id,
+                post.authorId,
+                post.author.popularity - 1
+              )
+            : handleOnCreateBookmark(
+                post.id,
+                post.authorId,
+                post.author.popularity + 1
+              );
         }}
         className="inline-flex space-x-2"
       >

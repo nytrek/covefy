@@ -39,14 +39,22 @@ type Post = Prisma.PostGetPayload<{
   };
 }>;
 
-export default function Like({
+export default function PostLike({
   post,
   handleOnCreateLike,
   handleOnDeleteLike,
 }: {
   post: Post;
-  handleOnCreateLike: (id: number) => void;
-  handleOnDeleteLike: (id: number) => void;
+  handleOnCreateLike: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
+  handleOnDeleteLike: (
+    postId: number,
+    profileId: string,
+    popularity: number
+  ) => void;
 }) {
   const { user } = useUser();
   return (
@@ -55,8 +63,16 @@ export default function Like({
         type="button"
         onClick={() => {
           post.likes.find((_post) => _post.profileId === user?.id)
-            ? handleOnDeleteLike(post.id)
-            : handleOnCreateLike(post.id);
+            ? handleOnDeleteLike(
+                post.id,
+                post.authorId,
+                post.author.popularity - 1
+              )
+            : handleOnCreateLike(
+                post.id,
+                post.authorId,
+                post.author.popularity + 1
+              );
         }}
         className="inline-flex space-x-2"
       >

@@ -594,32 +594,54 @@ export const appRouter = router({
       z.object({
         postId: z.number(),
         profileId: z.string(),
+        popularity: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
-      return await prisma.like.create({
-        data: {
-          postId: input.postId,
-          profileId: input.profileId,
-        },
-      });
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.$transaction([
+        prisma.like.create({
+          data: {
+            postId: input.postId,
+            profileId: ctx.auth.userId,
+          },
+        }),
+        prisma.profile.update({
+          data: {
+            popularity: input.popularity,
+          },
+          where: {
+            id: input.profileId,
+          },
+        }),
+      ]);
     }),
   deleteLike: protectedProcedure
     .input(
       z.object({
         postId: z.number(),
         profileId: z.string(),
+        popularity: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
-      return await prisma.like.delete({
-        where: {
-          postId_profileId: {
-            postId: input.postId,
-            profileId: input.profileId,
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.$transaction([
+        prisma.like.delete({
+          where: {
+            postId_profileId: {
+              postId: input.postId,
+              profileId: ctx.auth.userId,
+            },
           },
-        },
-      });
+        }),
+        prisma.profile.update({
+          data: {
+            popularity: input.popularity,
+          },
+          where: {
+            id: input.profileId,
+          },
+        }),
+      ]);
     }),
   getBookmarks: protectedProcedure
     .input(z.string().optional())
@@ -642,32 +664,54 @@ export const appRouter = router({
       z.object({
         postId: z.number(),
         profileId: z.string(),
+        popularity: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
-      return await prisma.bookmark.create({
-        data: {
-          postId: input.postId,
-          profileId: input.profileId,
-        },
-      });
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.$transaction([
+        prisma.bookmark.create({
+          data: {
+            postId: input.postId,
+            profileId: ctx.auth.userId,
+          },
+        }),
+        prisma.profile.update({
+          data: {
+            popularity: input.popularity,
+          },
+          where: {
+            id: input.profileId,
+          },
+        }),
+      ]);
     }),
   deleteBookmark: protectedProcedure
     .input(
       z.object({
         postId: z.number(),
         profileId: z.string(),
+        popularity: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
-      return await prisma.bookmark.delete({
-        where: {
-          postId_profileId: {
-            postId: input.postId,
-            profileId: input.profileId,
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.$transaction([
+        prisma.bookmark.delete({
+          where: {
+            postId_profileId: {
+              postId: input.postId,
+              profileId: ctx.auth.userId,
+            },
           },
-        },
-      });
+        }),
+        prisma.profile.update({
+          data: {
+            popularity: input.popularity,
+          },
+          where: {
+            id: input.profileId,
+          },
+        }),
+      ]);
     }),
   getComments: protectedProcedure
     .input(z.string().optional())
