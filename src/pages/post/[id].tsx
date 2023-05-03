@@ -76,11 +76,13 @@ interface Props {
   friend: Profile | null;
   length: number;
   attachment: File | string | null;
+  description: string;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setLabel: Dispatch<SetStateAction<Label | null>>;
   setFriend: Dispatch<SetStateAction<Profile | null>>;
   setLength: Dispatch<SetStateAction<number>>;
   setAttachment: Dispatch<SetStateAction<File | string | null>>;
+  setDescription: Dispatch<SetStateAction<string>>;
 }
 
 function LoadingSkeleton() {
@@ -116,17 +118,19 @@ function Modal({
   friend,
   length,
   attachment,
+  description,
   setOpen,
   setLabel,
   setFriend,
   setLength,
   setAttachment,
+  setDescription,
 }: Props) {
   const { query } = useRouter();
 
   const utils = trpc.useContext();
 
-  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
+  const profile = trpc.getProfile.useQuery();
 
   const id = query.id ?? 0;
   const post = trpc.getPost.useQuery(Number(id));
@@ -150,6 +154,36 @@ function Modal({
       toast.error(err.message ?? API_ERROR_MESSAGE);
     },
   });
+
+  const generateAI = trpc.generateAIResponse.useMutation({
+    onSuccess: (data) => {
+      let i = 0;
+      if (!data)
+        return toast.error("AI didn't output any text. Please try again.");
+      const text = data.trim();
+      const intervalId = setInterval(() => {
+        i++;
+        setDescription(text.slice(0, i));
+        setLength(text.slice(0, i).length);
+        if (i > text.length) {
+          clearInterval(intervalId);
+        }
+      }, 20);
+      utils.getProfile.invalidate();
+      toast.success("Updated your post with AI generated text!");
+    },
+    onError: (err: any) => toast.error(err.message ?? API_ERROR_MESSAGE),
+  });
+
+  const handleOnGenerateAI = () => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 10)
+      return toast.error("You don't have enough credits");
+    generateAI.mutate({
+      prompt: description,
+      credits: profile.data.credits - 10,
+    });
+  };
 
   const handleOnUpload = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
@@ -231,6 +265,11 @@ function Modal({
     }
   };
 
+  const handleOnChange = (text: string) => {
+    setDescription(text);
+    setLength(text.length);
+  };
+
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const target = e.target as typeof e.target & {
@@ -301,6 +340,7 @@ function Modal({
                       placeholder="Title (100 char)"
                       defaultValue={post.data?.title}
                       maxLength={100}
+                      disabled={generateAI.isLoading}
                       required
                     />
                     <label htmlFor="description" className="sr-only">
@@ -308,14 +348,14 @@ function Modal({
                     </label>
                     <textarea
                       rows={10}
-                      ref={descriptionRef}
                       name="description"
                       id="description"
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
-                      defaultValue={post.data?.description}
+                      value={description}
                       maxLength={MAX_TOKENS}
-                      onChange={(e) => setLength(e.target.value.length)}
+                      onChange={(e) => handleOnChange(e.target.value)}
+                      disabled={generateAI.isLoading}
                       required
                     />
                   </div>
@@ -364,8 +404,8 @@ function Modal({
                     />
                     <PostButtons
                       edit={!!post}
-                      setLength={setLength}
-                      descriptionRef={descriptionRef}
+                      isLoading={generateAI.isLoading}
+                      handleOnGenerateAI={handleOnGenerateAI}
                     />
                   </div>
                 </form>
@@ -390,11 +430,11 @@ export default function Post() {
 
   const [open, setOpen] = useState(false);
   const [length, setLength] = useState(0);
+  const [description, setDescription] = useState("");
   const [label, setLabel] = useState<Label | null>(null);
   const [friend, setFriend] = useState<Profile | null>(null);
   const [attachment, setAttachment] = useState<File | string | null>(null);
 
-  const profile = trpc.getProfile.useQuery();
   const id = query.id ?? 0;
   const post = trpc.getPost.useQuery(Number(id));
 
@@ -479,6 +519,7 @@ export default function Post() {
     setOpen(true);
     setLabel(post.data.label);
     setAttachment(post.data.attachment);
+    setDescription(post.data.description);
     setLength(post.data.description.length);
     if (post.data.friend) setFriend(post.data.friend);
   };
@@ -576,11 +617,13 @@ export default function Post() {
         friend={friend}
         length={length}
         attachment={attachment}
+        description={description}
         setOpen={setOpen}
         setLabel={setLabel}
         setFriend={setFriend}
         setLength={setLength}
         setAttachment={setAttachment}
+        setDescription={setDescription}
       />
       <div className="pb-36">
         <div className="mx-auto mt-8 max-w-xl px-2 lg:px-8">

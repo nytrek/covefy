@@ -1029,14 +1029,16 @@ export const appRouter = router({
         presence_penalty: 0,
         user: ctx.auth.userId,
       });
-      await prisma.profile.update({
-        data: {
-          credits: input.credits,
-        },
-        where: {
-          id: ctx.auth.userId,
-        },
-      });
+      if (completion.data.choices[0].text) {
+        await prisma.profile.update({
+          data: {
+            credits: input.credits,
+          },
+          where: {
+            id: ctx.auth.userId,
+          },
+        });
+      }
       return completion.data.choices[0].text;
     }),
 });
