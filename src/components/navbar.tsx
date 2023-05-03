@@ -119,7 +119,7 @@ export default function Navbar() {
                     href="/pricing"
                     className="flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                   >
-                    <span className="sr-only">View notifications</span>
+                    <span className="sr-only">Purchase credits</span>
                     <p>{profile.data?.credits}</p>
                     <TicketIcon className="h-6 w-6" aria-hidden="true" />
                   </Link>
@@ -179,7 +179,7 @@ export default function Navbar() {
                     href="/pricing"
                     className="ml-auto flex flex-shrink-0 items-center space-x-2 rounded-full p-1 text-brand-50"
                   >
-                    <span className="sr-only">View notifications</span>
+                    <span className="sr-only">Purchase credits</span>
                     <p>{profile.data?.credits}</p>
                     <TicketIcon className="h-6 w-6" aria-hidden="true" />
                   </Link>

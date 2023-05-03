@@ -17,7 +17,7 @@ export default function ProfilePosts({ post }: { post: Post }) {
   return (
     <li className="inline-flex w-64 flex-col rounded-lg border border-brand-600 bg-brand-800 lg:w-auto">
       <div className="lg:col-start-3 lg:row-end-1">
-        <h2 className="sr-only">Summary</h2>
+        <h2 className="sr-only">Post</h2>
         <div className="rounded-lg shadow-sm ring-1 ring-gray-900/5">
           <dl className="flex flex-wrap space-y-4">
             <div className="flex-auto px-4 pt-4 sm:px-6 sm:pt-6">
