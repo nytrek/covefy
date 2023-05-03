@@ -603,7 +603,9 @@ export default function Post() {
                         handleOnCreateBookmark={handleOnCreateBookmark}
                         handleOnDeleteBookmark={handleOnDeleteBookmark}
                       >
-                        <Comments post={post.data} />
+                        {!!post.data.comments.length && (
+                          <Comments post={post.data} />
+                        )}
                         <CommentBox post={post.data} />
                       </PostCard>
                     </div>
