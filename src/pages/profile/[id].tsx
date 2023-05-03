@@ -22,7 +22,6 @@ import {
   Fragment,
   SetStateAction,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { toast } from "react-hot-toast";
@@ -45,6 +44,8 @@ interface Props {
 function Modal({ open, friend, setOpen }: Props) {
   const { user } = useUser();
 
+  const { push } = useRouter();
+
   const utils = trpc.useContext();
 
   const [length, setLength] = useState(0);
@@ -61,6 +62,8 @@ function Modal({ open, friend, setOpen }: Props) {
       utils.getInbox.invalidate();
       utils.getProfile.invalidate();
       toast.success("Post created!");
+      if (friend) return push("/inbox");
+      if (label === "PRIVATE") return push("/posts");
     },
     onError: (err: any) => {
       toast.dismiss();

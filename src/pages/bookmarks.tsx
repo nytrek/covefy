@@ -21,7 +21,6 @@ import {
   Fragment,
   MouseEvent,
   SetStateAction,
-  useRef,
   useState,
 } from "react";
 import { toast } from "react-hot-toast";
@@ -103,6 +102,8 @@ function Modal({
 }: Props) {
   const { user } = useUser();
 
+  const { push } = useRouter();
+
   const utils = trpc.useContext();
 
   const profile = trpc.getProfile.useQuery();
@@ -114,6 +115,8 @@ function Modal({
       utils.getProfile.invalidate();
       toast.success("Post created!");
       utils.getBookmarkedPosts.invalidate();
+      if (friend) return push("/inbox");
+      if (label === "PRIVATE") return push("/posts");
     },
     onError: (err: any) => {
       toast.dismiss();
