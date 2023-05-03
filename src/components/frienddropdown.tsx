@@ -32,7 +32,7 @@ export default function FriendDropdown({ friend, setFriend }: Props) {
               ) : (
                 <img
                   src={friend.imageUrl}
-                  alt=""
+                  alt="avatar"
                   className="h-5 w-5 flex-shrink-0 rounded-full"
                 />
               )}
@@ -81,7 +81,7 @@ export default function FriendDropdown({ friend, setFriend }: Props) {
                       {friend.friend.imageUrl ? (
                         <img
                           src={friend.friend.imageUrl}
-                          alt=""
+                          alt="avatar"
                           className="h-5 w-5 flex-shrink-0 rounded-full"
                         />
                       ) : (

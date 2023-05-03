@@ -48,7 +48,7 @@ export default function ProfileDropdown({ post }: { post: Post }) {
             <img
               className="h-10 w-10 rounded-full"
               src={post.author.imageUrl}
-              alt=""
+              alt="avatar"
             />
           ) : (
             <span className="block h-10 w-10 rounded-full bg-brand-700"></span>

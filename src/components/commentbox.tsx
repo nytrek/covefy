@@ -105,7 +105,7 @@ export default function CommentBox({ item }: Props) {
         {user?.profileImageUrl ? (
           <img
             src={user.profileImageUrl}
-            alt=""
+            alt="avatar"
             className="h-6 w-6 flex-none rounded-full bg-brand-700"
           />
         ) : (

@@ -76,7 +76,7 @@ export default function PostStats({
         {!!post.friend && (
           <img
             src={post.friend.imageUrl}
-            alt=""
+            alt="avatar"
             className="h-5 w-5 flex-shrink-0 rounded-full"
           />
         )}

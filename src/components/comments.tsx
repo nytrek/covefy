@@ -104,7 +104,7 @@ export default function Comments({ item, handleOnDeleteComment }: Props) {
             {comment.author.imageUrl ? (
               <img
                 src={comment.author.imageUrl}
-                alt=""
+                alt="avatar"
                 className="relative h-6 w-6 flex-none rounded-full bg-brand-700"
               />
             ) : (

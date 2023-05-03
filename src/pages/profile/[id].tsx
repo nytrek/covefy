@@ -238,7 +238,7 @@ function Modal({ open, friend, setOpen }: Props) {
                             {friend?.imageUrl ? (
                               <img
                                 src={friend.imageUrl}
-                                alt=""
+                                alt="avatar"
                                 className="h-5 w-5 flex-shrink-0 rounded-full"
                               />
                             ) : (
