@@ -133,6 +133,20 @@ export const appRouter = router({
         where: {
           id: input ?? ctx.auth.userId,
         },
+        include: {
+          sender: {
+            where: {
+              status: "ACCEPTED",
+              receiverId: ctx.auth.userId,
+            },
+          },
+          receiver: {
+            where: {
+              status: "ACCEPTED",
+              senderId: ctx.auth.userId,
+            },
+          },
+        },
       });
     }),
   updateProfile: protectedProcedure

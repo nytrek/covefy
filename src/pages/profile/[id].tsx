@@ -540,7 +540,9 @@ export default function Account() {
                 <span>Go back</span>
               </button>
               {profile.data.label === "PUBLIC" ||
-              profile.data.id === user?.id ? (
+              profile.data.id === user?.id ||
+              profile.data.sender.length > 0 ||
+              profile.data.receiver.length > 0 ? (
                 <>
                   <div className="relative">
                     <img
