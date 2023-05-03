@@ -13,25 +13,25 @@ export default function Footer() {
   const navigation = [
     {
       href: "/",
-      name: "Home feed",
+      name: "home",
       current: route === "/",
       icon: HomeIcon,
     },
     {
       href: "/posts",
-      name: "Your posts",
+      name: "posts",
       current: route === "/posts",
       icon: SwatchIcon,
     },
     {
       href: "/bookmarks",
-      name: "Bookmarks",
+      name: "b-marks",
       current: route === "/bookmarks",
       icon: BookmarkIcon,
     },
     {
       href: "/inbox",
-      name: "Digital inbox",
+      name: "inbox",
       current: route === "/inbox",
       icon: InboxStackIcon,
     },
@@ -40,7 +40,7 @@ export default function Footer() {
     <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-40 sm:flex sm:justify-center sm:px-6 sm:pb-5 lg:px-8">
       <div className="pointer-events-auto flex items-center justify-between border border-brand-600 bg-brand-900 bg-opacity-90 p-6 backdrop-blur-md sm:gap-x-16 sm:rounded-xl">
         {navigation.map((item) => (
-          <div key={item.href} className="flex flex-col items-center space-y-1">
+          <div key={item.href} className="flex flex-col items-center space-y-2">
             <Link
               href={item.href}
               className="relative border border-transparent p-2"
