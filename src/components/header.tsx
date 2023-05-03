@@ -28,7 +28,7 @@ export default function Header({
       <div className="mx-auto mt-12 max-w-xl space-y-10 px-4 text-center">
         <p className="text-3xl font-semibold text-brand-50">{header}</p>
         <div className="flex flex-1 justify-center">
-          <div className="w-full px-2 lg:px-6">
+          <div className="w-full lg:px-6">
             <label htmlFor="search" className="sr-only">
               Search posts
             </label>
@@ -59,24 +59,24 @@ export default function Header({
           </div>
         </div>
       </div>
-      <div className="flex items-center overflow-x-auto px-0 text-white sm:px-2 lg:justify-center">
+      <div className="flex items-center overflow-x-auto px-1 text-white sm:px-3 md:justify-center">
         <Link href="/">
-          <div className="w-20 text-center">Travel</div>
+          <div className="w-44 text-center">Artificial Intelligence</div>
         </Link>
         <Link href="/">
-          <div className="w-40 text-center">Food and Drink</div>
+          <div className="w-40 text-center">Web Development</div>
         </Link>
         <Link href="/">
-          <div className="w-40 text-center">Fashion and Beauty</div>
+          <div className="w-20 text-center">Cloud</div>
         </Link>
         <Link href="/">
-          <div className="w-36 text-center">Home Decor</div>
+          <div className="w-16 text-center">IOT</div>
         </Link>
         <Link href="/">
-          <div className="w-40 text-center">Fitness and Wellness</div>
+          <div className="w-32 text-center">UI/UX Design</div>
         </Link>
         <Link href="/">
-          <div className="w-40 text-center">Art and Design</div>
+          <div className="w-24 text-center">Software</div>
         </Link>
       </div>
     </div>
