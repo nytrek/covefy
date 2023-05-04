@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
-import { TicketIcon } from "@heroicons/react/24/outline";
+import { FireIcon } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -64,13 +64,13 @@ function Banner({
 
   const handleOnCreatePurchase = () => {
     if (!profile.data) return;
-    if (profile.data.credits - price < 0)
-      return toast.error("You don't have enough credits");
+    if (profile.data.popularity - price < 0)
+      return toast.error("You don't have enough popularity");
     toast.loading("Loading...");
     createPurchase.mutate({
       bannerId: id,
       profileId: profile.data.id,
-      credits: profile.data.credits - price,
+      popularity: profile.data.popularity - price,
     });
   };
 
@@ -80,7 +80,7 @@ function Banner({
     deletePurchase.mutate({
       bannerId: id,
       profileId: profile.data.id,
-      credits: profile.data.credits + price,
+      popularity: profile.data.popularity + price,
     });
   };
   return (
@@ -108,7 +108,7 @@ function Banner({
         <div className="mt-6 flex flex-col justify-stretch space-y-4">
           <span className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50">
             <span>{price}</span>
-            <TicketIcon className="h-5 w-5" />
+            <FireIcon className="h-5 w-5" />
           </span>
           {purchased ? (
             <button

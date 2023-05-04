@@ -811,7 +811,7 @@ export const appRouter = router({
       z.object({
         bannerId: z.number(),
         profileId: z.string(),
-        credits: z.number(),
+        popularity: z.number(),
       })
     )
     .mutation(async ({ input }) => {
@@ -824,7 +824,7 @@ export const appRouter = router({
         }),
         prisma.profile.update({
           data: {
-            credits: input.credits,
+            popularity: input.popularity,
           },
           where: {
             id: input.profileId,
@@ -837,7 +837,7 @@ export const appRouter = router({
       z.object({
         bannerId: z.number(),
         profileId: z.string(),
-        credits: z.number(),
+        popularity: z.number(),
       })
     )
     .mutation(async ({ input }) => {
@@ -852,7 +852,7 @@ export const appRouter = router({
         }),
         prisma.profile.update({
           data: {
-            credits: input.credits,
+            popularity: input.popularity,
           },
           where: {
             id: input.profileId,

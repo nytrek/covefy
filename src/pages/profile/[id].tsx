@@ -93,11 +93,11 @@ function Modal({ open, friend, setOpen }: Props) {
 
   const handleOnGenerateAI = () => {
     if (!prompt || !profile.data) return;
-    if (profile.data.credits < 10)
+    if (profile.data.credits < 4)
       return toast.error("You don't have enough credits");
     generateAI.mutate({
       prompt: description,
-      credits: profile.data.credits - 10,
+      credits: profile.data.credits - 4,
     });
   };
 
@@ -125,7 +125,7 @@ function Modal({ open, friend, setOpen }: Props) {
         attachmentPath: filePath,
         authorId: user.id,
         friendId: friend?.id,
-        credits: profile.data.credits - 5,
+        credits: profile.data.credits - 2,
       });
     } catch (e: any) {
       toast.dismiss();
@@ -136,7 +136,7 @@ function Modal({ open, friend, setOpen }: Props) {
   const handleOnCreate = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 5)
+    if (profile.data.credits < 2)
       return toast.error("You don't have enough credits");
     else if (attachment && typeof attachment !== "string") {
       handleOnUpload(title, description);
@@ -147,7 +147,7 @@ function Modal({ open, friend, setOpen }: Props) {
         description,
         authorId: user.id,
         friendId: friend?.id,
-        credits: profile.data.credits - 5,
+        credits: profile.data.credits - 2,
       });
     }
   };

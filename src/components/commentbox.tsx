@@ -73,7 +73,7 @@ export default function CommentBox({ post }: Props) {
   const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 5)
+    if (profile.data.credits < 1)
       return toast.error("You don't have enough credits");
     const target = e.target as typeof e.target & {
       reset: () => void;
@@ -84,7 +84,7 @@ export default function CommentBox({ post }: Props) {
       {
         postId: Number(target.comment.id),
         comment: target.comment.value,
-        credits: profile.data.credits - 5,
+        credits: profile.data.credits - 1,
       },
       {
         onSuccess: () => {
