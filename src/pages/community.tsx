@@ -73,7 +73,7 @@ export default function Community() {
                     ))}
                 </>
               ) : (
-                <div className="w-full">
+                <div className="w-full space-y-8">
                   <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
                     <div className="flex items-center justify-between px-4 motion-safe:animate-pulse sm:px-6 lg:px-0">
                       <div className="flex w-full flex-col space-y-3">
