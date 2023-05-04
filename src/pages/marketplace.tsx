@@ -95,7 +95,7 @@ function Banner({
         <div className="flex items-center space-x-5">
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold text-brand-50">{title}</h1>
+              <h4 className="text-2xl font-bold text-brand-50">{title}</h4>
               {verified && (
                 <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
               )}
