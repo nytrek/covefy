@@ -91,6 +91,11 @@ export default function Friends() {
                             ? "Friend request pending"
                             : "Friend request rejected"
                         }
+                        popularity={
+                          friend.senderId === user?.id
+                            ? friend.receiver.popularity
+                            : friend.sender.popularity
+                        }
                       />
 
                       <div className="relative mt-8">

@@ -34,6 +34,7 @@ export default function Community() {
                         url={"/profile/" + profile.id}
                         name={profile.name}
                         text="Latest posts"
+                        popularity={profile.popularity}
                       />
 
                       <div className="relative mt-8">
