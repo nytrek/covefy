@@ -38,7 +38,7 @@ export default async function handler(
             name: payload.data.first_name + " " + payload.data.last_name,
             imageUrl: payload.data.profile_image_url,
             username: payload.data.username,
-            credits: 100,
+            credits: 500,
           },
         });
       } else if (payload.type === "user.updated") {
