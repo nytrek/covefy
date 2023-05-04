@@ -104,7 +104,7 @@ export default function PostCard({
       )}
 
       <div className="px-5">
-        {!!post.attachment && (
+        {!!post.attachment && post.attachment.includes(".mp3") && (
           <>
             {query.id ? (
               <audio className="my-6 w-full rounded-lg" controls>
@@ -112,7 +112,7 @@ export default function PostCard({
               </audio>
             ) : (
               <>
-                {post.attachment.includes(".mp3") && (
+                {
                   <div className="relative -ml-2 mt-3 inline-flex w-full items-center rounded-full px-3 py-2 text-left text-brand-400">
                     <PaperClipIcon
                       className="-ml-1 mr-2 h-5 w-5"
@@ -122,7 +122,7 @@ export default function PostCard({
                       {post.attachmentPath}
                     </span>
                   </div>
-                )}
+                }
               </>
             )}
           </>
