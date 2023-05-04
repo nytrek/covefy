@@ -192,8 +192,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -210,8 +210,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -228,8 +228,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -246,8 +246,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -264,8 +264,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -282,8 +282,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -300,8 +300,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
@@ -318,8 +318,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                     </div>
                   </div>
                 </div>
