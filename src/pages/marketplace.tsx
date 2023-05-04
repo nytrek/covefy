@@ -64,6 +64,8 @@ function Banner({
 
   const handleOnCreatePurchase = () => {
     if (!profile.data) return;
+    if (profile.data.credits - price < 0)
+      return toast.error("You don't have enough credits");
     toast.loading("Loading...");
     createPurchase.mutate({
       bannerId: id,
