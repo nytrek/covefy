@@ -82,7 +82,7 @@ function Banner({
     });
   };
   return (
-    <>
+    <div className="flex flex-col space-y-4">
       <div className="relative">
         <img
           src={src}
@@ -91,7 +91,7 @@ function Banner({
         />
         <span className="absolute inset-0" />
       </div>
-      <div className="md:flex md:items-center md:justify-between md:space-x-5">
+      <div>
         <div className="flex items-center space-x-5">
           <div>
             <div className="flex items-center space-x-2">
@@ -103,7 +103,7 @@ function Banner({
             <p className="text-sm font-medium text-brand-500">{description}</p>
           </div>
         </div>
-        <div className="mt-6 flex flex-col justify-stretch space-y-4 sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
+        <div className="mt-6 flex flex-col justify-stretch space-y-4">
           <span className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50">
             <span>{price}</span>
             <TicketIcon className="h-5 w-5" />
@@ -127,7 +127,7 @@ function Banner({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -156,21 +156,24 @@ export default function Marketplace() {
     <>
       {isAuth ? (
         <main className="pb-36 pt-12">
-          <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            {banners.data
-              ?.filter((banner) => banner.imageUrl !== profile.data?.banner)
-              .map((banner) => (
-                <Banner
-                  key={banner.id}
-                  id={banner.id}
-                  src={banner.imageUrl}
-                  title={banner.title}
-                  description={banner.description}
-                  price={banner.price}
-                  verified={banner.verified}
-                  purchased={!!banner.purchases.length}
-                />
-              ))}
+          <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+            <h2 className="text-4xl font-semibold text-brand-50">Banners</h2>
+            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+              {banners.data
+                ?.filter((banner) => banner.imageUrl !== profile.data?.banner)
+                .map((banner) => (
+                  <Banner
+                    key={banner.id}
+                    id={banner.id}
+                    src={banner.imageUrl}
+                    title={banner.title}
+                    description={banner.description}
+                    price={banner.price}
+                    verified={banner.verified}
+                    purchased={!!banner.purchases.length}
+                  />
+                ))}
+            </div>
           </div>
         </main>
       ) : null}
