@@ -18,7 +18,7 @@ const faqs = [
     id: 3,
     question: "Where can I change my banner?",
     answer:
-      "You can change your banner in your account page if you have purchased a banner in the marketplace. Those banner costs between 1-2K credits.",
+      "You can change your banner in your account page if you have purchased a banner in the marketplace. Those banners costs between 100-200 credits.",
   },
 ];
 
