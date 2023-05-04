@@ -156,29 +156,178 @@ export default function Marketplace() {
   }, [user]);
   return (
     <>
-      {isAuth ? (
-        <main className="pb-36 pt-12">
-          <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            <h2 className="text-4xl font-semibold text-brand-50">Banners</h2>
-            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-              {banners.data
-                ?.filter((banner) => banner.imageUrl !== profile.data?.banner)
-                .map((banner) => (
-                  <Banner
-                    key={banner.id}
-                    id={banner.id}
-                    src={banner.imageUrl}
-                    title={banner.title}
-                    description={banner.description}
-                    price={banner.price}
-                    verified={banner.verified}
-                    purchased={!!banner.purchases.length}
-                  />
-                ))}
-            </div>
+      <main className="pb-36 pt-12">
+        <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+          <h2 className="text-4xl font-semibold text-brand-50">Banners</h2>
+          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+            {isAuth ? (
+              <>
+                {banners.data
+                  ?.filter((banner) => banner.imageUrl !== profile.data?.banner)
+                  .map((banner) => (
+                    <Banner
+                      key={banner.id}
+                      id={banner.id}
+                      src={banner.imageUrl}
+                      title={banner.title}
+                      description={banner.description}
+                      price={banner.price}
+                      verified={banner.verified}
+                      purchased={!!banner.purchases.length}
+                    />
+                  ))}
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                  <div className="relative">
+                    <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div className="flex w-full flex-col space-y-3">
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      <div className="flex h-2.5 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        </main>
-      ) : null}
+        </div>
+      </main>
     </>
   );
 }
