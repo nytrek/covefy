@@ -382,7 +382,7 @@ function Modal({
                       id="description"
                       className="block w-full resize-none border-0 py-0 text-brand-900 placeholder:text-brand-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="Write a description or a prompt for the AI generation"
-                      defaultValue={description}
+                      value={description}
                       maxLength={MAX_TOKENS}
                       onChange={(e) => handleOnChange(e.target.value)}
                       disabled={generateAI.isLoading}
