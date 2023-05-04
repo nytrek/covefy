@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { Webhook } from "svix";
 import { prisma } from "@src/lib/prisma";
 import { buffer } from "micro";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { Webhook } from "svix";
 
 export default async function handler(
   req: NextApiRequest,
@@ -38,7 +38,7 @@ export default async function handler(
             name: payload.data.first_name + " " + payload.data.last_name,
             imageUrl: payload.data.profile_image_url,
             username: payload.data.username,
-            credits: 500,
+            credits: 100,
           },
         });
       } else if (payload.type === "user.updated") {
