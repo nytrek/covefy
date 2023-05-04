@@ -1,8 +1,8 @@
 import {
   BookmarkIcon,
+  FolderIcon,
   HomeIcon,
   InboxStackIcon,
-  SwatchIcon,
 } from "@heroicons/react/20/solid";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -21,7 +21,7 @@ export default function Footer() {
       href: "/posts",
       name: "posts",
       current: route === "/posts",
-      icon: SwatchIcon,
+      icon: FolderIcon,
     },
     {
       href: "/bookmarks",
