@@ -4,7 +4,6 @@ import {
   PencilSquareIcon,
 } from "@heroicons/react/20/solid";
 import clsx from "clsx";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
@@ -57,28 +56,6 @@ export default function Header({
           </div>
         </div>
       </div>
-      {route !== "/friends" && (
-        <div className="flex items-center overflow-x-auto px-1 text-white sm:px-3 md:justify-center">
-          <Link href="/">
-            <div className="w-44 text-center">Artificial Intelligence</div>
-          </Link>
-          <Link href="/">
-            <div className="w-40 text-center">Web Development</div>
-          </Link>
-          <Link href="/">
-            <div className="w-20 text-center">Cloud</div>
-          </Link>
-          <Link href="/">
-            <div className="w-16 text-center">IOT</div>
-          </Link>
-          <Link href="/">
-            <div className="w-32 text-center">UI/UX Design</div>
-          </Link>
-          <Link href="/">
-            <div className="w-24 text-center">Software</div>
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
