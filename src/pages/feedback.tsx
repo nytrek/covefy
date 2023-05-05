@@ -59,7 +59,7 @@ export default function Feedback() {
 
               <dl className="mt-6 space-y-4">
                 <div className="flex items-center justify-between pt-4">
-                  <dt className="text-brand-50">Add board</dt>
+                  <dt className="text-brand-50">Create board</dt>
                   <dd className="flex items-center space-x-1 font-medium text-brand-50">
                     <span>10</span>
                     <TicketIcon className="h-5 w-5" />
