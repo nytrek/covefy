@@ -565,7 +565,7 @@ export default function Account() {
                                 <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
                               </div>
                               <p className="text-sm font-medium text-brand-500">
-                                This is {profile.data.name}'s default board
+                                This is {profile.data.name}&apos;s default board
                               </p>
                             </div>
                           </div>
