@@ -25,11 +25,6 @@ export default function Navbar() {
     { name: "My Account", href: "/account", current: route === "/account" },
     { name: "Friends", href: "/friends", current: route === "/friends" },
     {
-      name: "Marketplace",
-      href: "/marketplace",
-      current: route === "/marketplace",
-    },
-    {
       name: "Community",
       href: "/community",
       current: route === "/community",

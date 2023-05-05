@@ -96,36 +96,6 @@ export const appRouter = router({
       },
     });
   }),
-  getProfileBanners: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.banner.findMany({
-      where: {
-        purchases: {
-          some: {
-            profileId: ctx.auth.userId,
-          },
-        },
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-  }),
-  updateProfileBanner: protectedProcedure
-    .input(
-      z.object({
-        banner: z.string().nullish(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      return await prisma.profile.update({
-        data: {
-          banner: input.banner,
-        },
-        where: {
-          id: ctx.auth.userId,
-        },
-      });
-    }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
@@ -587,22 +557,6 @@ export const appRouter = router({
         },
       });
     }),
-  getLikes: protectedProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      return await prisma.post.findMany({
-        where: {
-          authorId: input ?? ctx.auth.userId,
-        },
-        select: {
-          _count: {
-            select: {
-              likes: true,
-            },
-          },
-        },
-      });
-    }),
   createLike: protectedProcedure
     .input(
       z.object({
@@ -656,22 +610,6 @@ export const appRouter = router({
           },
         }),
       ]);
-    }),
-  getBookmarks: protectedProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      return await prisma.post.findMany({
-        where: {
-          authorId: input ?? ctx.auth.userId,
-        },
-        select: {
-          _count: {
-            select: {
-              bookmarks: true,
-            },
-          },
-        },
-      });
     }),
   createBookmark: protectedProcedure
     .input(
@@ -727,31 +665,6 @@ export const appRouter = router({
         }),
       ]);
     }),
-  getComments: protectedProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      return await prisma.post.findMany({
-        where: {
-          authorId: input ?? ctx.auth.userId,
-          comments: {
-            some: {
-              authorId: {
-                not: {
-                  equals: input ?? ctx.auth.userId,
-                },
-              },
-            },
-          },
-        },
-        select: {
-          _count: {
-            select: {
-              comments: true,
-            },
-          },
-        },
-      });
-    }),
   createComment: protectedProcedure
     .input(
       z.object({
@@ -791,74 +704,6 @@ export const appRouter = router({
           id: input.id,
         },
       });
-    }),
-  getBanners: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.banner.findMany({
-      orderBy: {
-        id: "asc",
-      },
-      include: {
-        purchases: {
-          where: {
-            profileId: ctx.auth.userId,
-          },
-        },
-      },
-    });
-  }),
-  createPurchase: protectedProcedure
-    .input(
-      z.object({
-        bannerId: z.number(),
-        profileId: z.string(),
-        popularity: z.number(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.$transaction([
-        prisma.purchase.create({
-          data: {
-            bannerId: input.bannerId,
-            profileId: input.profileId,
-          },
-        }),
-        prisma.profile.update({
-          data: {
-            popularity: input.popularity,
-          },
-          where: {
-            id: input.profileId,
-          },
-        }),
-      ]);
-    }),
-  deletePurchase: protectedProcedure
-    .input(
-      z.object({
-        bannerId: z.number(),
-        profileId: z.string(),
-        popularity: z.number(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.$transaction([
-        prisma.purchase.delete({
-          where: {
-            profileId_bannerId: {
-              bannerId: input.bannerId,
-              profileId: input.profileId,
-            },
-          },
-        }),
-        prisma.profile.update({
-          data: {
-            popularity: input.popularity,
-          },
-          where: {
-            id: input.profileId,
-          },
-        }),
-      ]);
     }),
   getPost: publicProcedure.input(Number).query(async ({ input }) => {
     return await prisma.post.findUnique({

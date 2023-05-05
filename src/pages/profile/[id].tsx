@@ -2,6 +2,7 @@ import { useUser } from "@clerk/nextjs";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   ArrowLongLeftIcon,
+  CheckBadgeIcon,
   PaperClipIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
@@ -12,18 +13,10 @@ import LabelDropdown from "@src/components/labeldropdown";
 import PostAttachment from "@src/components/postattachment";
 import PostButtons from "@src/components/postbuttons";
 import ProfileDetails from "@src/components/profiledetails";
-import ProfileStats from "@src/components/profilestats";
 import { trpc } from "@src/utils/trpc";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import {
-  Dispatch,
-  FormEvent,
-  Fragment,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
 
@@ -513,7 +506,6 @@ export default function Account() {
   const { user } = useUser();
 
   const [open, setOpen] = useState(false);
-  const [isAuth, setIsAuth] = useState(false);
 
   const { back, query } = useRouter();
   const id = query.id as string;
@@ -521,51 +513,13 @@ export default function Account() {
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
   const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
-  const likes = trpc.getLikes.useQuery(id);
-  const comments = trpc.getComments.useQuery(id);
-  const bookmarks = trpc.getBookmarks.useQuery(id);
-
-  const stats = [
-    {
-      name: "Total Likes",
-      value:
-        likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
-    },
-    {
-      name: "Total Comments",
-      value:
-        comments.data?.reduce((prev, curr) => prev + curr._count.comments, 0) ??
-        0,
-    },
-    {
-      name: "Total Bookmarks",
-      value:
-        bookmarks.data?.reduce(
-          (prev, curr) => prev + curr._count.bookmarks,
-          0
-        ) ?? 0,
-    },
-  ];
-
-  const initializeAuthSession = async () => {
-    try {
-      await upload.beginAuthSession("/api/auth", async () => ({}));
-      setIsAuth(true);
-    } catch (err: any) {
-      console.log(err.message);
-    }
-  };
-
-  useEffect(() => {
-    initializeAuthSession();
-  }, []);
 
   if (sendingFriendStatus.isLoading || receivingFriendStatus.isLoading)
     return <></>;
   return (
     <>
       <Modal open={open} friend={profile.data} setOpen={setOpen} />
-      {isAuth && !!profile.data && (
+      {!!profile.data && (
         <>
           <main className="pb-36 pt-12">
             <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
@@ -582,21 +536,209 @@ export default function Account() {
               profile.data.sender.length > 0 ||
               profile.data.receiver.length > 0 ? (
                 <>
-                  <div className="relative">
-                    <img
-                      src={
-                        profile.data.banner ??
-                        "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                      }
-                      alt="banner"
-                      className="h-48 w-full rounded-lg object-cover"
-                    />
-                  </div>
                   <Header setOpen={setOpen} />
-                  <ProfileStats
-                    stats={stats}
-                    header={`${profile.data?.name}'s stats`}
-                  />
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold leading-6 text-brand-50">
+                      Your boards
+                    </h3>
+                    <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+                      <div className="flex flex-col space-y-4">
+                        <div className="relative">
+                          <img
+                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                            alt="banner"
+                            className="h-48 w-full rounded-lg object-cover"
+                          />
+                          <span className="absolute inset-0" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-5">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <h4 className="text-2xl font-bold text-brand-50">
+                                  Board 1
+                                </h4>
+                                <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                              </div>
+                              <p className="text-sm font-medium text-brand-500">
+                                This is your board
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="relative">
+                          <img
+                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                            alt="banner"
+                            className="h-48 w-full rounded-lg object-cover"
+                          />
+                          <span className="absolute inset-0" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-5">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <h4 className="text-2xl font-bold text-brand-50">
+                                  Board 1
+                                </h4>
+                                <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                              </div>
+                              <p className="text-sm font-medium text-brand-500">
+                                This is your board
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="relative">
+                          <img
+                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                            alt="banner"
+                            className="h-48 w-full rounded-lg object-cover"
+                          />
+                          <span className="absolute inset-0" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-5">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <h4 className="text-2xl font-bold text-brand-50">
+                                  Board 1
+                                </h4>
+                                <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                              </div>
+                              <p className="text-sm font-medium text-brand-500">
+                                This is your board
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="relative">
+                          <img
+                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                            alt="banner"
+                            className="h-48 w-full rounded-lg object-cover"
+                          />
+                          <span className="absolute inset-0" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-5">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <h4 className="text-2xl font-bold text-brand-50">
+                                  Board 1
+                                </h4>
+                                <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                              </div>
+                              <p className="text-sm font-medium text-brand-500">
+                                This is your board
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="relative">
+                          <img
+                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                            alt="banner"
+                            className="h-48 w-full rounded-lg object-cover"
+                          />
+                          <span className="absolute inset-0" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-5">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <h4 className="text-2xl font-bold text-brand-50">
+                                  Board 1
+                                </h4>
+                                <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                              </div>
+                              <p className="text-sm font-medium text-brand-500">
+                                This is your board
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <p className="text-brand-50">

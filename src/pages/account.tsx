@@ -1,22 +1,16 @@
-import { Menu, RadioGroup, Transition } from "@headlessui/react";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
+import { Menu, Transition } from "@headlessui/react";
+import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import Avatar from "@src/components/avatar";
 import ProfileDetails from "@src/components/profiledetails";
-import ProfileStats from "@src/components/profilestats";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import { toast } from "react-hot-toast";
-import { Upload } from "upload-js";
 
 const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
-
-const upload = Upload({
-  apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
-});
 
 function ProfileButtons() {
   const { reload } = useRouter();
@@ -134,195 +128,217 @@ function Header() {
   );
 }
 
-function Dropdown() {
-  const utils = trpc.useContext();
-  const profile = trpc.getProfile.useQuery();
-  const banners = trpc.getProfileBanners.useQuery();
-  const updateBanner = trpc.updateProfileBanner.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      toast.success("Banner updated!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-  const handleOnUpdateBanner = (banner: string) => {
-    toast.loading("Loading...");
-    updateBanner.mutate({ banner });
-  };
-  return (
-    <Menu
-      as="div"
-      className="absolute right-2 top-2 z-10 rounded-full bg-brand-50 bg-opacity-75 p-1.5 backdrop-blur-sm transition duration-300 hover:bg-opacity-100"
-    >
-      <div>
-        <Menu.Button className="flex items-center rounded-full text-brand-400 hover:text-brand-200">
-          <PencilSquareIcon className="h-5 w-5 text-brand-600" />
-        </Menu.Button>
-      </div>
-      <Transition
-        as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-brand-50 shadow-lg ring-1 ring-brand-900 ring-opacity-5 focus:outline-none">
-          <div className="p-4">
-            <Menu.Item>
-              <RadioGroup
-                value={profile.data?.banner}
-                onChange={(banner: string) => handleOnUpdateBanner(banner)}
-              >
-                <RadioGroup.Label className="sr-only">Banners</RadioGroup.Label>
-                <div className="space-y-4">
-                  <RadioGroup.Option
-                    value={null}
-                    className={({ checked, active }) =>
-                      clsx(
-                        checked ? "border-transparent" : "border-brand-300",
-                        active ? "border-brand-600 ring-2 ring-brand-600" : "",
-                        "relative block cursor-pointer rounded-lg border bg-brand-50 p-1"
-                      )
-                    }
-                  >
-                    {({ active, checked }) => (
-                      <>
-                        <span className="flex items-center">
-                          <span className="flex flex-col text-sm">
-                            <img
-                              src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                              alt="banner"
-                              className="rounded-md"
-                            />
-                          </span>
-                        </span>
-                        <span
-                          className={clsx(
-                            active ? "border" : "border-2",
-                            checked ? "border-brand-600" : "border-transparent",
-                            "pointer-events-none absolute -inset-px rounded-lg"
-                          )}
-                          aria-hidden="true"
-                        />
-                      </>
-                    )}
-                  </RadioGroup.Option>
-                  {banners.data?.map((banner) => (
-                    <RadioGroup.Option
-                      key={banner.id}
-                      value={banner.imageUrl}
-                      className={({ checked, active }) =>
-                        clsx(
-                          checked ? "border-transparent" : "border-brand-300",
-                          active
-                            ? "border-brand-600 ring-2 ring-brand-600"
-                            : "",
-                          "relative block cursor-pointer rounded-lg border bg-brand-50 p-1"
-                        )
-                      }
-                    >
-                      {({ active, checked }) => (
-                        <>
-                          <span className="flex items-center">
-                            <span className="flex flex-col text-sm">
-                              <img
-                                src={banner.imageUrl}
-                                alt="banner"
-                                className="rounded-md"
-                              />
-                            </span>
-                          </span>
-                          <span
-                            className={clsx(
-                              active ? "border" : "border-2",
-                              checked
-                                ? "border-brand-600"
-                                : "border-transparent",
-                              "pointer-events-none absolute -inset-px rounded-lg"
-                            )}
-                            aria-hidden="true"
-                          />
-                        </>
-                      )}
-                    </RadioGroup.Option>
-                  ))}
-                </div>
-              </RadioGroup>
-            </Menu.Item>
-          </div>
-        </Menu.Items>
-      </Transition>
-    </Menu>
-  );
-}
-
 export default function Account() {
-  const likes = trpc.getLikes.useQuery();
   const profile = trpc.getProfile.useQuery();
-  const comments = trpc.getComments.useQuery();
-  const bookmarks = trpc.getBookmarks.useQuery();
 
-  const stats = [
-    {
-      name: "Total Likes",
-      value:
-        likes.data?.reduce((prev, curr) => prev + curr._count.likes, 0) ?? 0,
-    },
-    {
-      name: "Total Comments",
-      value:
-        comments.data?.reduce((prev, curr) => prev + curr._count.comments, 0) ??
-        0,
-    },
-    {
-      name: "Total Bookmarks",
-      value:
-        bookmarks.data?.reduce(
-          (prev, curr) => prev + curr._count.bookmarks,
-          0
-        ) ?? 0,
-    },
-  ];
-
-  const [isAuth, setIsAuth] = useState(false);
-
-  const initializeAuthSession = async () => {
-    try {
-      await upload.beginAuthSession("/api/auth", async () => ({}));
-      setIsAuth(true);
-    } catch (err: any) {
-      console.log(err.message);
-    }
-  };
-
-  useEffect(() => {
-    initializeAuthSession();
-  }, []);
   return (
     <>
-      {isAuth && !!profile.data && (
+      {!!profile.data && (
         <main className="pb-36 pt-12">
           <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            <div className="relative">
-              <img
-                src={
-                  profile.data.banner ??
-                  "/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                }
-                alt="banner"
-                className="h-48 w-full rounded-lg object-cover"
-              />
-              <span className="absolute inset-0" />
-              <Dropdown />
-            </div>
             <Header />
-            <ProfileStats stats={stats} />;
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold leading-6 text-brand-50">
+                Your boards
+              </h3>
+              <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+                <div className="flex flex-col space-y-4">
+                  <div className="relative">
+                    <img
+                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                      alt="banner"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-2xl font-bold text-brand-50">
+                            Board 1
+                          </h4>
+                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                        </div>
+                        <p className="text-sm font-medium text-brand-500">
+                          This is your board
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  <div className="relative">
+                    <img
+                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                      alt="banner"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-2xl font-bold text-brand-50">
+                            Board 1
+                          </h4>
+                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                        </div>
+                        <p className="text-sm font-medium text-brand-500">
+                          This is your board
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  <div className="relative">
+                    <img
+                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                      alt="banner"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-2xl font-bold text-brand-50">
+                            Board 1
+                          </h4>
+                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                        </div>
+                        <p className="text-sm font-medium text-brand-500">
+                          This is your board
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  <div className="relative">
+                    <img
+                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                      alt="banner"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-2xl font-bold text-brand-50">
+                            Board 1
+                          </h4>
+                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                        </div>
+                        <p className="text-sm font-medium text-brand-500">
+                          This is your board
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  <div className="relative">
+                    <img
+                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                      alt="banner"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                    <span className="absolute inset-0" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-2xl font-bold text-brand-50">
+                            Board 1
+                          </h4>
+                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                        </div>
+                        <p className="text-sm font-medium text-brand-500">
+                          This is your board
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       )}
