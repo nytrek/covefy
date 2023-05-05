@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/nextjs";
 import { Menu, RadioGroup, Transition } from "@headlessui/react";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import Avatar from "@src/components/avatar";
@@ -264,8 +263,6 @@ function Dropdown() {
 }
 
 export default function Account() {
-  const { user } = useUser();
-
   const likes = trpc.getLikes.useQuery();
   const profile = trpc.getProfile.useQuery();
   const comments = trpc.getComments.useQuery();
@@ -305,9 +302,8 @@ export default function Account() {
   };
 
   useEffect(() => {
-    if (user) initializeAuthSession();
-    else upload.endAuthSession();
-  }, [user]);
+    initializeAuthSession();
+  }, []);
   return (
     <>
       {isAuth && !!profile.data && (

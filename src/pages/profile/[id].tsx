@@ -557,9 +557,8 @@ export default function Account() {
   };
 
   useEffect(() => {
-    if (user) initializeAuthSession();
-    else upload.endAuthSession();
-  }, [user]);
+    initializeAuthSession();
+  }, []);
 
   if (sendingFriendStatus.isLoading || receivingFriendStatus.isLoading)
     return <></>;

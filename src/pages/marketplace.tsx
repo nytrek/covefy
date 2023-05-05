@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/nextjs";
 import {
   CheckBadgeIcon,
   FireIcon as FireIconSolid,
@@ -137,8 +136,6 @@ function Banner({
 }
 
 export default function Marketplace() {
-  const { user } = useUser();
-
   const profile = trpc.getProfile.useQuery();
   const banners = trpc.getBanners.useQuery();
 
@@ -154,9 +151,8 @@ export default function Marketplace() {
   };
 
   useEffect(() => {
-    if (user) initializeAuthSession();
-    else upload.endAuthSession();
-  }, [user]);
+    initializeAuthSession();
+  }, []);
   return (
     <>
       <main className="pb-36 pt-12">
