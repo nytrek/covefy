@@ -4,7 +4,6 @@ import Avatar from "@src/components/avatar";
 import ProfileDetails from "@src/components/profiledetails";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { toast } from "react-hot-toast";
@@ -53,7 +52,7 @@ function ProfileButtons() {
     deleteProfile.mutate();
   };
   return (
-    <div className="mt-6 flex flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
+    <div className="mt-6 flex w-full flex-col-reverse justify-stretch space-y-4 space-y-reverse sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:mt-0 md:flex-row md:space-x-3">
       <Menu as="div" className="relative inline-block text-left">
         <div>
           <Menu.Button className="inline-flex w-full items-center justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50">
@@ -104,24 +103,32 @@ function ProfileButtons() {
           </Menu.Items>
         </Transition>
       </Menu>
-      <Link
-        href="/feedback"
+      <button
+        type="button"
         className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
-        Send feedback
-      </Link>
+        Create board
+      </button>
     </div>
   );
 }
 
 function Header() {
   const profile = trpc.getProfile.useQuery();
-  if (!profile.data) return <></>;
   return (
     <div className="md:flex md:items-center md:justify-between md:space-x-5">
-      <div className="flex items-center space-x-5">
+      <div className="flex w-full items-center space-x-5">
         <Avatar imageUrl={profile.data?.imageUrl} />
-        <ProfileDetails profile={profile.data} />;
+        {profile.data ? (
+          <ProfileDetails profile={profile.data} />
+        ) : (
+          <div className="flex w-full items-center justify-between motion-safe:animate-pulse">
+            <div className="flex w-full flex-col space-y-3">
+              <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+              <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+            </div>
+          </div>
+        )}
       </div>
       <ProfileButtons />
     </div>
@@ -133,15 +140,15 @@ export default function Account() {
 
   return (
     <>
-      {!!profile.data && (
-        <main className="pb-36 pt-12">
-          <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            <Header />
-            <div className="space-y-4">
-              <h3 className="text-base font-semibold leading-6 text-brand-50">
-                Your boards
-              </h3>
-              <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+      <main className="pb-36 pt-12">
+        <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+          <Header />
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold leading-6 text-brand-50">
+              Boards
+            </h3>
+            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+              {profile.data ? (
                 <div className="flex flex-col space-y-4">
                   <div className="relative">
                     <img
@@ -156,12 +163,12 @@ export default function Account() {
                       <div>
                         <div className="flex items-center space-x-2">
                           <h4 className="text-2xl font-bold text-brand-50">
-                            Board 1
+                            Default board
                           </h4>
                           <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
                         </div>
                         <p className="text-sm font-medium text-brand-500">
-                          This is your board
+                          This is your default board
                         </p>
                       </div>
                     </div>
@@ -181,167 +188,158 @@ export default function Account() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                      alt="banner"
-                      className="h-48 w-full rounded-lg object-cover"
-                    />
-                    <span className="absolute inset-0" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-5">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-2xl font-bold text-brand-50">
-                            Board 1
-                          </h4>
-                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+              ) : (
+                <>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
                         </div>
-                        <p className="text-sm font-medium text-brand-500">
-                          This is your board
-                        </p>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                       </div>
                     </div>
-                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                      >
-                        Delete
-                      </button>
+                  </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
                     </div>
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                      alt="banner"
-                      className="h-48 w-full rounded-lg object-cover"
-                    />
-                    <span className="absolute inset-0" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-5">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-2xl font-bold text-brand-50">
-                            Board 1
-                          </h4>
-                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
                         </div>
-                        <p className="text-sm font-medium text-brand-500">
-                          This is your board
-                        </p>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                       </div>
                     </div>
-                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                      >
-                        Delete
-                      </button>
+                  </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
                     </div>
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                      alt="banner"
-                      className="h-48 w-full rounded-lg object-cover"
-                    />
-                    <span className="absolute inset-0" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-5">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-2xl font-bold text-brand-50">
-                            Board 1
-                          </h4>
-                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
                         </div>
-                        <p className="text-sm font-medium text-brand-500">
-                          This is your board
-                        </p>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                       </div>
                     </div>
-                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                      >
-                        Delete
-                      </button>
+                  </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
                     </div>
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
-                      alt="banner"
-                      className="h-48 w-full rounded-lg object-cover"
-                    />
-                    <span className="absolute inset-0" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-5">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-2xl font-bold text-brand-50">
-                            Board 1
-                          </h4>
-                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
                         </div>
-                        <p className="text-sm font-medium text-brand-500">
-                          This is your board
-                        </p>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
                       </div>
                     </div>
-                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                      >
-                        Delete
-                      </button>
+                  </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
+                    <div className="relative">
+                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
+                      <span className="absolute inset-0" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div className="flex w-full flex-col space-y-3">
+                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        </main>
-      )}
+        </div>
+      </main>
     </>
   );
 }

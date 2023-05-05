@@ -9,7 +9,7 @@ export default function Avatar({ imageUrl }: Props) {
         {imageUrl ? (
           <img className="h-16 w-16 rounded-full" src={imageUrl} alt="avatar" />
         ) : (
-          <span className="block h-16 w-16 rounded-full bg-brand-700"></span>
+          <span className="block h-16 w-16 rounded-full bg-brand-700 motion-safe:animate-pulse"></span>
         )}
         <span
           className="absolute inset-0 rounded-full shadow-inner"
