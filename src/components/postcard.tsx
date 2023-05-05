@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/nextjs";
 import { CheckBadgeIcon, PaperClipIcon } from "@heroicons/react/20/solid";
+import { Square2StackIcon } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
 import PostDropdown from "@src/components/postdropdown";
 import PostStats from "@src/components/poststats";
@@ -129,6 +130,10 @@ export default function PostCard({
         )}
         <div className="mt-4 space-y-6">
           <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Square2StackIcon className="h-5 w-5" />
+              <span className="text-sm font-semibold">Default</span>
+            </div>
             <div className="flex items-center justify-between">
               <h4 className="text-lg">{post.title}</h4>
               {post.authorId === user?.id && (
