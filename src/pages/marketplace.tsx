@@ -1,6 +1,9 @@
 import { useUser } from "@clerk/nextjs";
-import { CheckBadgeIcon } from "@heroicons/react/20/solid";
-import { FireIcon } from "@heroicons/react/24/outline";
+import {
+  CheckBadgeIcon,
+  FireIcon as FireIconSolid,
+} from "@heroicons/react/20/solid";
+import { FireIcon as FireIconOutline } from "@heroicons/react/24/outline";
 import { trpc } from "@src/utils/trpc";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -108,7 +111,7 @@ function Banner({
         <div className="mt-6 flex flex-col justify-stretch space-y-4">
           <span className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50">
             <span>{price}</span>
-            <FireIcon className="h-5 w-5" />
+            <FireIconOutline className="h-5 w-5" />
           </span>
           {purchased ? (
             <button
@@ -158,7 +161,11 @@ export default function Marketplace() {
     <>
       <main className="pb-36 pt-12">
         <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <h2 className="text-4xl font-semibold text-brand-50">Banners</h2>
+          <div className="flex items-center text-4xl font-semibold text-brand-50">
+            <h2>Banners</h2>
+            &nbsp; (<FireIconSolid className="h-8 w-8" />
+            <span>{profile.data?.popularity}</span>)
+          </div>
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
             {isAuth ? (
               <>
