@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { toast } from "react-hot-toast";
+import { TicketIcon } from "@heroicons/react/24/outline";
 
 const API_ERROR_MESSAGE =
   "API request failed, please refresh the page and try again.";
@@ -105,9 +106,12 @@ function ProfileButtons() {
       </Menu>
       <button
         type="button"
-        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className="inline-flex items-center justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
-        Create board
+        <span>Create board</span>
+        <span className="flex items-center space-x-1">
+          <span>(10</span> <TicketIcon className="h-5 w-5" />)
+        </span>
       </button>
     </div>
   );
