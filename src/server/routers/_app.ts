@@ -27,32 +27,6 @@ export const appRouter = router({
         },
       });
     }),
-  getCommunityPosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.profile.findMany({
-      where: {
-        popularity: {
-          gt: 0,
-        },
-      },
-      include: {
-        posts: {
-          where: {
-            label: "PUBLIC",
-          },
-          include: {
-            _count: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 4,
-        },
-      },
-      orderBy: {
-        popularity: "desc",
-      },
-    });
-  }),
   getPinnedPosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {

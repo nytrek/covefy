@@ -40,9 +40,7 @@ export default function Header({
                 id="search"
                 name="search"
                 className={clsx(
-                  !user || route === "/friends" || route === "/community"
-                    ? "pl-10"
-                    : "px-10",
+                  !user || route === "/friends" ? "pl-10" : "px-10",
                   "block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
                 )}
                 placeholder="Search"
@@ -50,7 +48,7 @@ export default function Header({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              {user && route !== "/friends" && route !== "/community" ? (
+              {user && route !== "/friends" ? (
                 <button type="button" onClick={handleOnClick}>
                   <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
                 </button>
@@ -59,7 +57,7 @@ export default function Header({
           </div>
         </div>
       </div>
-      {route !== "/friends" && route !== "/community" && (
+      {route !== "/friends" && (
         <div className="flex items-center overflow-x-auto px-1 text-white sm:px-3 md:justify-center">
           <Link href="/">
             <div className="w-44 text-center">Artificial Intelligence</div>
