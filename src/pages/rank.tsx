@@ -44,20 +44,20 @@ export default function Rank() {
             Send feedback <span aria-hidden="true">→</span>
           </Link>
         </div>
-        <ul role="list" className="divide-y divide-gray-800">
+        <ul role="list" className="divide-y divide-brand-800">
           {profiles.data?.map((profile) => (
             <li key={profile.id} className="flex justify-between gap-x-6 py-5">
               <div className="flex gap-x-4">
                 <img
-                  className="h-12 w-12 flex-none rounded-full bg-gray-800"
+                  className="h-12 w-12 flex-none rounded-full bg-brand-800"
                   src={profile.imageUrl}
-                  alt=""
+                  alt="avatar"
                 />
                 <div className="min-w-0 flex-auto">
                   <p className="text-sm font-semibold leading-6 text-white">
                     {profile.name}
                   </p>
-                  <p className="mt-1 truncate text-xs leading-5 text-gray-400">
+                  <p className="mt-1 truncate text-xs leading-5 text-brand-400">
                     @{profile.username}
                   </p>
                 </div>
@@ -66,7 +66,7 @@ export default function Rank() {
                 <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
                   Apprentice
                 </span>
-                <p className="mt-1 flex items-center space-x-1 text-sm leading-6 text-white">
+                <p className="mt-1 flex items-center space-x-1 text-sm leading-6 text-brand-50">
                   <FireIcon className="h-3 w-3" />
                   <span>{profile.popularity}</span>
                 </p>
