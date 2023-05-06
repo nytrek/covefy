@@ -279,7 +279,7 @@ export default function Account() {
                             href={"/board/b/" + board.id}
                             className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
                           >
-                            Edit
+                            Visit
                           </Link>
                           <button
                             type="button"
