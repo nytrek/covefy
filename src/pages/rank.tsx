@@ -54,7 +54,7 @@ export default function Rank() {
                   alt="avatar"
                 />
                 <div className="min-w-0 flex-auto">
-                  <p className="text-sm font-semibold leading-6 text-white">
+                  <p className="font-semibold leading-6 text-white">
                     {profile.name}
                   </p>
                   <p className="mt-1 truncate leading-5 text-brand-400">
@@ -63,7 +63,7 @@ export default function Rank() {
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
+                <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-sm font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
                   Apprentice
                 </span>
                 <p className="mt-1.5 flex items-center space-x-1 leading-6 text-brand-50">
