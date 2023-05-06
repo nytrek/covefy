@@ -549,7 +549,7 @@ export default function Account() {
                       <div className="flex flex-col space-y-4">
                         <div className="relative">
                           <img
-                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__6309b2fd-d55f-4753-9e85-d3dd965ee0c6.png"
+                            src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__8afdbf8e-6619-4141-8824-2935929db0bc.png"
                             alt="banner"
                             className="h-48 w-full rounded-lg object-cover"
                           />

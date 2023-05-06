@@ -1,10 +1,14 @@
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, useUser } from "@clerk/nextjs";
 import { Dialog, Transition } from "@headlessui/react";
-import { PaperClipIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowLongLeftIcon,
+  MagnifyingGlassIcon,
+  PaperClipIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Label, Prisma, Profile } from "@prisma/client";
 import FriendDropdown from "@src/components/frienddropdown";
-import Header from "@src/components/header";
 import LabelDropdown from "@src/components/labeldropdown";
 import PinnedPosts from "@src/components/pinnedposts";
 import PostAttachment from "@src/components/postattachment";
@@ -452,7 +456,7 @@ export default function Board() {
   let mouseX = useMotionValue(0);
   let mouseY = useMotionValue(0);
 
-  const { push, query } = useRouter();
+  const { back, push, query } = useRouter();
   const id = query.id as string;
 
   const utils = trpc.useContext();
@@ -674,12 +678,55 @@ export default function Board() {
         setDescription={setDescription}
       />
       <div className="pb-36">
-        <Header
-          header=""
-          search={search}
-          setSearch={setSearch}
-          handleOnClick={handleOnClick}
+        <SignedIn>
+          <div className="my-8 px-4 sm:mt-12 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => back()}
+              className="flex items-center space-x-2 text-brand-50"
+            >
+              <ArrowLongLeftIcon className="h-5 w-5" />
+              <span>Go back</span>
+            </button>
+          </div>
+        </SignedIn>
+        <img
+          src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__8afdbf8e-6619-4141-8824-2935929db0bc.png"
+          alt="banner"
+          className="h-48 w-full object-cover sm:h-96"
         />
+        <div className="-mt-[4.5rem] space-y-12">
+          <div className="mx-auto mt-12 max-w-xl space-y-10 px-4 text-center">
+            <p className="text-3xl font-semibold text-brand-50"></p>
+            <div className="flex flex-1 justify-center">
+              <div className="w-full lg:px-6">
+                <label htmlFor="search" className="sr-only">
+                  Search posts
+                </label>
+                <div className="relative flex items-center text-brand-50">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <MagnifyingGlassIcon
+                      className="h-5 w-5"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <input
+                    id="search"
+                    name="search"
+                    className="block w-full rounded-lg border-0 bg-brand-600 px-10 py-3 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
+                    placeholder="Search"
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  <button type="button" onClick={handleOnClick}>
+                    <PencilSquareIcon className="absolute right-3 top-3 h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="mt-8 px-4 sm:mt-12 sm:px-6 lg:px-8">
           <PinnedPosts handleOnUpdatePost={handleOnUpdatePost} />
           <div className="flex items-center justify-center">

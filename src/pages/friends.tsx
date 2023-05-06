@@ -1,7 +1,6 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
-import { ArrowRightIcon } from "@heroicons/react/20/solid";
+import { ArrowRightIcon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { Status } from "@prisma/client";
-import Header from "@src/components/header";
 import PostMessage from "@src/components/postmessage";
 import ProfileHeader from "@src/components/profileheader";
 import ProfilePosts from "@src/components/profileposts";
@@ -48,12 +47,35 @@ export default function Friends() {
   return (
     <>
       <div className="pb-36">
-        <Header
-          header=""
-          search={search}
-          setSearch={setSearch}
-          handleOnClick={() => null}
-        />
+        <div className="space-y-12">
+          <div className="mx-auto mt-12 max-w-xl space-y-10 px-4 text-center">
+            <p className="text-3xl font-semibold text-brand-50"></p>
+            <div className="flex flex-1 justify-center">
+              <div className="w-full lg:px-6">
+                <label htmlFor="search" className="sr-only">
+                  Search posts
+                </label>
+                <div className="relative flex items-center text-brand-50">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <MagnifyingGlassIcon
+                      className="h-5 w-5"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <input
+                    id="search"
+                    name="search"
+                    className="block w-full rounded-lg border-0 bg-brand-600 bg-opacity-25 py-3 pl-10 text-brand-50 placeholder:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-50"
+                    placeholder="Search"
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <SignedIn>
           <div className="mt-8 px-2 lg:px-8">
             <div className="flex flex-col items-center justify-center space-y-8">
@@ -232,8 +254,8 @@ export default function Friends() {
                   <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
                     <div className="flex items-center justify-between px-4 motion-safe:animate-pulse sm:px-6 lg:px-0">
                       <div className="flex w-full flex-col space-y-3">
-                        <div className="sm:w-1/6 flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="sm:w-1/12 flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/6"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/12"></div>
                       </div>
                       <div className="hidden h-2.5 w-1/12 items-center space-x-4 rounded-full bg-brand-700 sm:flex"></div>
                     </div>
@@ -254,8 +276,8 @@ export default function Friends() {
                   <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
                     <div className="flex items-center justify-between px-4 motion-safe:animate-pulse sm:px-6 lg:px-0">
                       <div className="flex w-full flex-col space-y-3">
-                        <div className="sm:w-1/6 flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="sm:w-1/12 flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/6"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/12"></div>
                       </div>
                       <div className="hidden h-2.5 w-1/12 items-center space-x-4 rounded-full bg-brand-700 sm:flex"></div>
                     </div>
@@ -276,8 +298,8 @@ export default function Friends() {
                   <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
                     <div className="flex items-center justify-between px-4 motion-safe:animate-pulse sm:px-6 lg:px-0">
                       <div className="flex w-full flex-col space-y-3">
-                        <div className="sm:w-1/6 flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="sm:w-1/12 flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/6"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/12"></div>
                       </div>
                       <div className="hidden h-2.5 w-1/12 items-center space-x-4 rounded-full bg-brand-700 sm:flex"></div>
                     </div>
@@ -298,8 +320,8 @@ export default function Friends() {
                   <div className="lg:mx-auto lg:max-w-7xl lg:px-8">
                     <div className="flex items-center justify-between px-4 motion-safe:animate-pulse sm:px-6 lg:px-0">
                       <div className="flex w-full flex-col space-y-3">
-                        <div className="sm:w-1/6 flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="sm:w-1/12 flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                        <div className="flex h-2.5 w-3/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/6"></div>
+                        <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700 sm:w-1/12"></div>
                       </div>
                       <div className="hidden h-2.5 w-1/12 items-center space-x-4 rounded-full bg-brand-700 sm:flex"></div>
                     </div>
