@@ -110,7 +110,7 @@ function ProfileButtons() {
       >
         <span>Create board</span>
         <span className="flex items-center space-x-1">
-          <span>(10</span> <TicketIcon className="h-5 w-5" />)
+          <span>(3</span> <TicketIcon className="h-5 w-5" />)
         </span>
       </button>
     </div>

@@ -59,16 +59,16 @@ export default function Feedback() {
 
               <dl className="mt-6 space-y-4">
                 <div className="flex items-center justify-between pt-4">
-                  <dt className="text-brand-50">Create board</dt>
+                  <dt className="text-brand-50">Use AI</dt>
                   <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>10</span>
+                    <span>4</span>
                     <TicketIcon className="h-5 w-5" />
                   </dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-brand-200 pt-4">
-                  <dt className="text-brand-50">Use AI</dt>
+                  <dt className="text-brand-50">Create board</dt>
                   <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>4</span>
+                    <span>3</span>
                     <TicketIcon className="h-5 w-5" />
                   </dd>
                 </div>

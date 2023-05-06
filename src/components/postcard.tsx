@@ -153,7 +153,7 @@ export default function PostCard({
               <div className="flex items-center space-x-1 font-semibold">
                 <span>{post.author?.name}</span>
                 {post.author?.premium && (
-                  <CheckBadgeIcon className="h-5 w-5 text-brand-50" />
+                  <CheckBadgeIcon className="h-4 w-4 text-brand-50" />
                 )}
               </div>
               <div>{`@${post.author?.username}`}</div>
