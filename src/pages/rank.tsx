@@ -66,9 +66,9 @@ export default function Rank() {
                 <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
                   Apprentice
                 </span>
-                <p className="mt-1 flex items-center space-x-1 text-sm leading-6 text-brand-50">
+                <p className="mt-3 flex items-center space-x-1 text-sm leading-6 text-brand-50">
                   <FireIcon className="h-3 w-3" />
-                  <span>{profile.popularity}</span>
+                  <span className="text-xs">{profile.popularity}</span>
                 </p>
               </div>
             </li>
