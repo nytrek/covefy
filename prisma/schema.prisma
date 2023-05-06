@@ -24,6 +24,20 @@ model Profile {
   receiver   Friend[]   @relation("Receiver")
   inbox      Post[]     @relation("Friend")
   comment    Comment[]
+  boards     Board[]
+  members    Member[]   @relation("Member")
+}
+
+model Board {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  imageUrl    String?
+  label       Label    @default(PUBLIC)
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId   String
+  members     Member[]
+  posts       Post[]
 }
 
 model Post {
@@ -43,6 +57,8 @@ model Post {
   friend         Profile?   @relation("Friend", fields: [friendId], references: [id], onDelete: Cascade)
   friendId       String?
   comments       Comment[]
+  board          Board?     @relation(fields: [boardId], references: [id])
+  boardId        Int?
 }
 
 model Comment {
@@ -83,6 +99,15 @@ model Friend {
   updatedAt  DateTime @default(now())
 
   @@id([receiverId, senderId])
+}
+
+model Member {
+  member   Profile @relation("Member", fields: [memberId], references: [id], onDelete: Cascade)
+  memberId String
+  boardId  Int
+  board    Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, boardId])
 }
 
 enum Status {

@@ -12,6 +12,46 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const appRouter = router({
+  createBoard: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        credits: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.$transaction([
+        prisma.board.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            profileId: ctx.auth.userId,
+          },
+        }),
+        prisma.profile.update({
+          data: {
+            credits: input.credits,
+          },
+          where: {
+            id: ctx.auth.userId,
+          },
+        }),
+      ]);
+    }),
+  deleteBoard: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.board.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
   deleteAttachment: protectedProcedure
     .input(
       z.object({
@@ -90,6 +130,7 @@ export const appRouter = router({
               senderId: ctx.auth.userId,
             },
           },
+          boards: true,
         },
       });
     }),

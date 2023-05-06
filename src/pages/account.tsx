@@ -20,6 +20,18 @@ function ProfileButtons() {
 
   const profile = trpc.getProfile.useQuery();
 
+  const createBoard = trpc.createBoard.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Board created!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
   const updateProfile = trpc.updateProfile.useMutation({
     onSuccess: (data) => {
       toast.dismiss();
@@ -42,14 +54,27 @@ function ProfileButtons() {
     },
   });
 
-  const handleOnUpdate = () => {
+  const handleOnCreateBoard = () => {
+    if (!profile.data) return;
+    if (profile.data.credits < 3)
+      return toast.error("You don't have enough credits");
+    toast.loading("Loading...");
+    createBoard.mutate({
+      name: "Board " + (profile.data.boards.length + 1),
+      description:
+        profile.data.name + "'s" + " Board " + (profile.data.boards.length + 1),
+      credits: profile.data.credits - 3,
+    });
+  };
+
+  const handleOnUpdateProfile = () => {
     toast.loading("Loading...");
     updateProfile.mutate({
       label: profile.data?.label === "PUBLIC" ? "PRIVATE" : "PUBLIC",
     });
   };
 
-  const handleOnDelete = () => {
+  const handleOnDeleteProfile = () => {
     toast.loading("Loading...");
     deleteProfile.mutate();
   };
@@ -76,7 +101,7 @@ function ProfileButtons() {
                 {({ active }) => (
                   <button
                     type="button"
-                    onClick={handleOnDelete}
+                    onClick={handleOnDeleteProfile}
                     className={clsx(
                       active ? "bg-brand-100 text-brand-900" : "text-brand-700",
                       "block w-full px-4 py-2 text-left text-sm"
@@ -90,7 +115,7 @@ function ProfileButtons() {
                 {({ active }) => (
                   <button
                     type="button"
-                    onClick={handleOnUpdate}
+                    onClick={handleOnUpdateProfile}
                     className={clsx(
                       active ? "bg-brand-100 text-brand-900" : "text-brand-700",
                       "block w-full px-4 py-2 text-left text-sm"
@@ -107,6 +132,7 @@ function ProfileButtons() {
       </Menu>
       <button
         type="button"
+        onClick={handleOnCreateBoard}
         className="inline-flex items-center justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         <span>Create board</span>
@@ -141,8 +167,33 @@ function Header() {
 }
 
 export default function Account() {
+  const utils = trpc.useContext();
+
   const profile = trpc.getProfile.useQuery();
 
+  const deleteBoard = trpc.deleteBoard.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Board deleted!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  const handleOnDeleteBoard = (id: number) => {
+    toast.loading("Loading...");
+    deleteBoard.mutate({
+      id,
+    });
+  };
+
+  const handleOnShare = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast.success("Copied URL to clipboard");
+  };
   return (
     <>
       <main className="pb-36 pt-12">
@@ -154,45 +205,94 @@ export default function Account() {
             </h3>
             <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
               {profile.data ? (
-                <div className="flex flex-col space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__8afdbf8e-6619-4141-8824-2935929db0bc.png"
-                      alt="banner"
-                      className="h-48 w-full rounded-lg object-cover"
-                    />
-                    <span className="absolute inset-0" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-5">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-2xl font-bold text-brand-50">
-                            Default board
-                          </h4>
-                          <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                <>
+                  <div className="flex flex-col space-y-4">
+                    <div className="relative">
+                      <img
+                        src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__8afdbf8e-6619-4141-8824-2935929db0bc.png"
+                        alt="banner"
+                        className="h-48 w-full rounded-lg object-cover"
+                      />
+                      <span className="absolute inset-0" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-5">
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-2xl font-bold text-brand-50">
+                              Default board
+                            </h4>
+                            <CheckBadgeIcon className="mt-1 h-6 w-6 text-brand-50" />
+                          </div>
+                          <p className="text-sm font-medium text-brand-500">
+                            This is your default board
+                          </p>
                         </div>
-                        <p className="text-sm font-medium text-brand-500">
-                          This is your default board
-                        </p>
+                      </div>
+                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                        <Link
+                          href={"/board/d/" + profile.data.id}
+                          className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                        >
+                          Visit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleOnShare(
+                              "https://www.covefy.com/board/d/" +
+                                profile.data?.id
+                            )
+                          }
+                          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                        >
+                          Share
+                        </button>
                       </div>
                     </div>
-                    <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                      <Link
-                        href={"/board/d/" + profile.data.id}
-                        className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                      >
-                        Delete
-                      </button>
-                    </div>
                   </div>
-                </div>
+                  {profile.data.boards.map((board) => (
+                    <div key={board.id} className="flex flex-col space-y-4">
+                      <div className="relative">
+                        <img
+                          src="/banners/Ktra99_cozy_minimalistic_3D_fullstack_developer_workspace_that__8afdbf8e-6619-4141-8824-2935929db0bc.png"
+                          alt="banner"
+                          className="h-48 w-full rounded-lg object-cover"
+                        />
+                        <span className="absolute inset-0" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-5">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h4 className="text-2xl font-bold text-brand-50">
+                                {board.name}
+                              </h4>
+                            </div>
+                            <p className="text-sm font-medium text-brand-500">
+                              {board.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-6 flex flex-col justify-stretch space-y-4">
+                          <Link
+                            href={"/board/b/" + board.id}
+                            className="inline-flex items-center justify-center space-x-1 rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 shadow-sm ring-1 ring-inset ring-brand-300 hover:bg-brand-50"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleOnDeleteBoard(board.id)}
+                            className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
               ) : (
                 <>
                   <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
