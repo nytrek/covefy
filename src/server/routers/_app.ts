@@ -155,49 +155,53 @@ export const appRouter = router({
       },
     });
   }),
-  getProfilePosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
-      where: {
-        friendId: null,
-        authorId: ctx.auth.userId,
-      },
-      include: {
-        _count: true,
-        author: true,
-        friend: true,
-        likes: {
-          include: {
-            profile: {
-              select: {
-                id: true,
+  getProfilePosts: publicProcedure
+    .input(z.string().optional())
+    .query(async ({ input, ctx }) => {
+      const label = input ? "PUBLIC" : undefined;
+      return await prisma.post.findMany({
+        where: {
+          friendId: null,
+          authorId: input ?? ctx.auth.userId ?? undefined,
+          label,
+        },
+        include: {
+          _count: true,
+          author: true,
+          friend: true,
+          likes: {
+            include: {
+              profile: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          comments: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          bookmarks: {
+            include: {
+              profile: {
+                select: {
+                  id: true,
+                },
               },
             },
           },
         },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-              },
-            },
-          },
+        orderBy: {
+          createdAt: "desc",
         },
-        bookmarks: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }),
+      });
+    }),
   getBookmarkedPosts: protectedProcedure.query(async ({ ctx }) => {
     return await prisma.post.findMany({
       where: {

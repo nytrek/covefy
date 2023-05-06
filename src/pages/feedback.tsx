@@ -6,7 +6,7 @@ const faqs = [
     id: 1,
     question: "What are credits used for?",
     answer:
-      "Credits can be used to create posts, interact with AI and purchase banners in the marketplace. The use of credits will expand as new features come in.",
+      "Credits can be used to create posts, boards and interact with AI. The use of credits will expand as new features come in.",
   },
   {
     id: 2,
@@ -16,9 +16,9 @@ const faqs = [
   },
   {
     id: 3,
-    question: "Where can I change my banner?",
+    question: "Where can I find my boards?",
     answer:
-      "You can change your banner in your account page if you have purchased a banner in the marketplace. Those banners costs between 100-200 credits.",
+      "You can find your boards under your account page where you will have access to all your previous boards.",
   },
 ];
 
