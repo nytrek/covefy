@@ -46,7 +46,10 @@ export default function Rank() {
         </div>
         <ul role="list" className="divide-y divide-brand-800">
           {profiles.data?.map((profile) => (
-            <li key={profile.id} className="flex justify-between gap-x-6 py-5">
+            <li
+              key={profile.id}
+              className="flex flex-col gap-y-6 py-5 sm:flex-row sm:justify-between sm:gap-x-6"
+            >
               <div className="flex gap-x-4">
                 <img
                   className="h-12 w-12 flex-none rounded-full bg-brand-800"
@@ -54,19 +57,19 @@ export default function Rank() {
                   alt="avatar"
                 />
                 <div className="min-w-0 flex-auto">
-                  <p className="font-semibold leading-6 text-white">
+                  <p className="text-xl font-semibold leading-6 text-white">
                     {profile.name}
                   </p>
-                  <p className="mt-1 truncate leading-5 text-brand-400">
+                  <p className="mt-2 truncate text-lg leading-5 text-brand-400">
                     @{profile.username}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-start space-y-4 sm:items-end sm:space-y-1.5">
                 <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-sm font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
                   Apprentice
                 </span>
-                <p className="mt-1.5 flex items-center space-x-1 leading-6 text-brand-50">
+                <p className="flex items-center space-x-1 leading-6 text-brand-50">
                   <FireIcon className="h-4 w-4" />
                   <span>{profile.popularity}</span>
                 </p>
