@@ -66,7 +66,7 @@ export default function Rank() {
                 </div>
               </div>
               <div className="flex flex-col items-start space-y-4 sm:items-end sm:space-y-1.5">
-                <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-sm font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
+                <span className="inline-flex items-center rounded-md bg-red-400/10 px-2 py-0.5 text-sm font-medium text-red-400 ring-1 ring-inset ring-red-400/20">
                   Apprentice
                 </span>
                 <p className="flex items-center space-x-1 leading-6 text-brand-50">
