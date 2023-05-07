@@ -1,6 +1,5 @@
 import { Menu, Transition } from "@headlessui/react";
 import { CheckBadgeIcon } from "@heroicons/react/20/solid";
-import { TicketIcon } from "@heroicons/react/24/outline";
 import Avatar from "@src/components/avatar";
 import ProfileDetails from "@src/components/profiledetails";
 import { trpc } from "@src/utils/trpc";
@@ -56,8 +55,6 @@ function ProfileButtons() {
 
   const handleOnCreateBoard = () => {
     if (!profile.data) return;
-    if (profile.data.credits < 3)
-      return toast.error("You don't have enough credits");
     toast.loading("Loading...");
     createBoard.mutate({
       name: "Board " + (profile.data.boards.length + 1),
@@ -135,10 +132,7 @@ function ProfileButtons() {
         onClick={handleOnCreateBoard}
         className="inline-flex items-center justify-center space-x-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
-        <span>Create board</span>
-        <span className="flex items-center space-x-1">
-          <span>(3</span> <TicketIcon className="h-5 w-5" />)
-        </span>
+        Create board
       </button>
     </div>
   );

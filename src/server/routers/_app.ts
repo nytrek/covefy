@@ -12,18 +12,6 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const appRouter = router({
-  getProfiles: protectedProcedure.query(async () => {
-    return await prisma.profile.findMany({
-      where: {
-        popularity: {
-          gt: 0,
-        },
-      },
-      orderBy: {
-        popularity: "desc",
-      },
-    });
-  }),
   createBoard: protectedProcedure
     .input(
       z.object({

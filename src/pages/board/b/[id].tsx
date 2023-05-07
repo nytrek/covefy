@@ -170,8 +170,6 @@ function Modal({
 
   const handleOnGenerateAI = () => {
     if (!profile.data) return;
-    if (profile.data.credits < 4)
-      return toast.error("You don't have enough credits");
     generateAI.mutate({
       prompt: description,
       credits: profile.data.credits - 4,
@@ -279,8 +277,6 @@ function Modal({
   const handleOnCreate = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 2)
-      return toast.error("You don't have enough credits");
     else if (attachment && typeof attachment !== "string") {
       handleOnUpload(title, description);
     } else {

@@ -28,10 +28,10 @@ export default function Feedback() {
       <SignedIn>
         <div className="mt-8 pb-36">
           <div className="mx-auto max-w-7xl p-6">
-            <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold text-white sm:text-4xl">
               Send feedback
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-center text-xl text-gray-300 sm:text-2xl">
+            <p className="mt-6 text-xl text-gray-300 sm:text-2xl">
               Any feedback is welcome. Please address your feedback directly to{" "}
               <a href="mailto:kennytran.dev@outlook.com" className="underline">
                 kennytran.dev@outlook.com
@@ -58,31 +58,10 @@ export default function Feedback() {
               </h2>
 
               <dl className="mt-6 space-y-4">
-                <div className="flex items-center justify-between pt-4">
+                <div className="flex items-center justify-between border-t border-brand-200 pt-4">
                   <dt className="text-brand-50">Use AI</dt>
                   <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>4</span>
-                    <TicketIcon className="h-5 w-5" />
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-brand-200 pt-4">
-                  <dt className="text-brand-50">Create board</dt>
-                  <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>3</span>
-                    <TicketIcon className="h-5 w-5" />
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-brand-200 pt-4">
-                  <dt className="text-brand-50">Create post</dt>
-                  <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>2</span>
-                    <TicketIcon className="h-5 w-5" />
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-brand-200 pt-4">
-                  <dt className="text-brand-50">Comment</dt>
-                  <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>1</span>
+                    <span>0.1</span>
                     <TicketIcon className="h-5 w-5" />
                   </dd>
                 </div>

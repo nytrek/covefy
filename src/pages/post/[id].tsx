@@ -177,8 +177,6 @@ function Modal({
 
   const handleOnGenerateAI = () => {
     if (!prompt || !profile.data) return;
-    if (profile.data.credits < 4)
-      return toast.error("You don't have enough credits");
     generateAI.mutate({
       prompt: description,
       credits: profile.data.credits - 4,

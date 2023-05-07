@@ -1,5 +1,3 @@
-import { TicketIcon } from "@heroicons/react/24/outline";
-
 interface Props {
   edit: boolean;
   isLoading: boolean;
@@ -40,13 +38,7 @@ export default function PostButtons({
             ></path>
           </svg>
         ) : (
-          <>
-            <span>Use AI</span>
-            <span className="flex items-center space-x-1">
-              <span>(4</span>
-              <TicketIcon className="h-5 w-5" />)
-            </span>
-          </>
+          <span>Use AI</span>
         )}
       </button>
       <button
@@ -54,17 +46,7 @@ export default function PostButtons({
         className="inline-flex w-full justify-center space-x-2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         disabled={isLoading}
       >
-        {edit ? (
-          <span>Save</span>
-        ) : (
-          <>
-            <span>Create</span>
-            <span className="flex items-center space-x-1">
-              <span>(2</span>
-              <TicketIcon className="h-5 w-5" />)
-            </span>
-          </>
-        )}
+        {edit ? <span>Save</span> : <span>Create</span>}
       </button>
     </div>
   );

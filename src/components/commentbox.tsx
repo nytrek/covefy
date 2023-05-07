@@ -1,5 +1,4 @@
 import { SignedIn, useUser } from "@clerk/nextjs";
-import { TicketIcon } from "@heroicons/react/24/outline";
 import { Prisma } from "@prisma/client";
 import { trpc } from "@src/utils/trpc";
 import { FormEvent, useState } from "react";
@@ -73,8 +72,6 @@ export default function CommentBox({ post }: Props) {
   const handleOnCreateComment = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.id || !profile.data) return;
-    if (profile.data.credits < 1)
-      return toast.error("You don't have enough credits");
     const target = e.target as typeof e.target & {
       reset: () => void;
       comment: { id: string; value: string };
@@ -137,8 +134,7 @@ export default function CommentBox({ post }: Props) {
               type="submit"
               className="flex items-center space-x-1 rounded-md px-2.5 py-1.5 text-sm font-semibold text-brand-50 shadow-sm"
             >
-              <span>Comment (1</span>
-              <TicketIcon className="h-5 w-5" />)
+              Comment
             </button>
           </div>
         </form>
