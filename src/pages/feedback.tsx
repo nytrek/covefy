@@ -61,7 +61,7 @@ export default function Feedback() {
                 <div className="flex items-center justify-between border-t border-brand-200 pt-4">
                   <dt className="text-brand-50">Use AI</dt>
                   <dd className="flex items-center space-x-1 font-medium text-brand-50">
-                    <span>0.1</span>
+                    <span>1000</span>
                     <TicketIcon className="h-5 w-5" />
                   </dd>
                 </div>
