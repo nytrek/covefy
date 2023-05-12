@@ -1,6 +1,8 @@
 import { Label, Status } from "@prisma/client";
 import { prisma } from "@src/lib/prisma";
 import deleteFile from "@src/lib/upload";
+import { inferReactQueryProcedureOptions } from "@trpc/react-query";
+import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { Configuration, OpenAIApi } from "openai";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
@@ -12,46 +14,6 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const appRouter = router({
-  createBoard: protectedProcedure
-    .input(
-      z.object({
-        name: z.string(),
-        description: z.string(),
-        credits: z.number(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      return await prisma.$transaction([
-        prisma.board.create({
-          data: {
-            name: input.name,
-            description: input.description,
-            profileId: ctx.auth.userId,
-          },
-        }),
-        prisma.profile.update({
-          data: {
-            credits: input.credits,
-          },
-          where: {
-            id: ctx.auth.userId,
-          },
-        }),
-      ]);
-    }),
-  deleteBoard: protectedProcedure
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return await prisma.board.delete({
-        where: {
-          id: input.id,
-        },
-      });
-    }),
   deleteAttachment: protectedProcedure
     .input(
       z.object({
@@ -67,49 +29,116 @@ export const appRouter = router({
         },
       });
     }),
-  getPinnedPosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
+  generateAIResponse: protectedProcedure
+    .input(
+      z.object({
+        prompt: z.string(),
+        credits: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const completion = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt:
+          "Respond to the following prompt with less than 480 characters - " +
+          input.prompt,
+        temperature: 0.8,
+        max_tokens: 480,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        user: ctx.auth.userId,
+      });
+      if (completion.data.choices[0].text) {
+        await prisma.profile.update({
+          data: {
+            credits: input.credits,
+          },
+          where: {
+            id: ctx.auth.userId,
+          },
+        });
+      }
+      return completion.data.choices[0].text;
+    }),
+  getBoard: protectedProcedure.input(z.number()).query(async ({ input }) => {
+    return await prisma.board.findUnique({
       where: {
-        pinned: true,
-        authorId: ctx.auth.userId,
+        id: input,
       },
       include: {
-        _count: true,
-        author: true,
-        friend: true,
-        likes: {
+        posts: {
+          where: {
+            label: "PUBLIC",
+          },
           include: {
-            profile: {
-              select: {
-                id: true,
+            _count: true,
+            board: true,
+            author: true,
+            friend: true,
+            likes: {
+              include: {
+                profile: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+            comments: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+            bookmarks: {
+              include: {
+                profile: {
+                  select: {
+                    id: true,
+                  },
+                },
               },
             },
           },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-              },
-            },
+          orderBy: {
+            createdAt: "desc",
           },
         },
-        bookmarks: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        updatedAt: "desc",
       },
     });
   }),
+  createBoard: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await prisma.board.create({
+        data: {
+          name: input.name,
+          description: input.description,
+          profileId: ctx.auth.userId,
+        },
+      });
+    }),
+  deleteBoard: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.board.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
   getProfile: protectedProcedure
     .input(z.string().optional())
     .query(async ({ input, ctx }) => {
@@ -152,227 +181,6 @@ export const appRouter = router({
       headers: {
         authorization: "Bearer " + process.env.CLERK_SECRET_KEY,
       },
-    });
-  }),
-  getPublicPosts: publicProcedure.query(async () => {
-    return await prisma.post.findMany({
-      where: {
-        label: "PUBLIC",
-      },
-      include: {
-        _count: true,
-        author: true,
-        friend: true,
-        likes: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-        bookmarks: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }),
-  getProfilePosts: publicProcedure
-    .input(z.string().optional())
-    .query(async ({ input, ctx }) => {
-      const label = input ? "PUBLIC" : undefined;
-      return await prisma.post.findMany({
-        where: {
-          friendId: null,
-          authorId: input ?? ctx.auth.userId ?? undefined,
-          label,
-        },
-        include: {
-          _count: true,
-          author: true,
-          friend: true,
-          likes: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          comments: {
-            include: {
-              author: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          bookmarks: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-    }),
-  getBookmarkedPosts: protectedProcedure.query(async ({ ctx }) => {
-    return await prisma.post.findMany({
-      where: {
-        bookmarks: {
-          some: {
-            profileId: ctx.auth.userId,
-          },
-        },
-      },
-      include: {
-        _count: true,
-        author: true,
-        friend: true,
-        likes: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-        bookmarks: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }),
-  getInbox: protectedProcedure.query(async ({ ctx }) => {
-    const [sending, receiving] = await prisma.$transaction([
-      prisma.post.findMany({
-        where: {
-          authorId: ctx.auth.userId,
-          friendId: {
-            startsWith: "user",
-          },
-        },
-        include: {
-          _count: true,
-          author: true,
-          friend: true,
-          likes: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          comments: {
-            include: {
-              author: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          bookmarks: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-      prisma.post.findMany({
-        where: {
-          friendId: ctx.auth.userId,
-        },
-        include: {
-          _count: true,
-          author: true,
-          friend: true,
-          likes: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          comments: {
-            include: {
-              author: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          bookmarks: {
-            include: {
-              profile: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-    ]);
-    return sending.concat(receiving).sort((a, b) => {
-      if (a.createdAt < b.createdAt) return 1;
-      if (a.createdAt > b.createdAt) return -1;
-      return 0;
     });
   }),
   getFriends: protectedProcedure.query(async ({ ctx }) => {
@@ -731,6 +539,7 @@ export const appRouter = router({
       },
       include: {
         _count: true,
+        board: true,
         author: true,
         friend: true,
         likes: {
@@ -773,12 +582,19 @@ export const appRouter = router({
         description: z.string(),
         attachment: z.string().nullish(),
         attachmentPath: z.string().nullish(),
+        boardId: z.number().optional(),
         authorId: z.string(),
         friendId: z.string().optional(),
-        credits: z.number(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
+      const board = input.boardId
+        ? {
+            connect: {
+              id: input.boardId,
+            },
+          }
+        : undefined;
       const friend = input.friendId
         ? {
             connect: {
@@ -786,31 +602,22 @@ export const appRouter = router({
             },
           }
         : undefined;
-      return await prisma.$transaction([
-        prisma.post.create({
-          data: {
-            title: input.title,
-            label: input.label,
-            description: input.description,
-            attachment: input.attachment,
-            attachmentPath: input.attachmentPath,
-            author: {
-              connect: {
-                id: input.authorId,
-              },
+      return await prisma.post.create({
+        data: {
+          title: input.title,
+          label: input.label,
+          description: input.description,
+          attachment: input.attachment,
+          attachmentPath: input.attachmentPath,
+          board,
+          author: {
+            connect: {
+              id: input.authorId,
             },
-            friend,
           },
-        }),
-        prisma.profile.update({
-          data: {
-            credits: input.credits,
-          },
-          where: {
-            id: ctx.auth.userId,
-          },
-        }),
-      ]);
+          friend,
+        },
+      });
     }),
   updatePost: protectedProcedure
     .input(
@@ -874,37 +681,141 @@ export const appRouter = router({
         },
       });
     }),
-  generateAIResponse: protectedProcedure
-    .input(
-      z.object({
-        prompt: z.string(),
-        credits: z.number(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const completion = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt:
-          "Respond to the following prompt with less than 480 characters - " +
-          input.prompt,
-        temperature: 0.6,
-        max_tokens: 480,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        user: ctx.auth.userId,
-      });
-      if (completion.data.choices[0].text) {
-        await prisma.profile.update({
-          data: {
-            credits: input.credits,
+  getDefaultPosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        board: null,
+        label: "PUBLIC",
+        authorId: ctx.auth.userId,
+      },
+      include: {
+        _count: true,
+        board: true,
+        author: true,
+        friend: true,
+        likes: {
+          include: {
+            profile: {
+              select: {
+                id: true,
+              },
+            },
           },
-          where: {
-            id: ctx.auth.userId,
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+              },
+            },
           },
-        });
-      }
-      return completion.data.choices[0].text;
-    }),
+        },
+        bookmarks: {
+          include: {
+            profile: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+  }),
+  getPinnedPosts: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.post.findMany({
+      where: {
+        pinned: true,
+        authorId: ctx.auth.userId,
+      },
+      include: {
+        _count: true,
+        board: true,
+        author: true,
+        friend: true,
+        likes: {
+          include: {
+            profile: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+        bookmarks: {
+          include: {
+            profile: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+  }),
+  getPublicPosts: publicProcedure.query(async () => {
+    return await prisma.post.findMany({
+      where: {
+        label: "PUBLIC",
+      },
+      include: {
+        _count: true,
+        board: true,
+        author: true,
+        friend: true,
+        likes: {
+          include: {
+            profile: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+        bookmarks: {
+          include: {
+            profile: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;
+export type ReactQueryOptions = inferReactQueryProcedureOptions<AppRouter>;
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;

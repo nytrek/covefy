@@ -2,11 +2,11 @@ import { Listbox, Transition } from "@headlessui/react";
 import { TagIcon } from "@heroicons/react/20/solid";
 import { Label } from "@prisma/client";
 import clsx from "clsx";
-import { Dispatch, Fragment, SetStateAction } from "react";
+import { Fragment } from "react";
 
 interface Props {
   label: Label | null;
-  setLabel: Dispatch<SetStateAction<Label | null>>;
+  setLabel: (label: Label | null) => void;
 }
 
 export default function LabelDropdown({ label, setLabel }: Props) {

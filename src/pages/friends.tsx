@@ -14,11 +14,8 @@ const API_ERROR_MESSAGE =
 
 export default function Friends() {
   const { user } = useUser();
-
   const utils = trpc.useContext();
-
   const [search, setSearch] = useState("");
-
   const friends = trpc.getAllFriends.useQuery();
 
   const updateFriendStatus = trpc.updateFriendStatus.useMutation({

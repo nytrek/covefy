@@ -3,11 +3,11 @@ import { UserCircleIcon } from "@heroicons/react/20/solid";
 import { Profile } from "@prisma/client";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
-import { Dispatch, Fragment, SetStateAction } from "react";
+import { Fragment } from "react";
 
 interface Props {
   friend: Profile | null;
-  setFriend: Dispatch<SetStateAction<Profile | null>>;
+  setFriend: (friend: Profile | null) => void;
 }
 
 export default function FriendDropdown({ friend, setFriend }: Props) {

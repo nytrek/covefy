@@ -1,47 +1,14 @@
 import { useUser } from "@clerk/nextjs";
 import { CheckBadgeIcon, PaperClipIcon } from "@heroicons/react/20/solid";
 import { Square2StackIcon } from "@heroicons/react/24/outline";
-import { Prisma } from "@prisma/client";
 import PostDropdown from "@src/components/postdropdown";
 import PostStats from "@src/components/poststats";
 import ProfileDropdown from "@src/components/profiledropdown";
+import { RouterOutputs } from "@src/server/routers/_app";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
 
-type Post = Prisma.PostGetPayload<{
-  include: {
-    _count: true;
-    author: true;
-    friend: true;
-    likes: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    comments: {
-      include: {
-        author: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    bookmarks: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+type Post = RouterOutputs["getPublicPosts"][number];
 
 interface Props {
   post: Post;
@@ -130,10 +97,14 @@ export default function PostCard({
         )}
         <div className="mt-4 space-y-6">
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Square2StackIcon className="h-5 w-5" />
-              <span className="text-sm font-semibold">Default</span>
-            </div>
+            {!!post.board && (
+              <div className="flex items-center space-x-2">
+                <Square2StackIcon className="h-5 w-5" />
+                <span className="text-sm font-semibold">
+                  {post.board?.name}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <h4 className="text-lg">{post.title}</h4>
               {post.authorId === user?.id && (

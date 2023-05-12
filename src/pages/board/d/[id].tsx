@@ -7,28 +7,23 @@ import {
   PencilSquareIcon,
 } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Label, Prisma, Profile } from "@prisma/client";
+import { Label, Profile } from "@prisma/client";
 import FriendDropdown from "@src/components/frienddropdown";
 import LabelDropdown from "@src/components/labeldropdown";
 import PinnedPosts from "@src/components/pinnedposts";
 import PostAttachment from "@src/components/postattachment";
 import PostButtons from "@src/components/postbuttons";
 import PostCard from "@src/components/postcard";
-import PostSkeleton from "@src/components/postskeleton";
+import PostsSkeleton from "@src/components/postsskeleton";
+import { RouterOutputs } from "@src/server/routers/_app";
 import { trpc } from "@src/utils/trpc";
 import clsx from "clsx";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import { useRouter } from "next/router";
-import {
-  Dispatch,
-  FormEvent,
-  Fragment,
-  MouseEvent,
-  SetStateAction,
-  useState,
-} from "react";
+import { FormEvent, Fragment, MouseEvent } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
+import { create } from "zustand";
 
 const MAX_TOKENS = 720;
 const API_ERROR_MESSAGE =
@@ -38,109 +33,94 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
-type Post = Prisma.PostGetPayload<{
-  include: {
-    _count: true;
-    author: true;
-    friend: true;
-    likes: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    comments: {
-      include: {
-        author: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    bookmarks: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+type Post = RouterOutputs["getDefaultPosts"][number];
 
-interface Props {
+interface Store {
   open: boolean;
   post: Post | null;
   label: Label | null;
   friend: Profile | null;
   length: number;
+  search: string;
   attachment: File | string | null;
   description: string;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  setLabel: Dispatch<SetStateAction<Label | null>>;
-  setFriend: Dispatch<SetStateAction<Profile | null>>;
-  setLength: Dispatch<SetStateAction<number>>;
-  setAttachment: Dispatch<SetStateAction<File | string | null>>;
-  setDescription: Dispatch<SetStateAction<string>>;
+  setOpen: (open: boolean) => void;
+  setLabel: (label: Label | null) => void;
+  setFriend: (friend: Profile | null) => void;
+  setLength: (length: number) => void;
+  setSearch: (search: string) => void;
+  setAttachment: (attachment: File | string | null) => void;
+  setDescription: (description: string) => void;
+  handleOnClick: () => void;
+  handleEditPost: (post: Post) => void;
 }
 
-function Modal({
-  open,
-  post,
-  label,
-  friend,
-  length,
-  attachment,
-  description,
-  setOpen,
-  setLabel,
-  setFriend,
-  setLength,
-  setAttachment,
-  setDescription,
-}: Props) {
+const useStore = create<Store>()((set) => ({
+  open: false,
+  post: null,
+  label: null,
+  friend: null,
+  length: 0,
+  search: "",
+  attachment: null,
+  description: "",
+  setOpen: (open) => set(() => ({ open })),
+  setLabel: (label) => set(() => ({ label })),
+  setFriend: (friend) => set(() => ({ friend })),
+  setLength: (length) => set(() => ({ length })),
+  setSearch: (search) => set(() => ({ search })),
+  setAttachment: (attachment) => set(() => ({ attachment })),
+  setDescription: (description) => set(() => ({ description })),
+  handleOnClick: () =>
+    set(() => ({
+      length: 0,
+      post: null,
+      open: true,
+      label: null,
+      friend: null,
+      description: "",
+      attachment: null,
+    })),
+  handleEditPost: (post) =>
+    set(() => ({
+      open: true,
+      post: post,
+      friend: post.friend,
+      label: post.label ?? null,
+      attachment: post.attachment,
+      description: post.description,
+      length: post.description.length,
+    })),
+}));
+
+function Modal() {
+  /**
+   * @description hooks
+   */
   const { user } = useUser();
-
-  const { push } = useRouter();
-
   const utils = trpc.useContext();
-
   const profile = trpc.getProfile.useQuery();
 
-  const createPost = trpc.createPost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      toast.success("Post created!");
-      utils.getProfilePosts.invalidate();
-      if (friend) return push("/inbox");
-      if (label === "PRIVATE") return push("/posts");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
+  /**
+   * @description state from store @see useStore
+   */
+  const open = useStore((state) => state.open);
+  const post = useStore((state) => state.post);
+  const label = useStore((state) => state.label);
+  const friend = useStore((state) => state.friend);
+  const length = useStore((state) => state.length);
+  const setOpen = useStore((state) => state.setOpen);
+  const setLabel = useStore((state) => state.setLabel);
+  const setFriend = useStore((state) => state.setFriend);
+  const setLength = useStore((state) => state.setLength);
+  const attachment = useStore((state) => state.attachment);
+  const description = useStore((state) => state.description);
+  const setAttachment = useStore((state) => state.setAttachment);
+  const setDescription = useStore((state) => state.setDescription);
 
-  const updatePost = trpc.updatePost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      toast.success("Post updated!");
-      utils.getProfilePosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
+  /**
+   * @description delete attachment mutation that invokes an API call to a corresponding tRPC procedure
+   */
   const deleteAttachment = trpc.deleteAttachment.useMutation({
     onError: (err: any) => {
       toast.dismiss();
@@ -148,36 +128,11 @@ function Modal({
     },
   });
 
-  const generateAI = trpc.generateAIResponse.useMutation({
-    onSuccess: (data) => {
-      let i = 0;
-      if (!data)
-        return toast.error("AI didn't output any text. Please try again.");
-      const text = data.trim();
-      const intervalId = setInterval(() => {
-        i++;
-        setDescription(text.slice(0, i));
-        setLength(text.slice(0, i).length);
-        if (i > text.length) {
-          clearInterval(intervalId);
-        }
-      }, 20);
-      utils.getProfile.invalidate();
-      toast.success("Updated your post with AI generated text!");
-    },
-    onError: (err: any) => toast.error(err.message ?? API_ERROR_MESSAGE),
-  });
-
-  const handleOnGenerateAI = () => {
-    if (!profile.data) return;
-    if (profile.data.credits < 1000)
-      return toast.error("You don't have enough credits");
-    generateAI.mutate({
-      prompt: description,
-      credits: profile.data.credits - 4,
-    });
-  };
-
+  /**
+   * @description event handler that takes care of file upload for both create and update mutation
+   * @see createPost
+   * @see updatePost
+   */
   const handleOnUpload = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (
@@ -214,7 +169,6 @@ function Modal({
           attachmentPath: filePath,
           authorId: user.id,
           friendId: friend?.id,
-          credits: profile.data.credits - 2,
         });
       }
     } catch (e: any) {
@@ -223,9 +177,66 @@ function Modal({
     }
   };
 
+  /**
+   * @description create post mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const createPost = trpc.createPost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Post created!");
+      utils.getDefaultPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the create post mutation @see createPost
+   */
+  const handleOnCreate = async (title: string, description: string) => {
+    if (!label) return toast.error("Please set a label for the post");
+    if (!user?.id || !profile.data) return;
+    toast.loading("Loading...");
+    if (attachment && typeof attachment !== "string") {
+      handleOnUpload(title, description);
+    } else {
+      createPost.mutate({
+        label,
+        title,
+        description,
+        authorId: user.id,
+        friendId: friend?.id,
+      });
+    }
+  };
+
+  /**
+   * @description update post mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      toast.success("Post updated!");
+      utils.getDefaultPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the update post mutation @see updatePost
+   */
   const handleOnUpdate = (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (!post) return;
+    toast.loading("Loading...");
     if (attachment && typeof attachment !== "string") {
       try {
         if (post.attachmentPath) {
@@ -276,35 +287,61 @@ function Modal({
     }
   };
 
-  const handleOnCreate = async (title: string, description: string) => {
-    if (!label) return toast.error("Please set a label for the post");
-    if (!user?.id || !profile.data) return;
-    else if (attachment && typeof attachment !== "string") {
-      handleOnUpload(title, description);
-    } else {
-      createPost.mutate({
-        label,
-        title,
-        description,
-        authorId: user.id,
-        friendId: friend?.id,
-        credits: profile.data.credits - 2,
-      });
-    }
+  /**
+   * @description generate AI mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const generateAI = trpc.generateAIResponse.useMutation({
+    onSuccess: (data) => {
+      let i = 0;
+      if (!data)
+        return toast.error("AI didn't output any text. Please try again.");
+      const text = data.trim();
+      const intervalId = setInterval(() => {
+        i++;
+        setDescription(text.slice(0, i));
+        setLength(text.slice(0, i).length);
+        if (i > text.length) {
+          clearInterval(intervalId);
+        }
+      }, 20);
+      utils.getProfile.invalidate();
+      toast.success("Updated your post with AI generated text!");
+    },
+    onError: (err: any) => toast.error(err.message ?? API_ERROR_MESSAGE),
+  });
+
+  /**
+   * @description event handler that triggers the generate AI mutation @see generateAI
+   */
+  const handleOnGenerateAI = () => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 10)
+      return toast.error("You don't have enough credits");
+    generateAI.mutate({
+      prompt: description,
+      credits: profile.data.credits - 10,
+    });
   };
 
+  /**
+   * @description event handler that stores the newly changed value from the description text field
+   */
   const handleOnChange = (text: string) => {
     setDescription(text);
     setLength(text.length);
   };
 
+  /**
+   * @description form event handler that triggers the update mutation if there's an existing post and create mutation if there isn't
+   * @see updatePost
+   * @see createPost
+   */
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const target = e.target as typeof e.target & {
       title: { value: string };
       description: { value: string };
     };
-    toast.loading("Loading...");
     if (post) {
       handleOnUpdate(target.title.value, target.description.value);
     } else {
@@ -312,6 +349,9 @@ function Modal({
     }
   };
 
+  /**
+   * @description event handler for changing media file
+   */
   const handleFileSelect = async (event: FormEvent<HTMLInputElement>) => {
     const target = event.target as typeof event.target & {
       files: FileList;
@@ -320,6 +360,9 @@ function Modal({
     setAttachment(file);
   };
 
+  /**
+   * @link https://nikitahl.com/circle-progress-bar-css
+   */
   const progress = `
     radial-gradient(closest-side, white 85%, transparent 80% 100%),
     conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
@@ -450,26 +493,43 @@ function Modal({
   );
 }
 
-export default function Board() {
+export default function Home() {
+  /**
+   * @link https://twitter.com/samselikoff/status/1651071826393550849
+   */
   let mouseX = useMotionValue(0);
   let mouseY = useMotionValue(0);
+  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+    let { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+  const flash = useMotionTemplate`
+  radial-gradient(
+    650px circle at ${mouseX}px ${mouseY}px,
+    rgba(255, 255, 255, 0.05),
+    transparent 80%
+  )
+`;
 
-  const { back, push, query } = useRouter();
-  const id = query.id as string;
-
+  /**
+   * @description hooks
+   */
   const utils = trpc.useContext();
+  const { back, push } = useRouter();
+  const posts = trpc.getDefaultPosts.useQuery();
 
-  const [open, setOpen] = useState(false);
-  const [length, setLength] = useState(0);
-  const [search, setSearch] = useState("");
-  const [description, setDescription] = useState("");
-  const [post, setPost] = useState<Post | null>(null);
-  const [label, setLabel] = useState<Label | null>(null);
-  const [friend, setFriend] = useState<Profile | null>(null);
-  const [attachment, setAttachment] = useState<File | string | null>(null);
+  /**
+   * @description state from store @see useStore
+   */
+  const setSearch = useStore((state) => state.setSearch);
+  const handleOnClick = useStore((state) => state.handleOnClick);
+  const handleEditPost = useStore((state) => state.handleEditPost);
 
-  const posts = trpc.getProfilePosts.useQuery(id);
-
+  /**
+   * @description filters posts based on search query from store @see useStore
+   */
+  const search = useStore((state) => state.search);
   const filterPost = (post: Post) => {
     return (
       post.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -479,11 +539,14 @@ export default function Board() {
     );
   };
 
+  /**
+   * @description create like mutation that invokes an API call to a corresponding tRPC procedure
+   */
   const createLike = trpc.createLike.useMutation({
     onSuccess: () => {
       toast.dismiss();
       toast.success("Post liked!");
-      utils.getProfilePosts.invalidate();
+      utils.getDefaultPosts.invalidate();
     },
     onError: (err: any) => {
       toast.dismiss();
@@ -491,79 +554,10 @@ export default function Board() {
     },
   });
 
-  const deleteLike = trpc.deleteLike.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      toast.success("Post unliked!");
-      utils.getProfilePosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
-  const createBookmark = trpc.createBookmark.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      toast.success("Post bookmarked!");
-      utils.getProfilePosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
-  const deleteBookmark = trpc.deleteBookmark.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getProfilePosts.invalidate();
-      toast.success("Post unbookmarked!");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
-  const updatePost = trpc.updatePost.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      toast.success("Post updated!");
-      utils.getPinnedPosts.invalidate();
-      utils.getProfilePosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
-  const deletePost = trpc.deletePost.useMutation({
-    onSuccess: () => {
-      toast.dismiss();
-      utils.getProfile.invalidate();
-      toast.success("Post deleted!");
-      utils.getProfilePosts.invalidate();
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
-
-  const handleOnClick = () => {
-    setLength(0);
-    setOpen(true);
-    setPost(null);
-    setLabel(null);
-    setFriend(null);
-    setDescription("");
-    setAttachment(null);
-  };
-
-  const handleOnCreateLike = (
+  /**
+   * @description event handler that triggers the create like mutation @see createLike
+   */
+  const handleCreateLike = (
     postId: number,
     profileId: string,
     popularity: number
@@ -576,7 +570,25 @@ export default function Board() {
     });
   };
 
-  const handleOnDeleteLike = (
+  /**
+   * @description delete like mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const deleteLike = trpc.deleteLike.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      toast.success("Post unliked!");
+      utils.getDefaultPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the delete like mutation @see deleteLike
+   */
+  const handleDeleteLike = (
     postId: number,
     profileId: string,
     popularity: number
@@ -589,17 +601,26 @@ export default function Board() {
     });
   };
 
-  const handleOnEditPost = (post: Post) => {
-    setOpen(true);
-    setPost(post);
-    setFriend(post.friend);
-    setLabel(post.label ?? null);
-    setAttachment(post.attachment);
-    setDescription(post.description);
-    setLength(post.description.length);
-  };
+  /**
+   * @description update post mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const updatePost = trpc.updatePost.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      toast.success("Post updated!");
+      utils.getPinnedPosts.invalidate();
+      utils.getDefaultPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
 
-  const handleOnUpdatePost = (post: Post, pinned: boolean) => {
+  /**
+   * @description event handler that triggers the update post mutation @see updatePost
+   */
+  const handleUpdatePost = (post: Post, pinned: boolean) => {
     toast.loading("Loading...");
     updatePost.mutate({
       id: post.id,
@@ -610,7 +631,26 @@ export default function Board() {
     });
   };
 
-  const handleOnDeletePost = (post: Post) => {
+  /**
+   * @description delete post mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const deletePost = trpc.deletePost.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Post deleted!");
+      utils.getDefaultPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the delete post mutation @see deletePost
+   */
+  const handleDeletePost = (post: Post) => {
     if (!post) return;
     toast.loading("Loading...");
     deletePost.mutate({
@@ -619,7 +659,25 @@ export default function Board() {
     });
   };
 
-  const handleOnCreateBookmark = (
+  /**
+   * @description create bookmark mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const createBookmark = trpc.createBookmark.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      toast.success("Post bookmarked!");
+      utils.getDefaultPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the create bookmark mutation @see createBookmark
+   */
+  const handleCreateBookmark = (
     postId: number,
     profileId: string,
     popularity: number
@@ -632,7 +690,25 @@ export default function Board() {
     });
   };
 
-  const handleOnDeleteBookmark = (
+  /**
+   * @description delete bookmark mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const deleteBookmark = trpc.deleteBookmark.useMutation({
+    onSuccess: () => {
+      toast.dismiss();
+      utils.getDefaultPosts.invalidate();
+      toast.success("Post unbookmarked!");
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the delete bookmark mutation @see deleteBookmark
+   */
+  const handleDeleteBookmark = (
     postId: number,
     profileId: string,
     popularity: number
@@ -644,37 +720,9 @@ export default function Board() {
       popularity,
     });
   };
-
-  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
-    let { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  }
-
-  const flash = useMotionTemplate`
-  radial-gradient(
-    650px circle at ${mouseX}px ${mouseY}px,
-    rgba(255, 255, 255, 0.05),
-    transparent 80%
-  )
-`;
   return (
     <>
-      <Modal
-        open={open}
-        post={post}
-        label={label}
-        friend={friend}
-        length={length}
-        attachment={attachment}
-        description={description}
-        setOpen={setOpen}
-        setLabel={setLabel}
-        setFriend={setFriend}
-        setLength={setLength}
-        setAttachment={setAttachment}
-        setDescription={setDescription}
-      />
+      <Modal />
       <div className="pb-36">
         <SignedIn>
           <div className="my-8 px-4 sm:mt-12 sm:px-6 lg:px-8">
@@ -726,7 +774,7 @@ export default function Board() {
           </div>
         </div>
         <div className="mt-8 px-4 sm:mt-12 sm:px-6 lg:px-8">
-          <PinnedPosts handleOnUpdatePost={handleOnUpdatePost} />
+          <PinnedPosts handleOnUpdatePost={handleUpdatePost} />
           <div className="flex items-center justify-center">
             <div className="w-full columns-xs gap-6 space-y-6">
               {posts.data ? (
@@ -751,20 +799,20 @@ export default function Board() {
 
                           <PostCard
                             post={post}
-                            handleOnEditPost={handleOnEditPost}
-                            handleOnDeletePost={handleOnDeletePost}
-                            handleOnUpdatePost={handleOnUpdatePost}
-                            handleOnCreateLike={handleOnCreateLike}
-                            handleOnDeleteLike={handleOnDeleteLike}
-                            handleOnCreateBookmark={handleOnCreateBookmark}
-                            handleOnDeleteBookmark={handleOnDeleteBookmark}
+                            handleOnEditPost={handleEditPost}
+                            handleOnDeletePost={handleDeletePost}
+                            handleOnUpdatePost={handleUpdatePost}
+                            handleOnCreateLike={handleCreateLike}
+                            handleOnDeleteLike={handleDeleteLike}
+                            handleOnCreateBookmark={handleCreateBookmark}
+                            handleOnDeleteBookmark={handleDeleteBookmark}
                           />
                         </div>
                       </div>
                     ))}
                 </>
               ) : posts.isLoading || posts.isError ? (
-                <PostSkeleton />
+                <PostsSkeleton />
               ) : null}
             </div>
           </div>

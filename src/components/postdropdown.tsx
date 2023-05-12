@@ -1,43 +1,10 @@
 import { Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
-import { Prisma } from "@prisma/client";
+import { RouterOutputs } from "@src/server/routers/_app";
 import clsx from "clsx";
 import { Fragment } from "react";
 
-type Post = Prisma.PostGetPayload<{
-  include: {
-    _count: true;
-    author: true;
-    friend: true;
-    likes: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    comments: {
-      include: {
-        author: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    bookmarks: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+type Post = RouterOutputs["getPublicPosts"][number];
 
 interface Props {
   post: Post;

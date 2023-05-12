@@ -7,18 +7,20 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Label, Profile } from "@prisma/client";
+import { Label } from "@prisma/client";
 import Avatar from "@src/components/avatar";
 import LabelDropdown from "@src/components/labeldropdown";
 import PostAttachment from "@src/components/postattachment";
 import PostButtons from "@src/components/postbuttons";
 import ProfileDetails from "@src/components/profiledetails";
+import ProfileSkeleton from "@src/components/profileskeleton";
 import { trpc } from "@src/utils/trpc";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Dispatch, FormEvent, Fragment, SetStateAction, useState } from "react";
+import { FormEvent, Fragment } from "react";
 import { toast } from "react-hot-toast";
 import { Upload } from "upload-js";
+import { create } from "zustand";
 
 const MAX_TOKENS = 720;
 const API_ERROR_MESSAGE =
@@ -28,72 +30,72 @@ const upload = Upload({
   apiKey: process.env.NEXT_PUBLIC_UPLOAD_APIKEY as string,
 });
 
-interface Props {
+interface Store {
   open: boolean;
-  friend: Profile | null | undefined;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  label: Label | null;
+  length: number;
+  attachment: File | string | null;
+  description: string;
+  setOpen: (open: boolean) => void;
+  setLabel: (label: Label | null) => void;
+  setLength: (length: number) => void;
+  setAttachment: (attachment: File | string | null) => void;
+  setDescription: (description: string) => void;
 }
 
-function Modal({ open, friend, setOpen }: Props) {
+const useStore = create<Store>()((set) => ({
+  open: false,
+  label: null,
+  length: 0,
+  attachment: "",
+  description: "",
+  setOpen: (open) => set(() => ({ open })),
+  setLabel: (label) =>
+    set(() => ({
+      label,
+    })),
+  setLength: (length) =>
+    set(() => ({
+      length,
+    })),
+  setAttachment: (attachment) =>
+    set(() => ({
+      attachment,
+    })),
+  setDescription: (description) =>
+    set(() => ({
+      description,
+    })),
+}));
+
+function Modal() {
+  /**
+   * @description hooks
+   */
   const { user } = useUser();
-
-  const { push } = useRouter();
-
   const utils = trpc.useContext();
-
-  const [length, setLength] = useState(0);
-  const [description, setDescription] = useState("");
-  const [label, setLabel] = useState<Label | null>(null);
-  const [attachment, setAttachment] = useState<File | string | null>(null);
-
+  const { query } = useRouter();
+  const id = query.id as string;
   const profile = trpc.getProfile.useQuery();
+  const friend = trpc.getProfile.useQuery(id)?.data;
 
-  const createPost = trpc.createPost.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      toast.dismiss();
-      utils.getInbox.invalidate();
-      utils.getProfile.invalidate();
-      toast.success("Post created!");
-      if (friend) return push("/inbox");
-      if (label === "PRIVATE") return push("/posts");
-    },
-    onError: (err: any) => {
-      toast.dismiss();
-      toast.error(err.message ?? API_ERROR_MESSAGE);
-    },
-  });
+  /**
+   * @description state from store @see useStore
+   */
+  const open = useStore((state) => state.open);
+  const label = useStore((state) => state.label);
+  const length = useStore((state) => state.length);
+  const setOpen = useStore((state) => state.setOpen);
+  const setLabel = useStore((state) => state.setLabel);
+  const setLength = useStore((state) => state.setLength);
+  const attachment = useStore((state) => state.attachment);
+  const description = useStore((state) => state.description);
+  const setAttachment = useStore((state) => state.setAttachment);
+  const setDescription = useStore((state) => state.setDescription);
 
-  const generateAI = trpc.generateAIResponse.useMutation({
-    onSuccess: (data) => {
-      let i = 0;
-      if (!data)
-        return toast.error("AI didn't output any text. Please try again.");
-      const text = data.trim();
-      const intervalId = setInterval(() => {
-        i++;
-        setDescription(text.slice(0, i));
-        setLength(text.slice(0, i).length);
-        if (i > text.length) {
-          clearInterval(intervalId);
-        }
-      }, 20);
-      utils.getProfile.invalidate();
-      toast.success("Updated your post with AI generated text!");
-    },
-    onError: (err: any) => toast.error(err.message ?? API_ERROR_MESSAGE),
-  });
-
-  const handleOnGenerateAI = () => {
-    if (!prompt || !profile.data) return;
-    if (profile.data.credits < 1000)
-      return toast.error("You don't have enough credits");
-    generateAI.mutate({
-      prompt: description,
-      credits: profile.data.credits - 4,
-    });
-  };
-
+  /**
+   * @description event handler that takes care of file upload for create mutation @see createPost
+   */
   const handleOnUpload = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (
@@ -118,7 +120,6 @@ function Modal({ open, friend, setOpen }: Props) {
         attachmentPath: filePath,
         authorId: user.id,
         friendId: friend?.id,
-        credits: profile.data.credits - 2,
       });
     } catch (e: any) {
       toast.dismiss();
@@ -126,10 +127,31 @@ function Modal({ open, friend, setOpen }: Props) {
     }
   };
 
+  /**
+   * @description create post mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const createPost = trpc.createPost.useMutation({
+    onSuccess: () => {
+      setOpen(false);
+      toast.dismiss();
+      utils.getProfile.invalidate();
+      toast.success("Post created!");
+      utils.getPublicPosts.invalidate();
+    },
+    onError: (err: any) => {
+      toast.dismiss();
+      toast.error(err.message ?? API_ERROR_MESSAGE);
+    },
+  });
+
+  /**
+   * @description event handler that triggers the create post mutation @see createPost
+   */
   const handleOnCreate = async (title: string, description: string) => {
     if (!label) return toast.error("Please set a label for the post");
     if (!user?.id || !profile.data) return;
-    else if (attachment && typeof attachment !== "string") {
+    toast.loading("Loading...");
+    if (attachment && typeof attachment !== "string") {
       handleOnUpload(title, description);
     } else {
       createPost.mutate({
@@ -138,26 +160,70 @@ function Modal({ open, friend, setOpen }: Props) {
         description,
         authorId: user.id,
         friendId: friend?.id,
-        credits: profile.data.credits - 2,
       });
     }
   };
 
+  /**
+   * @description generate AI mutation that invokes an API call to a corresponding tRPC procedure
+   */
+  const generateAI = trpc.generateAIResponse.useMutation({
+    onSuccess: (data) => {
+      let i = 0;
+      if (!data)
+        return toast.error("AI didn't output any text. Please try again.");
+      const text = data.trim();
+      const intervalId = setInterval(() => {
+        i++;
+        setDescription(text.slice(0, i));
+        setLength(text.slice(0, i).length);
+        if (i > text.length) {
+          clearInterval(intervalId);
+        }
+      }, 20);
+      utils.getProfile.invalidate();
+      toast.success("Updated your post with AI generated text!");
+    },
+    onError: (err: any) => toast.error(err.message ?? API_ERROR_MESSAGE),
+  });
+
+  /**
+   * @description event handler that stores the newly changed value from the description text field
+   */
   const handleOnChange = (text: string) => {
     setDescription(text);
     setLength(text.length);
   };
 
+  /**
+   * @description event handler that triggers the generate AI mutation @see generateAI
+   */
+  const handleOnGenerateAI = () => {
+    if (!prompt || !profile.data) return;
+    if (profile.data.credits < 10)
+      return toast.error("You don't have enough credits");
+    generateAI.mutate({
+      prompt: description,
+      credits: profile.data.credits - 10,
+    });
+  };
+
+  /**
+   * @description form event handler that triggers the create mutation
+   * @see createPost
+   */
   const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const target = e.target as typeof e.target & {
       title: { value: string };
       description: { value: string };
     };
-    toast.loading("Loading...");
     handleOnCreate(target.title.value, target.description.value);
   };
 
+  /**
+   * @description event handler for changing media file
+   */
   const handleFileSelect = async (event: FormEvent<HTMLInputElement>) => {
     const target = event.target as typeof event.target & {
       files: FileList;
@@ -166,6 +232,9 @@ function Modal({ open, friend, setOpen }: Props) {
     setAttachment(file);
   };
 
+  /**
+   * @link https://nikitahl.com/circle-progress-bar-css
+   */
   const progress = `
     radial-gradient(closest-side, white 85%, transparent 80% 100%),
     conic-gradient(#242427 ${Math.round((length / MAX_TOKENS) * 100)}%, white 0)
@@ -302,22 +371,26 @@ function Modal({ open, friend, setOpen }: Props) {
   );
 }
 
-function ProfileButtons({
-  setOpen,
-}: {
-  setOpen: Dispatch<SetStateAction<boolean>>;
-}) {
+function ProfileButtons() {
+  /**
+   * @description hooks
+   */
   const { user } = useUser();
-
   const utils = trpc.useContext();
-
   const { push, query } = useRouter();
   const id = query.id as string;
-
   const profile = trpc.getProfile.useQuery(id);
   const sendingFriendStatus = trpc.getSendingFriendStatus.useQuery(id);
   const receivingFriendStatus = trpc.getReceivingFriendStatus.useQuery(id);
 
+  /**
+   * @description state from store @see useStore
+   */
+  const setOpen = useStore((state) => state.setOpen);
+
+  /**
+   * @description create friend request mutation that invokes an API call to a corresponding tRPC procedure
+   */
   const createFriendRequest = trpc.createFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -332,6 +405,23 @@ function ProfileButtons({
     },
   });
 
+  /**
+   * @description event handler that triggers the create friend request mutation @see createFriendRequest
+   */
+  const handleCreateFriendRequest = () => {
+    if (!user?.id || !profile.data?.id) return;
+    if (user.id === profile.data.id)
+      return toast.error("You can't send a friend request to yourself");
+    toast.loading("Loading...");
+    createFriendRequest.mutate({
+      senderId: user.id,
+      receiverId: profile.data.id,
+    });
+  };
+
+  /**
+   * @description delete friend request mutation that invokes an API call to a corresponding tRPC procedure
+   */
   const deleteFriendRequest = trpc.deleteFriendRequest.useMutation({
     onSuccess: () => {
       toast.dismiss();
@@ -346,18 +436,10 @@ function ProfileButtons({
     },
   });
 
-  const handleOnCreateFriendRequest = () => {
-    if (!user?.id || !profile.data?.id) return;
-    if (user.id === profile.data.id)
-      return toast.error("You can't send a friend request to yourself");
-    toast.loading("Loading...");
-    createFriendRequest.mutate({
-      senderId: user.id,
-      receiverId: profile.data.id,
-    });
-  };
-
-  const handleOnDeleteFriendRequest = (
+  /**
+   * @description event handler that triggers the delete friend request mutation @see deleteFriendRequest
+   */
+  const handleDeleteFriendRequest = (
     senderId?: string,
     receiverId?: string
   ) => {
@@ -375,7 +457,7 @@ function ProfileButtons({
         <button
           type="button"
           onClick={() =>
-            handleOnDeleteFriendRequest(
+            handleDeleteFriendRequest(
               sendingFriendStatus.data?.senderId,
               sendingFriendStatus.data?.receiverId
             )
@@ -388,7 +470,7 @@ function ProfileButtons({
         <button
           type="button"
           onClick={() =>
-            handleOnDeleteFriendRequest(
+            handleDeleteFriendRequest(
               receivingFriendStatus.data?.senderId,
               receivingFriendStatus.data?.receiverId
             )
@@ -401,7 +483,7 @@ function ProfileButtons({
         <button
           type="button"
           onClick={() =>
-            handleOnDeleteFriendRequest(
+            handleDeleteFriendRequest(
               sendingFriendStatus.data?.senderId,
               sendingFriendStatus.data?.receiverId
             )
@@ -414,7 +496,7 @@ function ProfileButtons({
         <button
           type="button"
           onClick={() =>
-            handleOnDeleteFriendRequest(
+            handleDeleteFriendRequest(
               receivingFriendStatus.data?.senderId,
               receivingFriendStatus.data?.receiverId
             )
@@ -452,7 +534,7 @@ function ProfileButtons({
         <button
           type="button"
           onClick={() =>
-            handleOnDeleteFriendRequest(
+            handleDeleteFriendRequest(
               receivingFriendStatus.data?.senderId,
               receivingFriendStatus.data?.receiverId
             )
@@ -473,7 +555,7 @@ function ProfileButtons({
       ) : (
         <button
           type="button"
-          onClick={handleOnCreateFriendRequest}
+          onClick={handleCreateFriendRequest}
           className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-brand-50 shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           Send friend request
@@ -483,44 +565,14 @@ function ProfileButtons({
   );
 }
 
-function Header({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) {
-  const { query } = useRouter();
-  const id = query.id as string;
-
-  const profile = trpc.getProfile.useQuery(id);
-  return (
-    <div className="md:flex md:items-center md:justify-between md:space-x-5">
-      <div className="flex w-full items-center space-x-5">
-        <Avatar imageUrl={profile.data?.imageUrl} />
-        {profile.data ? (
-          <ProfileDetails profile={profile.data} />
-        ) : (
-          <div className="flex w-full items-center justify-between motion-safe:animate-pulse">
-            <div className="flex w-full flex-col space-y-3">
-              <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-              <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-            </div>
-          </div>
-        )}
-      </div>
-      <ProfileButtons setOpen={setOpen} />
-    </div>
-  );
-}
-
 export default function Account() {
   const { user } = useUser();
-
-  const [open, setOpen] = useState(false);
-
   const { back, query } = useRouter();
   const id = query.id as string;
-
   const profile = trpc.getProfile.useQuery(id);
-
   return (
     <>
-      <Modal open={open} friend={profile.data} setOpen={setOpen} />
+      <Modal />
       <main className="pb-36 pt-12">
         <div className="mx-auto max-w-3xl space-y-10 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <button
@@ -531,7 +583,22 @@ export default function Account() {
             <ArrowLongLeftIcon className="h-5 w-5" />
             <span>Go back</span>
           </button>
-          <Header setOpen={setOpen} />
+          <div className="md:flex md:items-center md:justify-between md:space-x-5">
+            <div className="flex w-full items-center space-x-5">
+              <Avatar imageUrl={profile.data?.imageUrl} />
+              {profile.data ? (
+                <ProfileDetails profile={profile.data} />
+              ) : (
+                <div className="flex w-full items-center justify-between motion-safe:animate-pulse">
+                  <div className="flex w-full flex-col space-y-3">
+                    <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                    <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <ProfileButtons />
+          </div>
           <div className="space-y-4">
             <h3 className="text-base font-semibold leading-6 text-brand-50">
               Boards
@@ -619,152 +686,7 @@ export default function Account() {
                   )}
                 </>
               ) : (
-                <>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-6 motion-safe:animate-pulse">
-                    <div className="relative">
-                      <div className="h-48 w-full rounded-lg bg-brand-600"></div>
-                      <span className="absolute inset-0" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-5">
-                        <div className="flex w-full flex-col space-y-3">
-                          <div className="flex h-2.5 w-1/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                          <div className="flex h-2.5 w-2/4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        </div>
-                      </div>
-                      <div className="mt-6 flex flex-col justify-stretch space-y-4">
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                        <div className="flex h-4 items-center space-x-4 rounded-full bg-brand-700"></div>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                <ProfileSkeleton />
               )}
             </div>
           </div>

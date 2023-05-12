@@ -1,44 +1,11 @@
 import { SignedIn } from "@clerk/nextjs";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { Prisma } from "@prisma/client";
+import { RouterOutputs } from "@src/server/routers/_app";
 import { trpc } from "@src/utils/trpc";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 
-type Post = Prisma.PostGetPayload<{
-  include: {
-    _count: true;
-    author: true;
-    friend: true;
-    likes: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    comments: {
-      include: {
-        author: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-    bookmarks: {
-      include: {
-        profile: {
-          select: {
-            id: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+type Post = RouterOutputs["getPublicPosts"][number];
 
 interface Props {
   handleOnUpdatePost: (post: Post, pinned: boolean) => void;
