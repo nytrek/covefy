@@ -1,0 +1,155 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Profile {
+  id String [pk]
+  name String [not null]
+  imageUrl String [not null]
+  username String [not null]
+  credits Int [not null]
+  banner String
+  premium Boolean [not null, default: false]
+  popularity Int [not null, default: 0]
+  label Label [not null, default: 'PUBLIC']
+  posts Post [not null]
+  likes Like [not null]
+  bookmarks Bookmark [not null]
+  sender Friend [not null]
+  receiver Friend [not null]
+  inbox Post [not null]
+  comment Comment [not null]
+  boards Board [not null]
+  members Member [not null]
+}
+
+Table Board {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  name String [not null]
+  description String [not null]
+  imageUrl String
+  label Label [not null, default: 'PUBLIC']
+  profile Profile [not null]
+  profileId String [not null]
+  members Member [not null]
+  posts Post [not null]
+}
+
+Table Post {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  title String [not null]
+  description String [not null]
+  label Label [not null, default: 'PUBLIC']
+  likes Like [not null]
+  attachment String
+  attachmentPath String
+  pinned Boolean [not null, default: false]
+  bookmarks Bookmark [not null]
+  author Profile [not null]
+  authorId String [not null]
+  friend Profile
+  friendId String
+  comments Comment [not null]
+  board Board
+  boardId Int
+}
+
+Table Comment {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  comment String [not null]
+  post Post [not null]
+  postId Int [not null]
+  author Profile [not null]
+  authorId String [not null]
+}
+
+Table Like {
+  postId Int [not null]
+  post Post [not null]
+  profileId String [not null]
+  profile Profile [not null]
+
+  indexes {
+    (postId, profileId) [pk]
+  }
+}
+
+Table Bookmark {
+  postId Int [not null]
+  post Post [not null]
+  profileId String [not null]
+  profile Profile [not null]
+
+  indexes {
+    (postId, profileId) [pk]
+  }
+}
+
+Table Friend {
+  sender Profile [not null]
+  senderId String [not null]
+  receiver Profile [not null]
+  receiverId String [not null]
+  status Status [not null, default: 'PENDING']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (receiverId, senderId) [pk]
+  }
+}
+
+Table Member {
+  member Profile [not null]
+  memberId String [not null]
+  boardId Int [not null]
+  board Board [not null]
+
+  indexes {
+    (memberId, boardId) [pk]
+  }
+}
+
+Enum Status {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+Enum Label {
+  PUBLIC
+  PRIVATE
+}
+
+Ref: Board.profileId > Profile.id [delete: Cascade]
+
+Ref: Post.authorId > Profile.id [delete: Cascade]
+
+Ref: Post.friendId > Profile.id [delete: Cascade]
+
+Ref: Post.boardId > Board.id
+
+Ref: Comment.postId > Post.id [delete: Cascade]
+
+Ref: Comment.authorId > Profile.id [delete: Cascade]
+
+Ref: Like.postId > Post.id [delete: Cascade]
+
+Ref: Like.profileId > Profile.id [delete: Cascade]
+
+Ref: Bookmark.postId > Post.id [delete: Cascade]
+
+Ref: Bookmark.profileId > Profile.id [delete: Cascade]
+
+Ref: Friend.senderId > Profile.id [delete: Cascade]
+
+Ref: Friend.receiverId > Profile.id [delete: Cascade]
+
+Ref: Member.memberId > Profile.id [delete: Cascade]
+
+Ref: Member.boardId > Board.id [delete: Cascade]
