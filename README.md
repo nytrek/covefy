@@ -1,3 +1,5 @@
+![screenshot](./public/prisma.png)
+
 ## Run Locally
 
 ```bash
