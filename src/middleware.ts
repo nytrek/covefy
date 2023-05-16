@@ -11,14 +11,14 @@ const ratelimiter = new Ratelimit({
 });
 
 export default withClerkMiddleware(async (_req: NextRequest) => {
-  // const pathname = _req.nextUrl.pathname;
-  // if (pathname.startsWith("/api")) {
-  //   const ip = _req.ip ?? "127.0.0.1";
-  //   const { success } = await ratelimiter.limit(ip);
-  //   if (!success) {
-  //     throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-  //   }
-  // }
+  const pathname = _req.nextUrl.pathname;
+  if (pathname.startsWith("/api")) {
+    const ip = _req.ip ?? "127.0.0.1";
+    const { success } = await ratelimiter.limit(ip);
+    if (!success) {
+      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    }
+  }
   return NextResponse.next();
 });
 
